@@ -66,23 +66,28 @@ def run_validation_revert(system_prompt: tg.Variable, results, model, eval_fn, v
     results["validation_acc"].append(val_performance)
 
 set_seed(12)
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataset", type=str, required=True, default="BBH_tracking_shuffled_objects_seven_objects")
+parser.add_argument("--task_model", type=str, required=True, default="Qwen3-4B-Instruct-2507")
+parser.add_argument("--opt_model", type=str, required=True, default="Qwen3-4B-Instruct-2507")
+args = parser.parse_args()
 # llm_api_eval = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
 # llm_api_test = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
 eval_client = OpenAI(base_url="http://localhost:8000/v1", api_key="empty")
 test_client = OpenAI(base_url="http://localhost:8000/v1", api_key="empty")
 llm_api_eval = ChatExternalClient(
     client=eval_client,
-    model_string="Qwen3-4B-Instruct-2507",
+    model_string=args.opt_model,
 )
 llm_api_test = ChatExternalClient(
     client=test_client,
-    model_string="Qwen3-4B-Instruct-2507",
+    model_string=args.task_model,
 )
 tg.set_backward_engine(llm_api_eval, override=True)
 
 # Load the data and the evaluation function
 # train_set, val_set, test_set, eval_fn = load_task("BBH_object_counting", evaluation_api=llm_api_eval)
-train_set, val_set, test_set, eval_fn = load_task("BBH_tracking_shuffled_objects_seven_objects", evaluation_api=llm_api_eval)
+train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=llm_api_eval)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 # STARTING_SYSTEM_PROMPT = train_set.get_task_description()
 STARTING_SYSTEM_PROMPT = """You must give your final answer by starting with 'So the answer is'"""
