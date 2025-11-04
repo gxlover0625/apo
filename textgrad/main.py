@@ -36,7 +36,7 @@ def eval_dataset(test_set, eval_fn, model, max_samples: int=None):
     if max_samples is None:
         max_samples = len(test_set)
     accuracy_list = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
         for _, sample in enumerate(test_set):
             
@@ -81,9 +81,11 @@ llm_api_test = ChatExternalClient(
 tg.set_backward_engine(llm_api_eval, override=True)
 
 # Load the data and the evaluation function
-train_set, val_set, test_set, eval_fn = load_task("BBH_object_counting", evaluation_api=llm_api_eval)
+# train_set, val_set, test_set, eval_fn = load_task("BBH_object_counting", evaluation_api=llm_api_eval)
+train_set, val_set, test_set, eval_fn = load_task("BBH_tracking_shuffled_objects_seven_objects", evaluation_api=llm_api_eval)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
-STARTING_SYSTEM_PROMPT = train_set.get_task_description()
+# STARTING_SYSTEM_PROMPT = train_set.get_task_description()
+STARTING_SYSTEM_PROMPT = """You must give your final answer by starting with 'So the answer is'"""
 
 print(STARTING_SYSTEM_PROMPT)
 

@@ -4,3 +4,4 @@ log/
 logs/
 *.env
 *.egg-info/
+.vscode/
