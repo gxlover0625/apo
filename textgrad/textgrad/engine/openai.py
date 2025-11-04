@@ -70,10 +70,13 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
         self,
         prompt: str,
         system_prompt: str = None,
-        temperature=0,
+        temperature=None,
         max_tokens=2000,
         top_p=0.99,
     ):
+        if temperature is None:
+            temperature = getattr(self, 'default_temperature', 0.0)
+
         sys_prompt_arg = system_prompt if system_prompt else self.system_prompt
 
         cache_or_none = self._check_cache(sys_prompt_arg + prompt)

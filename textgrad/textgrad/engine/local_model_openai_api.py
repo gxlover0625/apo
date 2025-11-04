@@ -19,6 +19,7 @@ class ChatExternalClient(ChatOpenAI):
         client: OpenAI,
         model_string: str,
         system_prompt: str = DEFAULT_SYSTEM_PROMPT,
+        temperature: float = 0.0,
         **kwargs,
     ):
         """
@@ -47,3 +48,4 @@ class ChatExternalClient(ChatOpenAI):
             model_string=model_string, system_prompt=system_prompt, **kwargs
         )
         self.client = client
+        self.default_temperature = temperature

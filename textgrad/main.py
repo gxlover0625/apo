@@ -78,10 +78,12 @@ test_client = OpenAI(base_url="http://localhost:8000/v1", api_key="empty")
 llm_api_eval = ChatExternalClient(
     client=eval_client,
     model_string=args.opt_model,
+    temperature=0.7
 )
 llm_api_test = ChatExternalClient(
     client=test_client,
     model_string=args.task_model,
+    temperature=0.
 )
 tg.set_backward_engine(llm_api_eval, override=True)
 
