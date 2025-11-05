@@ -74,6 +74,17 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(bbh_mcq_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
+    
+    elif "logical_deduction_seven_objects" in task_name:
+        from .big_bench_hard import BigBenchHard
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        task_name = task_name[4:]
+        train_set = BigBenchHard(task_name, split="train", *args, **kwargs)
+        val_set = BigBenchHard(task_name, split="val", *args, **kwargs)
+        test_set = BigBenchHard(task_name, split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(bbh_mcq_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:
         from textgrad.loss import MultiFieldTokenParsedEvaluation
