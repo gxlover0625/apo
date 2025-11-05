@@ -1,3 +1,4 @@
+import os
 import argparse
 import concurrent
 from dotenv import load_dotenv
@@ -73,8 +74,10 @@ parser.add_argument("--opt_model", type=str, required=True, default="Qwen3-4B-In
 args = parser.parse_args()
 # llm_api_eval = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
 # llm_api_test = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
-eval_client = OpenAI(base_url="http://localhost:8000/v1", api_key="empty")
-test_client = OpenAI(base_url="http://localhost:8000/v1", api_key="empty")
+base_url = os.environ['OPENAI_BASE_URL']
+api_key = os.environ['OPENAI_API_KEY']
+eval_client = OpenAI(base_url=base_url, api_key=api_key)
+test_client = OpenAI(base_url=base_url, api_key=api_key)
 llm_api_eval = ChatExternalClient(
     client=eval_client,
     model_string=args.opt_model,
