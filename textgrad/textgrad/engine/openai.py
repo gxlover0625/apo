@@ -71,7 +71,7 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
         prompt: str,
         system_prompt: str = None,
         temperature=None,
-        max_tokens=2000,
+        max_tokens=5000,
         top_p=0.99,
     ):
         if temperature is None:
@@ -131,7 +131,7 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
         content: List[Union[str, bytes]],
         system_prompt=None,
         temperature=0,
-        max_tokens=2000,
+        max_tokens=5000,
         top_p=0.99,
     ):
         sys_prompt_arg = system_prompt if system_prompt else self.system_prompt
