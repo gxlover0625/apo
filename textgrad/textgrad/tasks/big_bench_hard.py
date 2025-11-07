@@ -66,14 +66,14 @@ class BigBenchHard(Dataset):
         # Download the dataset
         # Download from https://github.com/suzgunmirac/BIG-Bench-Hard/blob/main/bbh/[task_name].json
         # and save it to self.root
-        subprocess.call(
-            [
-                "wget",
-                f"https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/bbh/{self.task_name}.json",
-                "-O",
-                os.path.join(self.root, f"{self.task_name}.json")
-            ]
-        )
+        # subprocess.call(
+        #     [
+        #         "wget",
+        #         f"https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/bbh/{self.task_name}.json",
+        #         "-O",
+        #         os.path.join(self.root, f"{self.task_name}.json")
+        #     ]
+        # )
         # Separate to train, val, test
         data = json.load(open(os.path.join(self.root, f"{self.task_name}.json")))
         examples = data["examples"]
