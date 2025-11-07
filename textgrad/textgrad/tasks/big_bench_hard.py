@@ -4,6 +4,7 @@ import pandas as pd
 import subprocess
 import platformdirs
 import textgrad as tg
+import random
 from .base import Dataset
 
 # The below metric is taken from DSPy for consistenc
@@ -76,6 +77,7 @@ class BigBenchHard(Dataset):
         # Separate to train, val, test
         data = json.load(open(os.path.join(self.root, f"{self.task_name}.json")))
         examples = data["examples"]
+        random.shuffle(examples)
         train_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[:50]]
         val_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[50:150]]
         test_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[150:]]
