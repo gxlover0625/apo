@@ -35,10 +35,33 @@ def bbh_mcq_postprocess(text: str) -> str:
         return match.group(1)
     return ans
 
+# copy from
+# https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
+def bbh_freeform_postprocess(text: str) -> str:
+    ans = text
+    ans_line = ans.split('answer is ')
+    if len(ans_line) != 1:
+        ans = ans_line[1].strip()
+    ans = ans.split('\n')[0].strip()
+
+    if ans.endswith('.'):
+        ans = ans[:-1].strip()
+
+    match = re.search(r'\*\*(.*?)\*\*', ans)
+    if match:
+        return match.group(1)
+
+    return ans
+
 import textgrad as tg
 def bbh_mcq_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
     pred = bbh_mcq_postprocess(str(prediction.value))
     ref = bbh_mcq_postprocess(str(ground_truth_answer.value))
+    return int(pred == ref)
+
+def bbh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
+    pred = bbh_freeform_postprocess(str(prediction.value))
+    ref = str(ground_truth_answer.value)
     return int(pred == ref)
 
 def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tuple[Dataset, Dataset, Callable]:
@@ -95,6 +118,17 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         test_set = BigBenchHard(task_name, split="test", *args, **kwargs)
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(bbh_mcq_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
+    elif "boolean_expressions" in task_name:
+        from .big_bench_hard import BigBenchHard
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        task_name = task_name[4:]
+        train_set = BigBenchHard(task_name, split="train", *args, **kwargs)
+        val_set = BigBenchHard(task_name, split="val", *args, **kwargs)
+        test_set = BigBenchHard(task_name, split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(bbh_freeform_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:

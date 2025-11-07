@@ -94,6 +94,9 @@ class BigBenchHard(Dataset):
     
     def __getitem__(self, index):
         row = self.data.iloc[index]
+        import numpy as np
+        if isinstance(row["y"], np.bool):
+            row["y"] = str(row["y"])
         return row["x"], row["y"]
     
     def __len__(self):
