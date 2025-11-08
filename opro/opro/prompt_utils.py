@@ -12,76 +12,90 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """The utility functions for prompting GPT and Google Cloud models."""
-
+import os
 import time
 import google.generativeai as palm
 import openai
+from openai import OpenAI
 
 
 def call_openai_server_single_prompt(
     prompt, model="gpt-3.5-turbo", max_decode_steps=20, temperature=0.8
 ):
   """The function to call OpenAI server with an input string."""
-  try:
-    completion = openai.ChatCompletion.create(
-        model=model,
-        temperature=temperature,
-        max_tokens=max_decode_steps,
-        messages=[
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return completion.choices[0].message.content
+  client = OpenAI(
+    base_url=os.environ['OPENAI_BASE_URL'],
+    api_key=os.environ['OPENAI_API_KEY'],
+  )
+  response = client.chat.completions.create(
+    model=model,
+    temperature=temperature,
+    max_tokens=max_decode_steps,
+    messages=[
+      {"role": "user", "content": prompt},
+    ],
+  )
+  return response.choices[0].message.content
+  # try:
+  #   completion = openai.ChatCompletion.create(
+  #       model=model,
+  #       temperature=temperature,
+  #       max_tokens=max_decode_steps,
+  #       messages=[
+  #           {"role": "user", "content": prompt},
+  #       ],
+  #   )
+  #   return completion.choices[0].message.content
 
-  except openai.error.Timeout as e:
-    retry_time = e.retry_after if hasattr(e, "retry_after") else 30
-    print(f"Timeout error occurred. Retrying in {retry_time} seconds...")
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except openai.error.Timeout as e:
+  #   retry_time = e.retry_after if hasattr(e, "retry_after") else 30
+  #   print(f"Timeout error occurred. Retrying in {retry_time} seconds...")
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
-  except openai.error.RateLimitError as e:
-    retry_time = e.retry_after if hasattr(e, "retry_after") else 30
-    print(f"Rate limit exceeded. Retrying in {retry_time} seconds...")
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except openai.error.RateLimitError as e:
+  #   retry_time = e.retry_after if hasattr(e, "retry_after") else 30
+  #   print(f"Rate limit exceeded. Retrying in {retry_time} seconds...")
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
-  except openai.error.APIError as e:
-    retry_time = e.retry_after if hasattr(e, "retry_after") else 30
-    print(f"API error occurred. Retrying in {retry_time} seconds...")
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except openai.error.APIError as e:
+  #   retry_time = e.retry_after if hasattr(e, "retry_after") else 30
+  #   print(f"API error occurred. Retrying in {retry_time} seconds...")
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
-  except openai.error.APIConnectionError as e:
-    retry_time = e.retry_after if hasattr(e, "retry_after") else 30
-    print(f"API connection error occurred. Retrying in {retry_time} seconds...")
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except openai.error.APIConnectionError as e:
+  #   retry_time = e.retry_after if hasattr(e, "retry_after") else 30
+  #   print(f"API connection error occurred. Retrying in {retry_time} seconds...")
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
-  except openai.error.ServiceUnavailableError as e:
-    retry_time = e.retry_after if hasattr(e, "retry_after") else 30
-    print(f"Service unavailable. Retrying in {retry_time} seconds...")
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except openai.error.ServiceUnavailableError as e:
+  #   retry_time = e.retry_after if hasattr(e, "retry_after") else 30
+  #   print(f"Service unavailable. Retrying in {retry_time} seconds...")
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
-  except OSError as e:
-    retry_time = 5  # Adjust the retry time as needed
-    print(
-        f"Connection error occurred: {e}. Retrying in {retry_time} seconds..."
-    )
-    time.sleep(retry_time)
-    return call_openai_server_single_prompt(
-        prompt, max_decode_steps=max_decode_steps, temperature=temperature
-    )
+  # except OSError as e:
+  #   retry_time = 5  # Adjust the retry time as needed
+  #   print(
+  #       f"Connection error occurred: {e}. Retrying in {retry_time} seconds..."
+  #   )
+  #   time.sleep(retry_time)
+  #   return call_openai_server_single_prompt(
+  #       prompt, max_decode_steps=max_decode_steps, temperature=temperature
+  #   )
 
 
 def call_openai_server_func(

@@ -156,16 +156,16 @@ def main(_):
     assert dataset_name == "gsm8k"
     assert task_name in {"train", "test"}
 
-  assert scorer_llm_name in {
-      "text-bison",
-      "gpt-3.5-turbo",
-      "gpt-4",
-  }
-  assert optimizer_llm_name in {
-      "text-bison",
-      "gpt-3.5-turbo",
-      "gpt-4",
-  }
+  # assert scorer_llm_name in {
+  #     "text-bison",
+  #     "gpt-3.5-turbo",
+  #     "gpt-4",
+  # }
+  # assert optimizer_llm_name in {
+  #     "text-bison",
+  #     "gpt-3.5-turbo",
+  #     "gpt-4",
+  # }
   assert meta_prompt_type in {
       "both_instructions_and_exemplars",
       "instructions_only",
@@ -188,25 +188,25 @@ def main(_):
   )
 
   # make sure the scorer and optimizer models are callable
-  if scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
-    assert openai_api_key, "The OpenAI API key must be provided."
-    openai.api_key = openai_api_key
-  else:
-    assert scorer_llm_name == "text-bison"
-    assert (
-        palm_api_key
-    ), "A PaLM API key is needed when prompting the text-bison model."
-    palm.configure(api_key=palm_api_key)
+  # if scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
+  #   assert openai_api_key, "The OpenAI API key must be provided."
+  #   openai.api_key = openai_api_key
+  # else:
+  #   assert scorer_llm_name == "text-bison"
+  #   assert (
+  #       palm_api_key
+  #   ), "A PaLM API key is needed when prompting the text-bison model."
+  #   palm.configure(api_key=palm_api_key)
 
-  if optimizer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
-    assert openai_api_key, "The OpenAI API key must be provided."
-    openai.api_key = openai_api_key
-  else:
-    assert optimizer_llm_name == "text-bison"
-    assert (
-        palm_api_key
-    ), "A PaLM API key is needed when prompting the text-bison model."
-    palm.configure(api_key=palm_api_key)
+  # if optimizer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
+  #   assert openai_api_key, "The OpenAI API key must be provided."
+  #   openai.api_key = openai_api_key
+  # else:
+  #   assert optimizer_llm_name == "text-bison"
+  #   assert (
+  #       palm_api_key
+  #   ), "A PaLM API key is needed when prompting the text-bison model."
+  #   palm.configure(api_key=palm_api_key)
 
   if dataset_name == "mmlu":
     root_data_folder_path = os.path.join(ROOT_DATA_FOLDER_PATH, "MMLU-data")
@@ -275,7 +275,7 @@ def main(_):
     call_scorer_server_func = call_scorer_finetuned_palm_server_func
 
   else:
-    assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
+    # assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
     scorer_gpt_max_decode_steps = 1024
     scorer_gpt_temperature = 0.0
 
@@ -292,7 +292,7 @@ def main(_):
     scorer_llm_dict.update(scorer_gpt_dict)
     call_scorer_server_func = functools.partial(
         prompt_utils.call_openai_server_func,
-        model=scorer_llm_name.lower(),
+        model=scorer_llm_name,
         max_decode_steps=scorer_gpt_max_decode_steps,
         temperature=scorer_gpt_temperature,
     )
@@ -336,7 +336,7 @@ def main(_):
     call_optimizer_server_func = call_optimizer_finetuned_palm_server_func
 
   else:
-    assert optimizer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
+    # assert optimizer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     optimizer_gpt_max_decode_steps = 512
     optimizer_gpt_temperature = 1.0
 
@@ -683,7 +683,7 @@ def main(_):
     old_instruction_score_threshold = 0.0
     # old_instruction_score_threshold = 0.15  # for GSM8K
   else:
-    assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
+    # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     old_instruction_score_threshold = 0.3
 
   if scorer_llm_name == "text-bison":
@@ -691,7 +691,7 @@ def main(_):
     include_qa = False
     evaluate_in_parallel = False
   else:
-    assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
+    # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     extract_final_answer_by_prompting_again = False
     include_qa = False
     evaluate_in_parallel = False
