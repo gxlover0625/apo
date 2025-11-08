@@ -66,7 +66,7 @@ def run_validation_revert(system_prompt: tg.Variable, results, model, eval_fn, v
 
     results["validation_acc"].append(val_performance)
 
-set_seed(12)
+set_seed(42)
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", type=str, required=True, default="BBH_tracking_shuffled_objects_seven_objects")
 parser.add_argument("--task_model", type=str, required=True, default="Qwen3-4B-Instruct-2507")
