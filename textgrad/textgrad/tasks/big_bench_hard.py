@@ -78,9 +78,15 @@ class BigBenchHard(Dataset):
         data = json.load(open(os.path.join(self.root, f"{self.task_name}.json")))
         examples = data["examples"]
         random.shuffle(examples)
-        train_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[:50]]
-        val_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[50:150]]
-        test_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[150:]]
+        if self.task_name != "causal_judgement":
+            train_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[:50]]
+            val_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[50:150]]
+            test_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[150:]]
+        else:
+            # 总共187个样本
+            train_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[:37]]
+            val_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[37: 37+74]]
+            test_examples = [{"x": ex["input"], "y": ex["target"]} for ex in examples[37+74:]]
         train_path = os.path.join(self.root, self.task_name, "train.csv")
         with open(train_path, "w") as f:
             pd.DataFrame(train_examples).to_csv(f)
