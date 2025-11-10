@@ -288,7 +288,8 @@ def main(_):
     scorer_gpt_dict["num_servers"] = 1
 
     scorer_llm_dict = {
-        "model_type": scorer_llm_name.lower(),
+        # "model_type": scorer_llm_name.lower(),
+         "model_type": scorer_llm_name,
     }
     scorer_llm_dict.update(scorer_gpt_dict)
     call_scorer_server_func = functools.partial(
@@ -712,7 +713,8 @@ def main(_):
   num_search_steps = 200
 
   initial_instructions = [
-      "Let's solve the problem.",
+      # "Let's solve the problem.",
+      """You must give your final answer by starting with 'So the answer is'"""
       # "",
       # "The answer is",
   ]
