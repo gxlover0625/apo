@@ -520,7 +520,7 @@ def run_evolution(**kwargs):
   for instruction in initial_instructions:
     print(f"""computing the score of "{instruction}" by prompting""")
 
-    detailed_results_df = eval_utils.evaluate_single_instruction(
+    detailed_results_df = eval_utils.simple_evaluate_single_instruction(
         data=raw_data,
         instruction=instruction,
         eval_index_all=train_index,
@@ -833,7 +833,7 @@ def run_evolution(**kwargs):
               f"evaluating Step {i_step}, instruction: {instruction} on"
               " few-shot exemplars"
           )
-          detailed_results_df = eval_utils.evaluate_single_instruction(
+          detailed_results_df = eval_utils.simple_evaluate_single_instruction(
               data=raw_data,
               instruction=instruction,
               eval_index_all=few_shot_index_list,
@@ -872,7 +872,7 @@ def run_evolution(**kwargs):
             f"evaluating Step {i_step}, instruction: {instruction} on few-shot"
             " exemplars"
         )
-        detailed_results_df = eval_utils.evaluate_single_instruction(
+        detailed_results_df = eval_utils.simple_evaluate_single_instruction(
             data=raw_data,
             instruction=instruction,
             eval_index_all=few_shot_index_list,
@@ -904,7 +904,7 @@ def run_evolution(**kwargs):
     for instruction in to_evaluate_instructions:
       if instruction not in prev_saved_instructions:
         print(f"""computing the score of "{instruction}" by prompting""")
-        detailed_results_df = eval_utils.evaluate_single_instruction(
+        detailed_results_df = eval_utils.simple_evaluate_single_instruction(
             data=raw_data,
             instruction=instruction,
             eval_index_all=train_index,
@@ -978,7 +978,7 @@ def run_evolution(**kwargs):
         # if the instruction wasn't skipped in any step
         if instruction in instruction_score_dict:
           if instruction not in instruction_eval_score_dict:
-            detailed_results_df = eval_utils.evaluate_single_instruction(
+            detailed_results_df = eval_utils.simple_evaluate_single_instruction(
                 data=raw_data,
                 instruction=instruction,
                 eval_index_all=eval_index,

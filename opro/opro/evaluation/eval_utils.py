@@ -532,6 +532,81 @@ def get_accuracy_of_list(
   )
   return np.average(accuracy_list)
 
+def simple_evaluate_single_instruction(
+  data,
+  instruction,
+  eval_index_all,
+  batch_size,
+  call_server_func,
+  dataset_name,
+  num_servers,
+  extract_final_answer_by_prompting_again,
+  instruction_pos,
+  is_multiple_choice,
+  include_qa=True,
+  evaluate_in_parallel=True,
+  num_decodes=1,
+  max_retry=5,
+  sleep_time=60,
+  prediction_treat_as_number=False,
+  prediction_treat_as_bool=False,
+  prediction_num_decimals=0,
+  is_gpt_model=False,
+  verbose=False,
+):
+  # copy from
+  # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
+  def bbh_freeform_postprocess(text: str) -> str:
+      ans = text
+      ans_line = ans.split('answer is ')
+      if len(ans_line) != 1:
+          ans = ans_line[1].strip()
+      ans = ans.split('\n')[0].strip()
+
+      if ans.endswith('.'):
+          ans = ans[:-1].strip()
+
+      match = re.search(r'\*\*(.*?)\*\*', ans)
+      if match:
+          return match.group(1)
+
+      return ans
+    
+  def bbh_freeform_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = bbh_freeform_postprocess(prediction)
+    ref = ground_truth_answer
+    return int(pred == ref)
+
+  results = []
+  for idx in eval_index_all:
+    raw_prompt = f"{instruction}\n{data[idx]['input']}"
+    raw_answer = call_server_func(raw_prompt)[0]
+
+    if dataset_name in ["bbh"] and prediction_treat_as_bool:
+      parsed_answer = bbh_freeform_postprocess(raw_answer)
+    else:
+      parsed_answer = raw_answer
+    
+    true_answer = data[idx]["target"]
+    results.append({
+      'index_in_raw_dataset': idx,
+      'raw_prompt': raw_prompt,
+      'raw_answer': raw_answer,
+      'parsed_answer': parsed_answer,
+      'true_answer': true_answer,
+      'accuracy': bbh_freeform_eval_fn(parsed_answer, true_answer)
+    })
+
+  df = pd.DataFrame(results, columns=[
+      'index_in_raw_dataset',
+      'raw_prompt',
+      'raw_answer',
+      'parsed_answer',
+      'true_answer',
+      'accuracy'
+  ])
+  df.set_index('index_in_raw_dataset', inplace=True)
+  return df
 
 def evaluate_single_instruction(
     data,
