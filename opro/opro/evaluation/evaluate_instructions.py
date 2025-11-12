@@ -95,11 +95,15 @@ _EVALUATE_TEST_FOLD = flags.DEFINE_bool(
     "evaluate_test_fold", True, "Whether to evaluate the test fold."
 )
 
+_PROMPT = flags.DEFINE_string(
+    "prompt", "", "The prompt to be used for evaluation."
+)
 
 def main(_):
   # set instructions to evaluate
   instructions_to_evaluate = [
-      "",
+      # "",
+      _PROMPT.value
       # "Let's think step by step.",
       # "Take a deep breath and work on this problem step-by-step.",
   ]
@@ -273,7 +277,7 @@ def main(_):
   else:
     # GPT models
     # assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
-    scorer_gpt_max_decode_steps = 1024
+    scorer_gpt_max_decode_steps = 4096
     scorer_gpt_temperature = 0.0
 
     scorer_gpt_dict = dict()
@@ -288,7 +292,8 @@ def main(_):
     }
     scorer_llm_dict.update(scorer_gpt_dict)
     call_scorer_server_func = functools.partial(
-        prompt_utils.my_scorer_call_func,
+        # prompt_utils.my_scorer_call_func,
+        prompt_utils.call_openai_server_func,
         model=scorer_llm_name,
         max_decode_steps=scorer_gpt_max_decode_steps,
         temperature=scorer_gpt_temperature,
