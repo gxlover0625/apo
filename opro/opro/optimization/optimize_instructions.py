@@ -294,8 +294,8 @@ def main(_):
     }
     scorer_llm_dict.update(scorer_gpt_dict)
     call_scorer_server_func = functools.partial(
-        # prompt_utils.call_openai_server_func,
-        prompt_utils.my_scorer_call_func,
+        prompt_utils.call_openai_server_func,
+        # prompt_utils.my_scorer_call_func,
         model=scorer_llm_name,
         max_decode_steps=scorer_gpt_max_decode_steps,
         temperature=scorer_gpt_temperature,
@@ -732,8 +732,8 @@ def main(_):
 
   initial_instructions = [
       # "Let's solve the problem.",
-      # """You must give your final answer by starting with 'So the answer is'"""
-      "",
+      """You must give your final answer by starting with 'So the answer is'"""
+      # "",
       # "The answer is",
   ]
   few_shot_qa_pairs = True
