@@ -278,7 +278,7 @@ def main(_):
 
   else:
     # assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
-    scorer_gpt_max_decode_steps = 1024
+    scorer_gpt_max_decode_steps = 4096
     scorer_gpt_temperature = 0.0
 
     scorer_gpt_dict = dict()
