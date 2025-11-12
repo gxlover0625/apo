@@ -576,25 +576,50 @@ def simple_evaluate_single_instruction(
     pred = bbh_freeform_postprocess(prediction)
     ref = ground_truth_answer
     return int(pred == ref)
+  
+  # copy from
+  # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L32C1-L44C15
+  def bbh_mcq_postprocess(text: str) -> str:
+      ans = text
+      ans_line = ans.split('answer is ')
+      if len(ans_line) != 1:
+          ans = ans_line[1].strip()
+      match = re.search(r'\(([A-Z])\)*', ans)
+      if match:
+          return match.group(1)
+      match = re.search(r'([A-Z])', ans)
+      if match:
+          return match.group(1)
+      return ans
+  
+  def bbh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = bbh_mcq_postprocess(prediction)
+    ref = bbh_mcq_postprocess(ground_truth_answer)
+    return int(pred == ref)
 
   results = []
   for idx in eval_index_all:
     raw_prompt = f"{instruction}\n{data[idx]['input']}"
     raw_answer = call_server_func(raw_prompt)[0]
+    true_answer = data[idx]["target"]
 
     if dataset_name in ["bbh"] and prediction_treat_as_bool:
       parsed_answer = bbh_freeform_postprocess(raw_answer)
+      accuracy = bbh_freeform_eval_fn(parsed_answer, true_answer)
+    elif dataset_name in ["bbh"] and is_multiple_choice:
+      parsed_answer = bbh_mcq_postprocess(raw_answer)
+      accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
     else:
       parsed_answer = raw_answer
+      accuracy = None
     
-    true_answer = data[idx]["target"]
     results.append({
       'index_in_raw_dataset': idx,
       'raw_prompt': raw_prompt,
       'raw_answer': raw_answer,
       'parsed_answer': parsed_answer,
       'true_answer': true_answer,
-      'accuracy': bbh_freeform_eval_fn(parsed_answer, true_answer)
+      'accuracy': accuracy
     })
 
   df = pd.DataFrame(results, columns=[
