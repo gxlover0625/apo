@@ -45,6 +45,7 @@ import datetime
 import functools
 import os
 import sys
+import random
 
 OPRO_ROOT_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -340,7 +341,7 @@ def main(_):
   else:
     # assert optimizer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     optimizer_gpt_max_decode_steps = 512
-    optimizer_gpt_temperature = 1.0
+    optimizer_gpt_temperature = 0.7
 
     optimizer_llm_dict = dict()
     optimizer_llm_dict["max_decode_steps"] = optimizer_gpt_max_decode_steps
@@ -649,6 +650,7 @@ def main(_):
     train_ratio = 0.035
     eval_ratio = 0
   else:
+    # 按比例的分数，我会废除掉，按照textgrad的方式，切分50：100：100
     assert dataset_name == "bbh"
     train_ratio = 0.2
     eval_ratio = 0
@@ -662,26 +664,41 @@ def main(_):
       f"train_ratio: {train_ratio}, eval_ratio: {eval_ratio}, "
       f"test_ratio: {test_ratio}"
   )
-  np.random.seed(0)
-  train_index = np.sort(
-      np.array(
-          np.random.choice(
-              num_examples, size=int(train_ratio * num_examples), replace=False
-          )
-      )
-  )
-  eval_and_test_index = np.sort(
-      np.array(list(set(np.arange(num_examples)) - set(train_index)))
-  )
-  eval_index = np.sort(
-      np.array(
-          np.random.choice(
-              eval_and_test_index,
-              size=int(eval_ratio * num_examples),
-              replace=False,
-          )
-      )
-  )
+  # np.random.seed(0)
+  random.seed(42)
+  np.random.seed(42)
+  if dataset_name == "bbh" and task_name == "causal_judgement":
+    indices = np.arange(num_examples)
+    random.shuffle(indices)
+    train_index = indices[:37]
+    eval_index = indices[37: 37+74]
+    test_index = indices[37 + 74: ]
+  elif dataset_name == "bbh":
+    indices = np.arange(num_examples)
+    random.shuffle(indices)
+    train_index = indices[:50]
+    eval_index = indices[50: 150]
+    test_index = indices[150: ]
+  else:
+    train_index = np.sort(
+        np.array(
+            np.random.choice(
+                num_examples, size=int(train_ratio * num_examples), replace=False
+            )
+        )
+    )
+    eval_and_test_index = np.sort(
+        np.array(list(set(np.arange(num_examples)) - set(train_index)))
+    )
+    eval_index = np.sort(
+        np.array(
+            np.random.choice(
+                eval_and_test_index,
+                size=int(eval_ratio * num_examples),
+                replace=False,
+            )
+        )
+    )
 
   # ========== set other optimization experiment hyperparameters ==============
   if scorer_llm_name == "text-bison":
