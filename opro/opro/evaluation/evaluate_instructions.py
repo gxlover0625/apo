@@ -43,6 +43,7 @@ import functools
 import json
 import os
 import sys
+import random
 
 OPRO_ROOT_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -99,8 +100,8 @@ def main(_):
   # set instructions to evaluate
   instructions_to_evaluate = [
       "",
-      "Let's think step by step.",
-      "Take a deep breath and work on this problem step-by-step.",
+      # "Let's think step by step.",
+      # "Take a deep breath and work on this problem step-by-step.",
   ]
   print(f"instructions_to_evaluate: {instructions_to_evaluate}")
 
@@ -117,7 +118,7 @@ def main(_):
 
   openai_api_key = _OPENAI_API_KEY.value
   palm_api_key = _PALM_API_KEY.value
-  scorer_llm_name = _SCORER.value.lower()
+  scorer_llm_name = _SCORER.value
   dataset_name = _DATASET.value.lower()
   task_name = _TASK.value.lower()
   instruction_pos = _INSTRUCTION_POS.value
@@ -175,22 +176,22 @@ def main(_):
     assert dataset_name in {"multiarith", "aqua"}
     assert task_name == "self"
 
-  assert scorer_llm_name in {
-      "text-bison",
-      "gpt-3.5-turbo",
-      "gpt-4",
-  }
+  # assert scorer_llm_name in {
+  #     "text-bison",
+  #     "gpt-3.5-turbo",
+  #     "gpt-4",
+  # }
 
   # make sure the model is callable
-  if scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
-    assert openai_api_key, "The OpenAI API key must be provided."
-    openai.api_key = openai_api_key
-  else:
-    assert scorer_llm_name == "text-bison"
-    assert (
-        palm_api_key
-    ), "A PaLM API key is needed when prompting the text-bison model."
-    palm.configure(api_key=palm_api_key)
+  # if scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
+  #   assert openai_api_key, "The OpenAI API key must be provided."
+  #   openai.api_key = openai_api_key
+  # else:
+  #   assert scorer_llm_name == "text-bison"
+  #   assert (
+  #       palm_api_key
+  #   ), "A PaLM API key is needed when prompting the text-bison model."
+  #   palm.configure(api_key=palm_api_key)
 
   assert instruction_pos in {
       "before_Q",
@@ -271,7 +272,7 @@ def main(_):
 
   else:
     # GPT models
-    assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
+    # assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
     scorer_gpt_max_decode_steps = 1024
     scorer_gpt_temperature = 0.0
 
@@ -283,12 +284,12 @@ def main(_):
     scorer_gpt_dict["num_servers"] = 1
 
     scorer_llm_dict = {
-        "model_type": scorer_llm_name.lower(),
+        "model_type": scorer_llm_name,
     }
     scorer_llm_dict.update(scorer_gpt_dict)
     call_scorer_server_func = functools.partial(
-        prompt_utils.call_openai_server_func,
-        model=scorer_llm_name.lower(),
+        prompt_utils.my_scorer_call_func,
+        model=scorer_llm_name,
         max_decode_steps=scorer_gpt_max_decode_steps,
         temperature=scorer_gpt_temperature,
     )
@@ -533,7 +534,7 @@ def main(_):
     evaluate_in_parallel = False
   else:
     # GPT models
-    assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
+    # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     batch_size = 1
     num_servers = 1
     extract_final_answer_by_prompting_again = False
@@ -644,19 +645,33 @@ def main(_):
       json.dump(scorer_llm_dict, f, indent=4)
 
     # train-test split
-    np.random.seed(0)
-    train_index = np.sort(
-        np.array(
-            np.random.choice(
-                num_examples,
-                size=int(train_ratio * num_examples),
-                replace=False,
-            )
-        )
-    )
-    test_index = np.sort(
-        np.array(list(set(np.arange(num_examples)) - set(train_index)))
-    )
+    random.seed(42)
+    np.random.seed(42)
+    if dataset_name == "bbh" and task_name == "causal_judgement":
+      indices = np.arange(num_examples)
+      random.shuffle(indices)
+      train_index = indices[:37]
+      eval_index = indices[37: 37+74]
+      test_index = indices[37 + 74: ]
+    elif dataset_name == "bbh":
+      indices = np.arange(num_examples)
+      random.shuffle(indices)
+      train_index = indices[:50]
+      eval_index = indices[50: 150]
+      test_index = indices[150: ]
+    else:
+      train_index = np.sort(
+          np.array(
+              np.random.choice(
+                  num_examples,
+                  size=int(train_ratio * num_examples),
+                  replace=False,
+              )
+          )
+      )
+      test_index = np.sort(
+          np.array(list(set(np.arange(num_examples)) - set(train_index)))
+      )
     if dataset_name == "math":
       train_index = original_index[train_index]
       test_index = original_index[test_index]
@@ -712,7 +727,7 @@ def main(_):
         )
       if evaluate_test_fold:
         print("... evaluating the test fold ...")
-        detailed_test_results_df = eval_utils.evaluate_single_instruction(
+        detailed_test_results_df = eval_utils.simple_evaluate_single_instruction(
             data=raw_data,
             instruction=instruction,
             eval_index_all=test_index,  # evaluating the test exemplars
