@@ -115,6 +115,24 @@ def call_openai_server_func(
     outputs.append(output)
   return outputs
 
+def my_scorer_call_func(
+    inputs, model="gpt-3.5-turbo", max_decode_steps=20, temperature=0.8
+):
+  client = OpenAI(
+    base_url=os.environ['OPENAI_BASE_URL'],
+    api_key=os.environ['OPENAI_API_KEY'],
+  )
+  response = client.chat.completions.create(
+    model=model,
+    temperature=temperature,
+    max_tokens=max_decode_steps,
+    messages=[
+      {"role": "system", "content": """You must give your final answer by starting with 'So the answer is'"""},
+      {"role": "user", "content": inputs},
+    ],
+  )
+  res_str = response.choices[0].message.content
+  return [res_str]
 
 def call_palm_server_from_cloud(
     input_text, model="text-bison-001", max_decode_steps=20, temperature=0.8
