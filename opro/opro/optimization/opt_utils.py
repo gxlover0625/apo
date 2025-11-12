@@ -973,7 +973,7 @@ def run_evolution(**kwargs):
     # =============================== eval ====================================
     # every eval_interval steps, evaluate the instructions that were generated
     # in the current step and were not skipped
-    if not i_step % eval_interval:
+    if i_step % eval_interval == 0:
       for instruction in generated_instructions_raw:
         # if the instruction wasn't skipped in any step
         if instruction in instruction_score_dict:

@@ -746,7 +746,7 @@ def main(_):
   evaluate_old_ins_on_few_shot = False
   # every this number of steps, compute the accuracies of current-step
   # instructions on the validation set
-  eval_interval = 3
+  eval_interval = 5
 
   max_num_instructions = (
       20  # the maximum number of instructions and scores in the meta-prompt
