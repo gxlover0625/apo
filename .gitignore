@@ -5,3 +5,4 @@ logs/
 *.env
 *.egg-info/
 .vscode/
+.DS_Store
