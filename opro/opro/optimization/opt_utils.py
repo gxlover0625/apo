@@ -973,41 +973,41 @@ def run_evolution(**kwargs):
     # =============================== eval ====================================
     # every eval_interval steps, evaluate the instructions that were generated
     # in the current step and were not skipped
-    if i_step % eval_interval == 0:
-      for instruction in generated_instructions_raw:
-        # if the instruction wasn't skipped in any step
-        if instruction in instruction_score_dict:
-          if instruction not in instruction_eval_score_dict:
-            detailed_results_df = eval_utils.simple_evaluate_single_instruction(
-                data=raw_data,
-                instruction=instruction,
-                eval_index_all=eval_index,
-                batch_size=batch_size,
-                call_server_func=call_scorer_server_func,
-                dataset_name=dataset_name,
-                num_servers=num_servers,
-                extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
-                include_qa=include_qa,
-                evaluate_in_parallel=evaluate_in_parallel,
-                instruction_pos=instruction_pos,
-                is_multiple_choice=is_multiple_choice_eval,
-                prediction_treat_as_number=prediction_treat_as_number,
-                prediction_treat_as_bool=prediction_treat_as_bool,
-                prediction_num_decimals=0,
-                max_retry=5,
-                sleep_time=180,
-                verbose=verbose,
-            )
-            eval_score = np.average(detailed_results_df["accuracy"])
-            eval_detailed_results_df_dict[instruction] = detailed_results_df
-            instruction_eval_score_dict[instruction] = eval_score
-          else:
-            eval_score = instruction_eval_score_dict[instruction]
-          print(
-              f"EVAL: \nStep {i_step}, instruction: {instruction}, eval score:"
-              f" {eval_score:.2f}"
-          )
-          eval_results.append((i_step, instruction, eval_score))
+    # if i_step % eval_interval == 0:
+    #   for instruction in generated_instructions_raw:
+    #     # if the instruction wasn't skipped in any step
+    #     if instruction in instruction_score_dict:
+    #       if instruction not in instruction_eval_score_dict:
+    #         detailed_results_df = eval_utils.simple_evaluate_single_instruction(
+    #             data=raw_data,
+    #             instruction=instruction,
+    #             eval_index_all=eval_index,
+    #             batch_size=batch_size,
+    #             call_server_func=call_scorer_server_func,
+    #             dataset_name=dataset_name,
+    #             num_servers=num_servers,
+    #             extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
+    #             include_qa=include_qa,
+    #             evaluate_in_parallel=evaluate_in_parallel,
+    #             instruction_pos=instruction_pos,
+    #             is_multiple_choice=is_multiple_choice_eval,
+    #             prediction_treat_as_number=prediction_treat_as_number,
+    #             prediction_treat_as_bool=prediction_treat_as_bool,
+    #             prediction_num_decimals=0,
+    #             max_retry=5,
+    #             sleep_time=180,
+    #             verbose=verbose,
+    #         )
+    #         eval_score = np.average(detailed_results_df["accuracy"])
+    #         eval_detailed_results_df_dict[instruction] = detailed_results_df
+    #         instruction_eval_score_dict[instruction] = eval_score
+    #       else:
+    #         eval_score = instruction_eval_score_dict[instruction]
+    #       print(
+    #           f"EVAL: \nStep {i_step}, instruction: {instruction}, eval score:"
+    #           f" {eval_score:.2f}"
+    #       )
+    #       eval_results.append((i_step, instruction, eval_score))
 
     # ===================== save up-to-date results ===========================
     results_dict = dict()
