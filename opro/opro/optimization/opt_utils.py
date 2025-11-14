@@ -565,7 +565,7 @@ def run_evolution(**kwargs):
       wrong_questions_from_start_counter[idx] += 1
 
   # evolution
-  num_search_steps = 20
+  num_search_steps = 10
   for i_step in range(num_search_steps):
     print(f"\n================== Step {i_step} =====================")
     if not i_step % 10:
