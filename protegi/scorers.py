@@ -20,7 +20,7 @@ class Cached01Scorer:
         def compute_scores(prompts_exs):
             out_scores = {}
             inputs = [(ex, predictor, prompt) for prompt, ex in prompts_exs]
-            with concurrent.futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
                 futures = [executor.submit(predict_on_example, ex) for ex in inputs]
                 for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='01 scorer'):
                     prompt, ex, pred = future.result()            
