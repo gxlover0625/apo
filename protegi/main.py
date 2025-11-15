@@ -21,6 +21,8 @@ def get_task_class(task_name):
         return tasks.DefaultHFBinaryTask
     elif task_name == 'ar_sarcasm':
         return tasks.DefaultHFBinaryTask
+    elif task_name == 'causal_judgement':
+        return tasks.CausalJudgementTask
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -142,8 +144,8 @@ if __name__ == '__main__':
             outf.write(f'{scores}\n')
         metrics = []
         for candidate, score in zip(candidates, scores):
-            f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-            metrics.append(f1)
+            acc_score, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
+            metrics.append(acc_score)
         with open(args.out, 'a') as outf:  
             outf.write(f'{metrics}\n')
 
