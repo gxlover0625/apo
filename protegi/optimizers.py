@@ -58,7 +58,7 @@ class ProTeGi(PromptOptimizer):
     def _get_gradients(self, prompt, error_string, num_feedbacks=5, n=1):
         """ Get "gradients" for a prompt based on the error string."""
         gradient_prompt = f"""
-        I'm trying to write a zero-shot classifier prompt.
+        I'm trying to write a new prompt.
     
         My current prompt is:
         "{prompt}"
@@ -67,20 +67,20 @@ class ProTeGi(PromptOptimizer):
         {error_string}
 
         give {num_feedbacks} reasons why the prompt could have gotten these examples wrong.
-        Wrap each reason with <START> and <END>
+        Wrap each reason with <START> and </START>
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
         res = utils.chatgpt(gradient_prompt, n=n)
         feedbacks = []
         new_prompts = []
         for r in res:    
-            feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
+            feedbacks += self.parse_tagged_text(r, "<START>", "</START>")
         return feedbacks
 
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a zero-shot classifier.
+        I'm trying to write a new prompt.
         
         My current prompt is:
         "{prompt}"
@@ -91,7 +91,7 @@ class ProTeGi(PromptOptimizer):
         Based on these examples the problem with this prompt is that {feedback_str}
 
         Based on the above information, I wrote {steps_per_gradient} different improved prompts.
-        Each prompt is wrapped with <START> and <END>.
+        Each prompt is wrapped with <START> and </START>.
 
         The {steps_per_gradient} new prompts are:
         """
@@ -99,14 +99,21 @@ class ProTeGi(PromptOptimizer):
         res = utils.chatgpt(transformation_prompt, n=n)
         new_prompts = []
         for r in res:   
-            new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
+            new_prompts += self.parse_tagged_text(r, "<START>", "</START>")
         return new_prompts
 
     def generate_synonyms(self, prompt_section, n=3):
         """ Generate synonyms for a prompt section."""
         rewriter_prompt = f"Generate a variation of the following instruction while keeping the semantic meaning.\n\nInput: {prompt_section}\n\nOutput:"
-        new_instructions = utils.chatgpt(rewriter_prompt, n=n)
+        # new_instructions = utils.chatgpt(rewriter_prompt, n=n)
+        # new_instructions = [x for x in new_instructions if x]
+        new_instructions = []
+        for i in range(n):
+            instruction = utils.chatgpt(rewriter_prompt, n=1)[0]
+            new_instructions.append(instruction)
+        
         new_instructions = [x for x in new_instructions if x]
+        new_instructions = list(set(new_instructions))
         return new_instructions
 
     def get_gradients(self, prompt, task_section, task, gpt4, texts, labels, preds):
@@ -128,8 +135,9 @@ class ProTeGi(PromptOptimizer):
 
         new_prompts = []
         for prompt in tqdm(prompts, desc=f'expanding {len(prompts)} prompts'):
-            sections = utils.parse_sectioned_prompt(prompt)
-            task_section = sections['task'].strip()
+            # sections = utils.parse_sectioned_prompt(prompt)
+            # task_section = sections['task'].strip()
+            task_section = prompt
 
             # evaluate prompt on minibatch
             _, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch)

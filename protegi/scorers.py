@@ -4,11 +4,22 @@ import numpy as np
 from liquid import Template
 from tqdm import tqdm
 import concurrent.futures
-
+import utils
+import os
+from tasks import bbh_freeform_postprocess
 
 def predict_on_example(inputs):
     ex, predictor, prompt = inputs
-    pred = predictor.inference(ex, prompt)
+    user_message = f"{prompt}\n{ex['text']}"
+    pred = utils.chatgpt(
+        user_message,
+        temperature=0.0,
+        n=1,
+        max_tokens=4096
+    )[0]
+    if os.environ['TASK'] in ['causal_judgement']:
+        pred = bbh_freeform_postprocess(pred)
+    # pred = predictor.inference(ex, prompt)
     return prompt, ex, pred
 
 class Cached01Scorer:
