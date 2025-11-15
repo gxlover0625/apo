@@ -181,7 +181,9 @@ class CausalJudgementTask(DataProcessor):
             exs.append({'id': f'test-{idx}', 'label': sample['target'], 'text': sample['input']})
         return exs
 
-    def evaluate(self, model, prompt, test_exs, n, *args, **kwargs):
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
         texts, preds, labels = [], [], []
         acc_cnt = 0
         pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
