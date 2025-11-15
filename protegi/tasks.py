@@ -195,7 +195,7 @@ class CausalJudgementTask(DataProcessor):
                 n=1,
                 max_tokens=4096
             )[0]
-            preds.append(pred)
+            preds.append(bbh_freeform_postprocess(pred))
             labels.append(ex['label'])
             texts.append(ex['text'])
             accuracy = bbh_freeform_eval_fn(pred, ex['label'])
@@ -204,5 +204,5 @@ class CausalJudgementTask(DataProcessor):
         acc_score = acc_cnt / min(n, len(test_exs))
         return acc_score, texts, labels, preds
 
-    def stringify_prediction(self, **kwargs):
-        pass
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred
