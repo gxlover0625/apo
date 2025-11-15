@@ -6,6 +6,11 @@ from typing import List, Dict, Callable
 from tqdm import tqdm
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, classification_report
+import random
+import numpy as np
+import re
+import utils
+from tqdm import tqdm
 
 class DataProcessor(ABC):
     def __init__(self, data_dir, max_threads=1):
@@ -127,3 +132,75 @@ class DefaultHFBinaryTask(BinaryClassificationTask):
             row = json.loads(row.strip())
             exs.append({'id': f'test-{i}', 'label': row['label'], 'text': row['text']})
         return exs
+
+# copy from
+# https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
+def bbh_freeform_postprocess(text: str) -> str:
+    ans = text
+    ans_line = ans.split('answer is ')
+    if len(ans_line) != 1:
+        ans = ans_line[1].strip()
+    ans = ans.split('\n')[0].strip()
+
+    if ans.endswith('.'):
+        ans = ans[:-1].strip()
+
+    match = re.search(r'\*\*(.*?)\*\*', ans)
+    if match:
+        return match.group(1)
+
+    return ans
+
+def bbh_freeform_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = bbh_freeform_postprocess(prediction)
+    ref = ground_truth_answer
+    return int(pred == ref)
+
+class CausalJudgementTask(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        with open(data_dir, "r") as f:
+            all_data = json.load(f)['examples']
+
+        random.seed(42)
+        np.random.seed(42)
+        random.shuffle(all_data)
+        self.train_data = all_data[:37]
+        self.eval_data = all_data[37: 37+74]
+        self.test_data = all_data[37+74:]
+
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({'id': f'train-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({'id': f'test-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
+    def evaluate(self, model, prompt, test_exs, n, *args, **kwargs):
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            user_message = f"{prompt}\n{ex['text']}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                max_tokens=4096
+            )[0]
+            preds.append(pred)
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            accuracy = bbh_freeform_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+
+    def stringify_prediction(self, **kwargs):
+        pass
