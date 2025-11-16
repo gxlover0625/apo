@@ -6,7 +6,7 @@ from tqdm import tqdm
 import concurrent.futures
 import utils
 import os
-from tasks import bbh_freeform_postprocess
+from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess
 
 def predict_on_example(inputs):
     ex, predictor, prompt = inputs
@@ -19,6 +19,10 @@ def predict_on_example(inputs):
     )[0]
     if os.environ['TASK'] in ['causal_judgement']:
         pred = bbh_freeform_postprocess(pred)
+    elif os.environ['TASK'] in ['geometric_shapes']:
+        pred = bbh_mcq_postprocess(pred)
+        if len(pred) == 1 and pred.isupper():
+            pred = f"({pred})"
     # pred = predictor.inference(ex, prompt)
     return prompt, ex, pred
 
