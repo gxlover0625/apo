@@ -181,6 +181,12 @@ class CausalJudgementTask(DataProcessor):
             exs.append({'id': f'test-{idx}', 'label': sample['target'], 'text': sample['input']})
         return exs
 
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({'id': f'eval-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
     def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
         if n is None:
             n = len(test_exs)

@@ -109,6 +109,7 @@ if __name__ == '__main__':
 
     train_exs = task.get_train_examples()
     test_exs = task.get_test_examples()
+    eval_exs = task.get_eval_examples()
 
     if os.path.exists(args.out):
         os.remove(args.out)
@@ -129,7 +130,7 @@ if __name__ == '__main__':
             candidates = optimizer.expand_candidates(candidates, task, gpt4, train_exs)
 
         # score candidates
-        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
+        scores = optimizer.score_candidates(candidates, task, gpt4, eval_exs)
         [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
         # select candidates
