@@ -19,7 +19,7 @@ def predict_on_example(inputs):
     )[0]
     if os.environ['TASK'] in ['causal_judgement']:
         pred = bbh_freeform_postprocess(pred)
-    elif os.environ['TASK'] in ['geometric_shapes']:
+    elif os.environ['TASK'] in ['geometric_shapes', 'logical_deduction_seven_objects']:
         pred = bbh_mcq_postprocess(pred)
         if len(pred) == 1 and pred.isupper():
             pred = f"({pred})"

@@ -25,6 +25,8 @@ def get_task_class(task_name):
         return tasks.CausalJudgementTask
     elif task_name == "geometric_shapes":
         return tasks.GeometricShapesTask
+    elif task_name == "logical_deduction_seven_objects":
+        return tasks.LogicalDeductionSevenObjectsTask
     else:
         raise Exception(f'Unsupported task: {task_name}')
 

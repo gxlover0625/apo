@@ -293,3 +293,6 @@ class GeometricShapesTask(DataProcessor):
     
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
+
+class LogicalDeductionSevenObjectsTask(GeometricShapesTask):
+    pass
