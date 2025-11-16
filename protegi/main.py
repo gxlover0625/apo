@@ -63,7 +63,7 @@ def get_args():
     parser.add_argument('--optimizer', default='nl-gradient')
     parser.add_argument('--rounds', default=6, type=int)
     parser.add_argument('--beam_size', default=4, type=int)
-    parser.add_argument('--n_test_exs', default=400, type=int)
+    parser.add_argument('--n_test_exs', default=None)
 
     parser.add_argument('--minibatch_size', default=64, type=int)
     parser.add_argument('--n_gradients', default=4, type=int)
