@@ -23,6 +23,8 @@ def get_task_class(task_name):
         return tasks.DefaultHFBinaryTask
     elif task_name == 'causal_judgement':
         return tasks.CausalJudgementTask
+    elif task_name == "geometric_shapes":
+        return tasks.GeometricShapesTask
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -63,7 +65,7 @@ def get_args():
     parser.add_argument('--optimizer', default='nl-gradient')
     parser.add_argument('--rounds', default=6, type=int)
     parser.add_argument('--beam_size', default=4, type=int)
-    parser.add_argument('--n_test_exs', default=None)
+    parser.add_argument('--n_test_exs', default=None, type=int)
 
     parser.add_argument('--minibatch_size', default=64, type=int)
     parser.add_argument('--n_gradients', default=4, type=int)
@@ -93,6 +95,7 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
+    os.environ['TASK'] = args.task
 
     config = vars(args)
 
