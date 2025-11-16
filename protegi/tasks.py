@@ -156,6 +156,26 @@ def bbh_freeform_eval_fn(prediction: str, ground_truth_answer: str):
     ref = ground_truth_answer
     return int(pred == ref)
 
+# copy from
+# https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L32C1-L44C15
+def bbh_mcq_postprocess(text: str) -> str:
+    ans = text
+    ans_line = ans.split('answer is ')
+    if len(ans_line) != 1:
+        ans = ans_line[1].strip()
+    match = re.search(r'\(([A-Z])\)*', ans)
+    if match:
+        return match.group(1)
+    match = re.search(r'([A-Z])', ans)
+    if match:
+        return match.group(1)
+    return ans
+
+def bbh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = bbh_mcq_postprocess(prediction)
+    ref = bbh_mcq_postprocess(ground_truth_answer)
+    return int(pred == ref)
+
 class CausalJudgementTask(DataProcessor):
     def __init__(self, data_dir, max_threads, *args, **kwargs):
         super().__init__(data_dir, max_threads)
@@ -210,5 +230,66 @@ class CausalJudgementTask(DataProcessor):
         acc_score = acc_cnt / min(n, len(test_exs))
         return acc_score, texts, labels, preds
 
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred
+
+class GeometricShapesTask(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        with open(data_dir, "r") as f:
+            all_data = json.load(f)['examples']
+
+        random.seed(42)
+        np.random.seed(42)
+        random.shuffle(all_data)
+        self.train_data = all_data[:50]
+        self.eval_data = all_data[50: 150]
+        self.test_data = all_data[150:]
+    
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({'id': f'train-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({'id': f'test-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({'id': f'eval-{idx}', 'label': sample['target'], 'text': sample['input']})
+        return exs
+
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            user_message = f"{prompt}\n{ex['text']}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                max_tokens=4096
+            )[0]
+            # preds.append(bbh_mcq_postprocess(pred))
+            processed_pred = bbh_mcq_postprocess(pred)
+            if len(processed_pred) == 1 and processed_pred.isupper():
+                processed_pred = f"({processed_pred})"
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            accuracy = bbh_mcq_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+    
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
