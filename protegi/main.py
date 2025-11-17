@@ -135,7 +135,7 @@ if __name__ == '__main__':
             candidates = optimizer.expand_candidates(candidates, task, gpt4, train_exs)
 
         # score candidates
-        scores = optimizer.score_candidates(candidates, task, gpt4, eval_exs)
+        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
         [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
         # select candidates
