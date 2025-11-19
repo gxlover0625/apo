@@ -1,0 +1,402 @@
+[
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: oranges, mangoes, and plums. The plums are less expensive than the mangoes. The oranges are less expensive than the plums.\nOptions:\n(A) The oranges are the second-most expensive\n(B) The mangoes are the second-most expensive\n(C) The plums are the second-most expensive",
+        "target": "(C)",
+        "raw_pred": "We are given the following information about the prices of three fruits: oranges, mangoes, and plums.\n\n1. The plums are less expensive than the mangoes.  \n   → Plum < Mango\n\n2. The oranges are less expensive than the plums.  \n   → Orange < Plum\n\nFrom these two statements, we can chain the inequalities:\n\nOrange < Plum < Mango\n\nSo, in order from least expensive to most expensive:\nOranges → Plums → Mangoes\n\nTherefore, the ranking by price (cheapest to most expensive) is:\n1. Oranges (least expensive)  \n2. Plums (second-most expensive)  \n3. Mangoes (most expensive)\n\nNow let’s evaluate the options:\n\n(A) The oranges are the second-most expensive → False (they are the cheapest)  \n(B) The mangoes are the second-most expensive → False (they are the most expensive)  \n(C) The plums are the second-most expensive → True\n\nSo the answer is (C) The plums are the second-most expensive.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 0
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a robin, a blue jay, and a crow. The robin is to the right of the crow. The robin is to the left of the blue jay.\nOptions:\n(A) The robin is the second from the left\n(B) The blue jay is the second from the left\n(C) The crow is the second from the left",
+        "target": "(A)",
+        "raw_pred": "We are given a sequence of three birds on a branch: a robin, a blue jay, and a crow. We are told two positional relationships:\n\n1. The robin is to the right of the crow.  \n2. The robin is to the left of the blue jay.\n\nLet’s analyze this step by step.\n\nLet’s denote the positions from left to right as Position 1 (leftmost), Position 2 (middle), and Position 3 (rightmost).\n\nFrom statement 1: The robin is to the right of the crow → crow must be to the left of the robin.  \nSo crow < robin in position.\n\nFrom statement 2: The robin is to the left of the blue jay → robin < blue jay in position.\n\nSo combining both:\ncrow < robin < blue jay\n\nThis means the order from left to right must be: crow, robin, blue jay.\n\nNow let’s check the options:\n\n(A) The robin is the second from the left → Yes, in crow, robin, blue jay → robin is second → True  \n(B) The blue jay is the second from the left → No, it's third → False  \n(C) The crow is the second from the left → No, it's first → False\n\nOnly (A) is correct.\n\nSo the answer is (A) The robin is the second from the left.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 1
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Dan, Mel, and Amy. Dan finished above Amy. Amy finished above Mel.\nOptions:\n(A) Dan finished last\n(B) Mel finished last\n(C) Amy finished last",
+        "target": "(B)",
+        "raw_pred": "We are told:\n\n- Dan finished above Amy.\n- Amy finished above Mel.\n\nThis means the order from first to last is:\n\n1. Dan  \n2. Amy  \n3. Mel\n\nSo Mel finished last.\n\nTherefore, the correct answer is:\n\nSo the answer is (B) Mel finished last.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 2
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: an owl, a crow, and a cardinal. The crow is to the left of the owl. The owl is the second from the left.\nOptions:\n(A) The owl is the leftmost\n(B) The crow is the leftmost\n(C) The cardinal is the leftmost",
+        "target": "(B)",
+        "raw_pred": "We are given a scenario with three birds on a branch: an owl, a crow, and a cardinal. Their positions are described as follows:\n\n1. \"The crow is to the left of the owl.\"\n2. \"The owl is the second from the left.\"\n\nLet’s analyze this step by step.\n\nSince the owl is the second from the left, that means:\n- Position 1 (leftmost): not the owl\n- Position 2 (middle): the owl\n- Position 3 (rightmost): not the owl\n\nSo the owl is in position 2.\n\nNow, \"the crow is to the left of the owl\" — since the owl is in position 2, the only position to the left is position 1. Therefore, the crow must be in position 1.\n\nThat leaves position 3 (rightmost) for the cardinal.\n\nSo the order from left to right is:\n1. Crow  \n2. Owl  \n3. Cardinal\n\nNow let’s evaluate the options:\n\n(A) The owl is the leftmost — False, the owl is second from the left.  \n(B) The crow is the leftmost — True, as we just deduced.  \n(C) The cardinal is the leftmost — False, the cardinal is on the right.\n\nSo the correct answer is (B).\n\nSo the answer is (B) The crow is the leftmost",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 3
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a white book, a black book, and a purple book. The black book is to the left of the purple book. The purple book is to the left of the white book.\nOptions:\n(A) The white book is the second from the left\n(B) The black book is the second from the left\n(C) The purple book is the second from the left",
+        "target": "(C)",
+        "raw_pred": "We are given three books: a white book, a black book, and a purple book, arranged in a fixed order on a shelf.\n\nThe clues are:\n\n1. The black book is to the left of the purple book.\n2. The purple book is to the left of the white book.\n\nLet’s analyze the order step by step.\n\nFrom clue 1:  \nBlack < Purple (in position, meaning black is to the left of purple)\n\nFrom clue 2:  \nPurple < White\n\nCombining both:  \nBlack < Purple < White\n\nSo the order from left to right must be:  \n**Black book, Purple book, White book**\n\nNow let's check the positions:\n\n- First from the left: Black book  \n- Second from the left: Purple book  \n- Third from the left: White book\n\nNow evaluate the options:\n\n(A) The white book is the second from the left → False (it's third)  \n(B) The black book is the second from the left → False (it's first)  \n(C) The purple book is the second from the left → True\n\nSo the answer is (C) The purple book is the second from the left.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 4
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a crow, a falcon, and a hummingbird. The crow is to the left of the falcon. The hummingbird is to the left of the crow.\nOptions:\n(A) The crow is the leftmost\n(B) The falcon is the leftmost\n(C) The hummingbird is the leftmost",
+        "target": "(C)",
+        "raw_pred": "We are given a set of three birds on a branch: a crow, a falcon, and a hummingbird. Their positions are described by two statements:\n\n1. The crow is to the left of the falcon.  \n2. The hummingbird is to the left of the crow.\n\nLet’s analyze the order step by step.\n\nFrom statement 2:  \n- Hummingbird is to the left of the crow → So hummingbird comes before crow.\n\nFrom statement 1:  \n- Crow is to the left of the falcon → So crow comes before falcon.\n\nCombining both:  \n- Hummingbird < Crow < Falcon (in terms of position from left to right)\n\nTherefore, the order from left to right is:  \n**Hummingbird, Crow, Falcon**\n\nSo, the leftmost bird is the **hummingbird**.\n\nNow, evaluate the options:\n\n(A) The crow is the leftmost — False  \n(B) The falcon is the leftmost — False  \n(C) The hummingbird is the leftmost — True\n\nSo the answer is (C) The hummingbird is the leftmost.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 5
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a station wagon, a minivan, and a truck. The minivan is newer than the truck. The station wagon is newer than the minivan.\nOptions:\n(A) The station wagon is the newest\n(B) The minivan is the newest\n(C) The truck is the newest",
+        "target": "(A)",
+        "raw_pred": "We are given the following information:\n\n1. The minivan is newer than the truck.  \n   → minivan > truck (in terms of newness)\n\n2. The station wagon is newer than the minivan.  \n   → station wagon > minivan\n\nFrom these two statements, we can chain the comparisons:\n\nstation wagon > minivan > truck\n\nThis means the station wagon is newer than both the minivan and the truck.\n\nTherefore, the station wagon is the newest of the three.\n\nSo the answer is (A) The station wagon is the newest.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 6
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a station wagon, a truck, and a motorcyle. The truck is newer than the station wagon. The motorcyle is the oldest.\nOptions:\n(A) The station wagon is the second-newest\n(B) The truck is the second-newest\n(C) The motorcyle is the second-newest",
+        "target": "(A)",
+        "raw_pred": "We are given three vehicles: a station wagon, a truck, and a motorcycle.\n\nWe are told:\n\n1. The **truck is newer than the station wagon**.  \n   → So: truck > station wagon (in terms of newness)\n\n2. The **motorcycle is the oldest**.  \n   → So: motorcycle is the least new (oldest), meaning it is older than both the station wagon and the truck.\n\nNow let’s order them from **newest to oldest**:\n\n- Since the motorcycle is the oldest, it must be last (third) in the newness ranking.\n- The truck is newer than the station wagon, so truck comes before station wagon in newness.\n\nSo the order from newest to oldest is:\n\n1. Truck  \n2. Station wagon  \n3. Motorcycle\n\nNow, the question asks: which one is the **second-newest**?\n\nThat would be the **station wagon**.\n\nSo the correct answer is:  \n**(A) The station wagon is the second-newest**\n\nSo the answer is (A)",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 7
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: cantaloupes, watermelons, and mangoes. The mangoes are the cheapest. The cantaloupes are the second-most expensive.\nOptions:\n(A) The cantaloupes are the most expensive\n(B) The watermelons are the most expensive\n(C) The mangoes are the most expensive",
+        "target": "(B)",
+        "raw_pred": "We are told:\n\n- The mangoes are the cheapest.\n- The cantaloupes are the second-most expensive.\n\nSince there are only three fruits, and we know the mangoes are the cheapest, that means they are in last place in terms of price.\n\nThe cantaloupes are the second-most expensive — so they are not the most expensive, but more expensive than the mangoes. That places them in the middle.\n\nTherefore, the watermelons must be the most expensive — since they are neither the cheapest (mangoes) nor the second-most expensive (cantaloupes).\n\nSo the answer is (B) The watermelons are the most expensive.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 8
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a motorcyle, a bus, and a tractor. The motorcyle is the oldest. The bus is newer than the tractor.\nOptions:\n(A) The motorcyle is the oldest\n(B) The bus is the oldest\n(C) The tractor is the oldest",
+        "target": "(A)",
+        "raw_pred": "We are given the following information:\n\n1. The motorcycle is the oldest.\n2. The bus is newer than the tractor.\n\nLet’s analyze step by step.\n\nFrom statement (1):  \n- The motorcycle is the oldest → So, motorcycle > tractor and motorcycle > bus in age (i.e., motorcycle is older than both).\n\nFrom statement (2):  \n- The bus is newer than the tractor → So, bus < tractor in age (i.e., bus is younger than tractor).\n\nSo ordering from oldest to newest:\n- Motorcycle (oldest)\n- Tractor\n- Bus (newest)\n\nThus, the order by age is: Motorcycle > Tractor > Bus.\n\nNow, let's evaluate the options:\n\n(A) The motorcycle is the oldest → This matches our conclusion. ✅  \n(B) The bus is the oldest → No, it's the newest. ❌  \n(C) The tractor is the oldest → No, motorcycle is older. ❌\n\nSo the answer is (A) The motorcycle is the oldest.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 9
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a robin, a blue jay, and a crow. The robin is to the right of the crow. The robin is to the left of the blue jay.\nOptions:\n(A) The robin is the rightmost\n(B) The blue jay is the rightmost\n(C) The crow is the rightmost",
+        "target": "(B)",
+        "raw_pred": "We are given a sequence of three birds on a branch: a robin, a blue jay, and a crow. We are told two positional relationships:\n\n1. The robin is to the right of the crow.  \n2. The robin is to the left of the blue jay.\n\nLet’s analyze this step by step.\n\nFrom (1): Robin is to the right of the crow → So crow is to the left of the robin.  \nFrom (2): Robin is to the left of the blue jay → So robin is to the left of the blue jay.\n\nSo putting it together:\n- Crow < Robin < Blue Jay (in terms of position from left to right)\n\nTherefore, the order from left to right is: **crow, robin, blue jay**.\n\nThus, the rightmost bird is the **blue jay**.\n\nSo the answer is (B) The blue jay is the rightmost.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 10
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: oranges, mangoes, and plums. The plums are less expensive than the mangoes. The oranges are less expensive than the plums.\nOptions:\n(A) The oranges are the cheapest\n(B) The mangoes are the cheapest\n(C) The plums are the cheapest",
+        "target": "(A)",
+        "raw_pred": "We are given the following information about the prices of three fruits: oranges, mangoes, and plums.\n\n1. The plums are less expensive than the mangoes.  \n   → Plum < Mango\n\n2. The oranges are less expensive than the plums.  \n   → Orange < Plum\n\nFrom these two statements, we can chain the inequalities:\n\nOrange < Plum < Mango\n\nSo, the order from cheapest to most expensive is:  \nOranges → Plums → Mangoes\n\nTherefore, the oranges are the cheapest.\n\nSo the answer is (A) The oranges are the cheapest.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 11
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: loquats, watermelons, and cantaloupes. The watermelons are the second-most expensive. The loquats are more expensive than the cantaloupes.\nOptions:\n(A) The loquats are the most expensive\n(B) The watermelons are the most expensive\n(C) The cantaloupes are the most expensive",
+        "target": "(A)",
+        "raw_pred": "We are given information about the relative prices of three fruits: loquats, watermelons, and cantaloupes.\n\nLet’s analyze the statements:\n\n1. \"The watermelons are the second-most expensive.\"  \n   → This means that among the three fruits, watermelons are not the most expensive, nor the least expensive. So, one fruit is more expensive than watermelons, and one is less expensive.\n\n2. \"The loquats are more expensive than the cantaloupes.\"  \n   → So, loquats > cantaloupes in price.\n\nNow, let’s use this to deduce the full order.\n\nFrom (1): Watermelons are second-most expensive → so there is one fruit more expensive than watermelons, and one less expensive.\n\nFrom (2): Loquats > cantaloupes.\n\nSo possible orderings must satisfy both.\n\nTry to place watermelons as second-most expensive.\n\nThat means:\n- One fruit is more expensive than watermelons.\n- One fruit is less expensive than watermelons.\n\nNow consider the loquat-cantaloupe relationship.\n\nSuppose loquats are the most expensive. Then:\n- Loquats > watermelons > cantaloupes → satisfies both conditions:\n  - Watermelons are second-most expensive ✅\n  - Loquats > cantaloupes ✅\n\nNow check if other options could work.\n\nOption (B): Watermelons are the most expensive.  \nBut this contradicts statement 1: \"watermelons are the second-most expensive\" → so they cannot be the most expensive. ❌\n\nOption (C): Cantaloupes are the most expensive.  \nThen cantaloupes > watermelons > loquats? But wait — we are told loquats are more expensive than cantaloupes → so cantaloupes cannot be more expensive than loquats. So cantaloupes cannot be the most expensive. ❌\n\nTherefore, only possibility is that loquats are the most expensive.\n\nSo the order is:\n1. Loquats (most expensive)\n2. Watermelons (second-most expensive)\n3. Cantaloupes (least expensive)\n\nThis satisfies:\n- Watermelons are second-most expensive ✅\n- Loquats > cantaloupes ✅\n\nSo the answer is (A) The loquats are the most expensive.\n\nSo the answer is (A)",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 12
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a robin, an owl, and a hawk. The robin is to the right of the hawk. The owl is the leftmost.\nOptions:\n(A) The robin is the leftmost\n(B) The owl is the leftmost\n(C) The hawk is the leftmost",
+        "target": "(B)",
+        "raw_pred": "We are given a scenario with three birds on a branch: a robin, an owl, and a hawk. The order is fixed, and we are given two clues:\n\n1. The robin is to the right of the hawk.\n2. The owl is the leftmost.\n\nLet’s analyze this step by step.\n\nFrom clue (2): \"The owl is the leftmost\" — this means the owl is in the first position from the left.\n\nSo the order starts as:  \n[Owl] _ _\n\nNow, from clue (1): \"The robin is to the right of the hawk.\"\n\nThat means the hawk must be to the left of the robin.\n\nSince the owl is already in the leftmost position, the hawk and robin must occupy the second and third positions.\n\nIf the hawk were in the second position, then the robin would be in the third — which satisfies \"robin is to the right of the hawk\".\n\nIf the hawk were in the third position, the robin would have to be to its right — but there's no position to the right. So that’s impossible.\n\nTherefore, the only valid arrangement is:\n\n1. Owl  \n2. Hawk  \n3. Robin\n\nSo the leftmost bird is the owl.\n\nNow, let’s check the options:\n\n(A) The robin is the leftmost — False  \n(B) The owl is the leftmost — True  \n(C) The hawk is the leftmost — False\n\nSo the answer is (B) The owl is the leftmost.\n\nSo the answer is (B)",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 13
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a blue jay, a falcon, and a raven. The falcon is to the left of the blue jay. The falcon is to the right of the raven.\nOptions:\n(A) The blue jay is the rightmost\n(B) The falcon is the rightmost\n(C) The raven is the rightmost",
+        "target": "(A)",
+        "raw_pred": "We are given a sequence of three birds on a branch: a blue jay, a falcon, and a raven. We are told two positional relationships:\n\n1. The falcon is to the left of the blue jay.  \n2. The falcon is to the right of the raven.\n\nLet’s analyze this step by step.\n\nFrom (1): Falcon is to the left of the blue jay → So the order must be: falcon, then blue jay (in that direction).\n\nFrom (2): Falcon is to the right of the raven → So the order must be: raven, then falcon.\n\nPutting both together:\n\nRaven → Falcon → Blue Jay\n\nSo the order from left to right is: raven, falcon, blue jay.\n\nTherefore, the rightmost bird is the blue jay.\n\nNow let’s evaluate the options:\n\n(A) The blue jay is the rightmost → ✅ True  \n(B) The falcon is the rightmost → ❌ False  \n(C) The raven is the rightmost → ❌ False\n\nSo the answer is (A) The blue jay is the rightmost.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 14
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a convertible, a limousine, and a bus. The limousine is older than the bus. The bus is older than the convertible.\nOptions:\n(A) The convertible is the newest\n(B) The limousine is the newest\n(C) The bus is the newest",
+        "target": "(A)",
+        "raw_pred": "We are given a set of three vehicles: a convertible, a limousine, and a bus. We are told:\n\n1. The limousine is older than the bus.  \n2. The bus is older than the convertible.\n\nLet’s interpret this step by step.\n\nFrom (1):  \nLimousine > Bus (in age) → Limousine is older than Bus\n\nFrom (2):  \nBus > Convertible → Bus is older than Convertible\n\nCombining both:  \nLimousine > Bus > Convertible\n\nSo, in order from oldest to newest:  \nLimousine → Bus → Convertible\n\nTherefore, the **convertible** is the **newest**.\n\nNow let’s evaluate the options:\n\n(A) The convertible is the newest — ✅ Correct  \n(B) The limousine is the newest — ❌ Incorrect (it’s the oldest)  \n(C) The bus is the newest — ❌ Incorrect (it’s in the middle)\n\nSo the answer is (A) The convertible is the newest.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 15
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: apples, pears, and loquats. The pears are more expensive than the loquats. The pears are less expensive than the apples.\nOptions:\n(A) The apples are the second-most expensive\n(B) The pears are the second-most expensive\n(C) The loquats are the second-most expensive",
+        "target": "(B)",
+        "raw_pred": "We are given the following information:\n\n- The pears are more expensive than the loquats.  \n  → So: **Pears > Loquats**\n\n- The pears are less expensive than the apples.  \n  → So: **Apples > Pears**\n\nCombining these two inequalities:\n\n**Apples > Pears > Loquats**\n\nSo, in order of increasing price:\n1. Loquats (cheapest)\n2. Pears (middle)\n3. Apples (most expensive)\n\nTherefore, the **pears** are the **second-most expensive**.\n\nNow let’s evaluate the options:\n\n(A) The apples are the second-most expensive — ❌ Incorrect, they are the most expensive.  \n(B) The pears are the second-most expensive — ✅ Correct.  \n(C) The loquats are the second-most expensive — ❌ Incorrect, they are the cheapest.\n\nSo the answer is (B) The pears are the second-most expensive.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 16
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a black book, an orange book, and a blue book. The blue book is to the right of the orange book. The orange book is to the right of the black book.\nOptions:\n(A) The black book is the second from the left\n(B) The orange book is the second from the left\n(C) The blue book is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are given three books: a black book, an orange book, and a blue book. They are arranged in a fixed order on a shelf from left to right.\n\nWe are told:\n1. The blue book is to the right of the orange book.\n2. The orange book is to the right of the black book.\n\nLet’s analyze step by step.\n\nFrom (2): The orange book is to the right of the black book → So black is to the left of orange.\n\nFrom (1): The blue book is to the right of the orange book → So orange is to the left of blue.\n\nPutting it together:\nBlack < Orange < Blue\n\nSo the order from left to right is:\n1. Black book  \n2. Orange book  \n3. Blue book\n\nNow let's check the options:\n\n(A) The black book is the second from the left → No, it's first.  \n(B) The orange book is the second from the left → Yes, correct.  \n(C) The blue book is the second from the left → No, it's third.\n\nSo the answer is (B) The orange book is the second from the left.\n\nSo the answer is (B)",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 17
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a truck, a minivan, and a tractor. The truck is newer than the minivan. The minivan is newer than the tractor.\nOptions:\n(A) The truck is the newest\n(B) The minivan is the newest\n(C) The tractor is the newest",
+        "target": "(A)",
+        "raw_pred": "We are given the following information:\n\n- The truck is newer than the minivan.\n- The minivan is newer than the tractor.\n\nFrom this, we can establish a clear order of age (from newest to oldest):\n\n1. Truck (newest)\n2. Minivan\n3. Tractor (oldest)\n\nTherefore, the truck is the newest vehicle.\n\nSo the answer is (A) The truck is the newest.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 18
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Eve, Joe, and Amy. Eve finished below Amy. Eve finished above Joe.\nOptions:\n(A) Eve finished last\n(B) Joe finished last\n(C) Amy finished last",
+        "target": "(B)",
+        "raw_pred": "We are given two statements about the finishing order of three golfers: Eve, Joe, and Amy.\n\n1. **Eve finished below Amy.**  \n   → This means Amy finished *ahead* of Eve. So Amy > Eve (in terms of position: higher rank is better).\n\n2. **Eve finished above Joe.**  \n   → This means Eve finished *ahead* of Joe. So Eve > Joe.\n\nPutting these together:\n\n- Amy > Eve > Joe\n\nSo the order from first to last is: **Amy, Eve, Joe**\n\nTherefore, **Joe finished last**.\n\nSo the answer is (B) Joe finished last.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 19
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: peaches, pears, and mangoes. The mangoes are less expensive than the pears. The peaches are the cheapest.\nOptions:\n(A) The peaches are the second-most expensive\n(B) The pears are the second-most expensive\n(C) The mangoes are the second-most expensive",
+        "target": "(C)",
+        "raw_pred": "We are given the following information:\n\n- The mangoes are less expensive than the pears.\n- The peaches are the cheapest.\n\nLet’s analyze step by step.\n\n1. \"The peaches are the cheapest\" → So peaches are the least expensive of the three.\n\n2. \"The mangoes are less expensive than the pears\" → So mangoes < pears in price.\n\nNow, since peaches are the cheapest, and mangoes are cheaper than pears, we can deduce the order from cheapest to most expensive:\n\n- Peaches (cheapest)\n- Mangoes (more than peaches, less than pears)\n- Pears (most expensive)\n\nSo the order from cheapest to most expensive is:  \nPeaches < Mangoes < Pears\n\nTherefore, the second-most expensive fruit is the mangoes.\n\nSo the answer is (C) The mangoes are the second-most expensive.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 20
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a red book, a gray book, and a white book. The white book is to the left of the gray book. The red book is the second from the left.\nOptions:\n(A) The red book is the rightmost\n(B) The gray book is the rightmost\n(C) The white book is the rightmost",
+        "target": "(B)",
+        "raw_pred": "We are given a shelf with three books: red, gray, and white. They are arranged in a fixed order from left to right.\n\nLet’s analyze the clues:\n\n1. **The white book is to the left of the gray book.**  \n   This means: white < gray (in position, from left to right).\n\n2. **The red book is the second from the left.**  \n   So, position 2 (middle) is the red book.\n\nNow, let's assign positions:\n\n- Position 1: ?\n- Position 2: Red book\n- Position 3: ?\n\nFrom clue 1: white is to the left of gray → white must be in an earlier position than gray.\n\nSo possible positions for white and gray:\n- White in position 1, gray in position 2 → but position 2 is red, so gray can’t be there.\n- White in position 1, gray in position 3 → this works.\n- White in position 2, gray in position 3 → but position 2 is red, so white can’t be there.\n\nThus, the only possibility is:\n- Position 1: White book\n- Position 2: Red book\n- Position 3: Gray book\n\nTherefore, the gray book is on the rightmost side.\n\nNow evaluate the options:\n\n(A) The red book is the rightmost → No, it’s in the middle.  \n(B) The gray book is the rightmost → Yes, this matches.  \n(C) The white book is the rightmost → No, it’s on the left.\n\nSo the answer is (B) The gray book is the rightmost.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 21
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: plums, apples, and loquats. The loquats are the cheapest. The plums are less expensive than the apples.\nOptions:\n(A) The plums are the most expensive\n(B) The apples are the most expensive\n(C) The loquats are the most expensive",
+        "target": "(B)",
+        "raw_pred": "We are given the following information:\n\n1. The loquats are the cheapest.  \n2. The plums are less expensive than the apples.\n\nLet’s analyze step by step:\n\n- From (1): Loquats < all other fruits in price → loquats are the least expensive.\n- From (2): Plums < Apples → plums are cheaper than apples.\n\nSo we have:\n- Loquats are the cheapest.\n- Plums are cheaper than apples.\n- Therefore, the order from cheapest to most expensive must be:  \n  **Loquats < Plums < Apples**\n\nThus, the most expensive fruit is the **apples**.\n\nNow let’s evaluate the options:\n\n(A) The plums are the most expensive — ❌ False, because apples are more expensive.  \n(B) The apples are the most expensive — ✅ True.  \n(C) The loquats are the most expensive — ❌ False, they are the cheapest.\n\nSo the answer is (B) The apples are the most expensive.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 22
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a purple book, a red book, and a yellow book. The purple book is to the right of the yellow book. The yellow book is to the right of the red book.\nOptions:\n(A) The purple book is the rightmost\n(B) The red book is the rightmost\n(C) The yellow book is the rightmost",
+        "target": "(A)",
+        "raw_pred": "We are given three books: a purple book, a red book, and a yellow book, arranged in a fixed order on a shelf.\n\nWe are told:\n\n1. The **purple book is to the right of the yellow book**.\n2. The **yellow book is to the right of the red book**.\n\nLet’s analyze this step by step.\n\nFrom (2):  \nYellow is to the right of red → So red is to the left of yellow.\n\nFrom (1):  \nPurple is to the right of yellow → So yellow is to the left of purple.\n\nPutting it together:  \nRed < Yellow < Purple (in terms of position from left to right)\n\nSo the order from left to right is:  \n**Red book, Yellow book, Purple book**\n\nTherefore, the **purple book is the rightmost**.\n\nSo the answer is (A) The purple book is the rightmost.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 23
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: an orange book, a blue book, and a yellow book. The orange book is to the left of the blue book. The yellow book is to the right of the blue book.\nOptions:\n(A) The orange book is the second from the left\n(B) The blue book is the second from the left\n(C) The yellow book is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are given three books: orange, blue, and yellow, arranged on a shelf in a fixed order from left to right.\n\nWe are told:\n1. The orange book is to the left of the blue book.\n2. The yellow book is to the right of the blue book.\n\nLet’s analyze this step by step.\n\nFrom (1): Orange is to the left of blue → So orange cannot be on the rightmost position, and blue cannot be on the leftmost.\n\nFrom (2): Yellow is to the right of blue → So yellow cannot be on the leftmost, and blue cannot be on the rightmost.\n\nSo, combining both:\n\n- Blue cannot be on the far left (because orange is to its left).\n- Blue cannot be on the far right (because yellow is to its right).\n→ Therefore, blue must be in the middle.\n\nIf blue is in the middle, then:\n- Orange must be to the left of blue → so orange is on the far left.\n- Yellow must be to the right of blue → so yellow is on the far right.\n\nThus, the order from left to right is:\n1. Orange\n2. Blue\n3. Yellow\n\nNow check the options:\n\n(A) The orange book is the second from the left → False, it's first.\n\n(B) The blue book is the second from the left → True.\n\n(C) The yellow book is the second from the left → False, it's third.\n\nSo the correct answer is (B).\n\nSo the answer is (B)",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 24
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a blue book, an orange book, and a green book. The green book is the leftmost. The orange book is to the left of the blue book.\nOptions:\n(A) The blue book is the second from the left\n(B) The orange book is the second from the left\n(C) The green book is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are given a shelf with three books: blue, orange, and green. The books are arranged in a fixed order from left to right.\n\nLet’s analyze the clues:\n\n1. **The green book is the leftmost.**  \n   → So, position 1 (leftmost) is the green book.\n\n2. **The orange book is to the left of the blue book.**  \n   → This means orange comes before blue in the sequence.\n\nNow, since the green book is first (leftmost), the remaining two positions (second and third) must be occupied by the orange and blue books.\n\nWe know:\n- Green is in position 1.\n- Orange is to the left of blue.\n\nSo possible arrangements for positions 2 and 3:\n- If orange is in position 2, blue in position 3 → orange is left of blue ✅\n- If blue is in position 2, orange in position 3 → orange is to the right of blue ❌ (violates clue)\n\nTherefore, only valid arrangement:\n1. Green (leftmost)\n2. Orange\n3. Blue\n\nNow check the options:\n\n(A) The blue book is the second from the left → No, it's third. ❌  \n(B) The orange book is the second from the left → Yes, this matches. ✅  \n(C) The green book is the second from the left → No, it's first. ❌\n\nSo the answer is (B) The orange book is the second from the left.\n\nSo the answer is (B)",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 25
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: kiwis, loquats, and cantaloupes. The kiwis are less expensive than the loquats. The cantaloupes are less expensive than the kiwis.\nOptions:\n(A) The kiwis are the most expensive\n(B) The loquats are the most expensive\n(C) The cantaloupes are the most expensive",
+        "target": "(B)",
+        "raw_pred": "We are given the following information about the prices of three fruits: kiwis, loquats, and cantaloupes.\n\n1. The kiwis are less expensive than the loquats.  \n   → This means: **kiwis < loquats**\n\n2. The cantaloupes are less expensive than the kiwis.  \n   → This means: **cantaloupes < kiwis**\n\nCombining these two inequalities:\n\n**cantaloupes < kiwis < loquats**\n\nSo, in order from least expensive to most expensive:  \ncantaloupes → kiwis → loquats\n\nTherefore, the **loquats** are the most expensive.\n\nSo the answer is (B) The loquats are the most expensive.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 26
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a quail, an owl, and a hummingbird. The quail is to the left of the owl. The owl is to the left of the hummingbird.\nOptions:\n(A) The quail is the second from the left\n(B) The owl is the second from the left\n(C) The hummingbird is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are told that there are three birds on a branch: a quail, an owl, and a hummingbird. Their positions are described in order from left to right.\n\nThe statements are:\n\n1. The quail is to the left of the owl.  \n2. The owl is to the left of the hummingbird.\n\nFrom this, we can deduce the order from left to right:\n\n- Quail is to the left of the owl → so quail comes before owl.\n- Owl is to the left of the hummingbird → so owl comes before hummingbird.\n\nTherefore, the only possible order is:\n\n**Quail, Owl, Hummingbird**\n\nNow, let’s determine the position of each bird:\n\n- First from the left: Quail  \n- Second from the left: Owl  \n- Third from the left: Hummingbird\n\nSo, the owl is the second from the left.\n\nNow, looking at the options:\n\n(A) The quail is the second from the left — False  \n(B) The owl is the second from the left — True  \n(C) The hummingbird is the second from the left — False\n\nSo the answer is (B) The owl is the second from the left.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 27
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Amy, Ada, and Joe. Joe finished below Ada. Amy finished above Ada.\nOptions:\n(A) Amy finished first\n(B) Ada finished first\n(C) Joe finished first",
+        "target": "(A)",
+        "raw_pred": "We are given information about the finishing positions of three golfers: Amy, Ada, and Joe.\n\nLet’s analyze the statements:\n\n1. **Joe finished below Ada.**  \n   → This means Ada finished ahead of Joe. So, Ada > Joe (in terms of position, where higher means better).\n\n2. **Amy finished above Ada.**  \n   → This means Amy finished ahead of Ada. So, Amy > Ada.\n\nCombining both:\n- Amy > Ada > Joe\n\nSo the order from first to last is: **Amy, Ada, Joe**\n\nTherefore, **Amy finished first**.\n\nSo the answer is (A) Amy finished first.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 28
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: oranges, watermelons, and pears. The oranges are the second-most expensive. The pears are more expensive than the watermelons.\nOptions:\n(A) The oranges are the cheapest\n(B) The watermelons are the cheapest\n(C) The pears are the cheapest",
+        "target": "(B)",
+        "raw_pred": "We are given information about the relative prices of three fruits: oranges, watermelons, and pears.\n\nLet’s analyze the statements:\n\n1. \"The oranges are the second-most expensive.\"  \n   → This means there is one fruit more expensive than oranges, and one less expensive.  \n   So, oranges are not the most expensive, and not the cheapest. They are in the middle.\n\n2. \"The pears are more expensive than the watermelons.\"  \n   → Pears > Watermelons in price.\n\nNow let’s determine the order.\n\nSince oranges are second-most expensive, they are not the cheapest, so the cheapest must be either watermelons or pears.\n\nBut we’re told pears are more expensive than watermelons, so watermelons cannot be more expensive than pears — thus, watermelons are cheaper than pears.\n\nSo, from this:\n- Watermelons < Pears\n- Oranges are second-most expensive → so they are not the cheapest.\n\nTherefore, the cheapest must be watermelons (since pears are more expensive than watermelons, and oranges are not the cheapest).\n\nSo the order from most expensive to least expensive is:\n1. Pears (most expensive)  \n2. Oranges (second-most expensive)  \n3. Watermelons (cheapest)\n\nThus, the watermelons are the cheapest.\n\nSo the answer is (B) The watermelons are the cheapest.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 29
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: an owl, a crow, and a cardinal. The owl is to the right of the cardinal. The cardinal is to the right of the crow.\nOptions:\n(A) The owl is the rightmost\n(B) The crow is the rightmost\n(C) The cardinal is the rightmost",
+        "target": "(A)",
+        "raw_pred": "We are given a sequence of three birds on a branch: an owl, a crow, and a cardinal. We are told:\n\n1. The owl is to the right of the cardinal.  \n2. The cardinal is to the right of the crow.\n\nLet’s analyze this step by step.\n\nFrom statement 2:  \n- The cardinal is to the right of the crow → So crow is left of cardinal.\n\nFrom statement 1:  \n- The owl is to the right of the cardinal → So cardinal is left of owl.\n\nPutting it together:  \nCrow < Cardinal < Owl (in terms of position from left to right)\n\nSo the order from left to right is: **crow, cardinal, owl**\n\nTherefore, the **owl** is the rightmost bird.\n\nSo the answer is (A) The owl is the rightmost.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 30
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Amy, Eli, and Eve. Eve finished above Amy. Eli finished below Amy.\nOptions:\n(A) Amy finished first\n(B) Eli finished first\n(C) Eve finished first",
+        "target": "(C)",
+        "raw_pred": "We are given the following information about the finishing order of three golfers: Amy, Eli, and Eve.\n\n1. **Eve finished above Amy** → This means Eve's position is better (i.e., a lower number) than Amy’s.\n2. **Eli finished below Amy** → This means Eli's position is worse (i.e., a higher number) than Amy’s.\n\nLet’s assign positions: 1st (best), 2nd, 3rd (worst).\n\nFrom (1): Eve > Amy → Eve has a better (lower) position than Amy. So Eve cannot be 3rd if Amy is 1st or 2nd.\n\nFrom (2): Eli < Amy → Eli has a worse (higher) position than Amy. So Eli cannot be 1st if Amy is 2nd or 3rd.\n\nLet’s test possibilities:\n\nTry **Amy first (1st)**:\n- Then Eve must be above Amy → impossible, since Amy is already first. So Eve can’t be above her.\n→ Contradiction.\n\nSo Amy **cannot** be first.\n\nTry **Eli first (1st)**:\n- Then Amy must be below Eli → so Amy is 2nd or 3rd.\n- Eve must be above Amy → so Eve must be ahead of Amy.\n\nIf Eli is 1st, Amy is 2nd → then Eve must be above Amy → Eve would have to be 1st, but Eli is 1st → contradiction.\n\nIf Amy is 3rd → then Eve must be above Amy → Eve could be 1st or 2nd. But Eli is 1st, so Eve could be 2nd → possible.\n\nSo:\n- Eli: 1st\n- Eve: 2nd\n- Amy: 3rd\n\nCheck conditions:\n- Eve finished above Amy? Yes — 2nd vs 3rd → yes.\n- Eli finished below Amy? Eli is 1st, Amy is 3rd → Eli is above Amy → contradicts “Eli finished below Amy”.\n\n“Below” means worse position → so Eli should be behind Amy.\n\nBut here Eli is 1st, Amy is 3rd → Eli is ahead → violates condition.\n\nSo Eli cannot be first.\n\nNow try **Eve first (1st)**:\n- Eve is 1st → above Amy → okay.\n- Amy must be below Eve → so Amy is 2nd or 3rd.\n- Eli must be below Amy → so Eli is worse than Amy.\n\nTry Amy = 2nd → then Eli must be below Amy → Eli = 3rd.\n\nSo:\n- Eve: 1st\n- Amy: 2nd\n- Eli: 3rd\n\nCheck:\n- Eve above Amy? 1st vs 2nd → yes.\n- Eli below Amy? 3rd vs 2nd → yes.\n\nAll conditions satisfied.\n\nThus, the only consistent order is:\n1. Eve  \n2. Amy  \n3. Eli\n\nTherefore, **Eve finished first**.\n\nSo the answer is (C) Eve finished first.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 31
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a tractor, a station wagon, and a limousine. The tractor is newer than the limousine. The station wagon is the newest.\nOptions:\n(A) The tractor is the oldest\n(B) The station wagon is the oldest\n(C) The limousine is the oldest",
+        "target": "(C)",
+        "raw_pred": "We are given three vehicles: a tractor, a station wagon, and a limousine.\n\nWe are told:\n\n1. The **tractor is newer than the limousine**.  \n   → So, limousine is older than tractor.\n\n2. The **station wagon is the newest**.  \n   → So, station wagon is newer than both the tractor and the limousine.\n\nFrom (2):  \n- Station wagon > tractor  \n- Station wagon > limousine\n\nFrom (1):  \n- Tractor > limousine\n\nSo combining these:\n\nStation wagon > tractor > limousine\n\nTherefore, the order from newest to oldest is:  \n**Station wagon, tractor, limousine**\n\nThus, the **limousine is the oldest**.\n\nNow evaluate the options:\n\n(A) The tractor is the oldest — ❌ False  \n(B) The station wagon is the oldest — ❌ False  \n(C) The limousine is the oldest — ✅ True\n\nSo the answer is (C) The limousine is the oldest.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 32
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a hummingbird, an owl, and a falcon. The falcon is to the right of the owl. The hummingbird is to the left of the owl.\nOptions:\n(A) The hummingbird is the rightmost\n(B) The owl is the rightmost\n(C) The falcon is the rightmost",
+        "target": "(C)",
+        "raw_pred": "We are given a sequence of three birds on a branch: a hummingbird, an owl, and a falcon. We are told two things:\n\n1. The falcon is to the right of the owl.\n2. The hummingbird is to the left of the owl.\n\nLet’s analyze this step by step.\n\nLet’s denote positions from left to right as: Position 1 (leftmost), Position 2 (middle), Position 3 (rightmost).\n\nFrom statement 1: Falcon is to the right of the owl → So the owl cannot be in position 3 (rightmost), because nothing is to its right. The falcon must be in a higher-numbered position than the owl.\n\nFrom statement 2: Hummingbird is to the left of the owl → So the owl cannot be in position 1 (leftmost), because nothing is to its left. The hummingbird must be in a lower-numbered position than the owl.\n\nSo:\n- Owl cannot be in position 1 (because hummingbird is to its left).\n- Owl cannot be in position 3 (because falcon is to its right).\n→ Therefore, the owl must be in position 2 (middle).\n\nThen:\n- Hummingbird must be to the left of the owl → so hummingbird is in position 1.\n- Falcon must be to the right of the owl → so falcon is in position 3.\n\nSo the order from left to right is:\n1. Hummingbird  \n2. Owl  \n3. Falcon\n\nTherefore, the rightmost bird is the falcon.\n\nSo the answer is (C) The falcon is the rightmost.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 33
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a red book, a gray book, and a white book. The white book is to the left of the gray book. The red book is the second from the left.\nOptions:\n(A) The red book is the second from the left\n(B) The gray book is the second from the left\n(C) The white book is the second from the left",
+        "target": "(A)",
+        "raw_pred": "We are given a set of three books on a shelf: a red book, a gray book, and a white book. The books are arranged in a fixed order from left to right.\n\nLet’s analyze the clues:\n\n1. \"The white book is to the left of the gray book.\"  \n   → This means the white book is not to the right of the gray book. So, white must be in a position earlier than gray. Possible positions:\n   - White in position 1, gray in position 2 or 3\n   - White in position 2, gray in position 3\n\n2. \"The red book is the second from the left.\"  \n   → So, the red book is in position 2.\n\nNow let’s place the red book in position 2 (second from the left).\n\nThat leaves positions 1 and 3 for the white and gray books.\n\nFrom clue 1: white is to the left of gray.\n\nSo if white were in position 3, gray would have to be to its right — but there is no position to the right of 3. So white cannot be in position 3.\n\nTherefore, white must be in position 1, and gray in position 3.\n\nSo the order from left to right is:\n\n1. White book  \n2. Red book  \n3. Gray book\n\nNow check the options:\n\n(A) The red book is the second from the left → True ✅  \n(B) The gray book is the second from the left → False ❌  \n(C) The white book is the second from the left → False ❌\n\nOnly (A) is correct.\n\nSo the answer is (A) The red book is the second from the left.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 34
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a green book, a brown book, and an orange book. The brown book is to the left of the orange book. The green book is to the left of the brown book.\nOptions:\n(A) The green book is the leftmost\n(B) The brown book is the leftmost\n(C) The orange book is the leftmost",
+        "target": "(A)",
+        "raw_pred": "We are given a sequence of three books on a shelf: a green book, a brown book, and an orange book. We are told:\n\n1. The brown book is to the left of the orange book.\n2. The green book is to the left of the brown book.\n\nLet’s analyze the order step by step.\n\nFrom (2): Green book is to the left of the brown book → Green < Brown  \nFrom (1): Brown book is to the left of the orange book → Brown < Orange\n\nCombining both:\nGreen < Brown < Orange\n\nSo the order from left to right is: Green book, then Brown book, then Orange book.\n\nTherefore, the green book is the leftmost.\n\nSo the answer is (A) The green book is the leftmost.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 35
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: apples, pears, and plums. The pears are less expensive than the plums. The pears are more expensive than the apples.\nOptions:\n(A) The apples are the cheapest\n(B) The pears are the cheapest\n(C) The plums are the cheapest",
+        "target": "(A)",
+        "raw_pred": "We are given the following information:\n\n- The pears are less expensive than the plums.  \n  → So: pears < plums\n\n- The pears are more expensive than the apples.  \n  → So: apples < pears\n\nCombining these two inequalities:\n\napples < pears < plums\n\nThis means the apples are the cheapest, followed by pears, then plums.\n\nTherefore, the correct statement is:\n\n(A) The apples are the cheapest\n\nSo the answer is (A) The apples are the cheapest",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 36
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Ada, Mel, and Mya. Mya finished below Ada. Mel finished above Ada.\nOptions:\n(A) Ada finished first\n(B) Mel finished first\n(C) Mya finished first",
+        "target": "(B)",
+        "raw_pred": "We are given two statements about the finishing order of three golfers: Ada, Mel, and Mya.\n\n1. **Mya finished below Ada.**  \n   → This means Mya did *not* finish above Ada. So Ada finished ahead of Mya.\n\n2. **Mel finished above Ada.**  \n   → This means Mel did *not* finish behind Ada. So Mel finished ahead of Ada.\n\nFrom these two statements:\n\n- Mel > Ada (Mel finished above Ada)\n- Ada > Mya (Ada finished above Mya)\n\nTherefore, combining both:\n\n**Mel > Ada > Mya**\n\nSo the order from first to third is: Mel, Ada, Mya.\n\nThus, **Mel finished first**.\n\nSo the answer is (B) Mel finished first.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 37
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a blue jay, a falcon, and a hummingbird. The blue jay is to the right of the falcon. The hummingbird is to the left of the falcon.\nOptions:\n(A) The blue jay is the second from the left\n(B) The falcon is the second from the left\n(C) The hummingbird is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are given a scenario with three birds on a branch: a blue jay, a falcon, and a hummingbird. They are arranged in a fixed order from left to right.\n\nWe are told:\n\n1. The blue jay is to the right of the falcon.  \n2. The hummingbird is to the left of the falcon.\n\nLet’s analyze this step by step.\n\nFrom (2): The hummingbird is to the left of the falcon.  \nSo the order must be: hummingbird – falcon – ???  \n(Or possibly hummingbird – ??? – falcon, but then the falcon would not be immediately to the right.)\n\nBut more precisely, \"to the left\" means somewhere before, not necessarily adjacent.\n\nSimilarly, (1): The blue jay is to the right of the falcon. So falcon is somewhere to the left of the blue jay.\n\nNow let's consider possible positions: left, middle, right.\n\nLet’s suppose the positions are:\n\n- Position 1: left  \n- Position 2: middle  \n- Position 3: right\n\nWe need to assign the three birds such that:\n\n- Hummingbird is to the left of falcon → hummingbird < falcon (in position number)  \n- Blue jay is to the right of falcon → falcon < blue jay\n\nSo combining: hummingbird < falcon < blue jay\n\nThis is a strict ordering: hummingbird is leftmost, then falcon, then blue jay.\n\nSo the order from left to right is:\n\n1. Hummingbird  \n2. Falcon  \n3. Blue jay\n\nNow check the options:\n\n(A) The blue jay is the second from the left → No, it's third.  \n(B) The falcon is the second from the left → Yes, it is in the middle.  \n(C) The hummingbird is the second from the left → No, it's first.\n\nSo the correct answer is (B).\n\nSo the answer is (B)",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 38
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a limousine, a truck, and a minivan. The minivan is older than the truck. The limousine is the second-newest.\nOptions:\n(A) The limousine is the oldest\n(B) The truck is the oldest\n(C) The minivan is the oldest",
+        "target": "(C)",
+        "raw_pred": "We are given three vehicles: a limousine, a truck, and a minivan.\n\nWe are told:\n\n1. The **minivan is older than the truck**.\n2. The **limousine is the second-newest**.\n\nLet’s analyze this step by step.\n\n### Step 1: Understand \"second-newest\"\n\"Second-newest\" means there is one vehicle newer than the limousine, and one older than it.\n\nSo, ordering from newest to oldest:\n- 1st (newest): ?\n- 2nd (second-newest): limousine\n- 3rd (oldest): ?\n\nThus, the limousine is **not** the newest, nor is it the oldest — it's in the middle.\n\nSo the order from newest to oldest must be:\n1. ???  \n2. Limousine  \n3. ???\n\nNow, we know:\n- The **minivan is older than the truck** → so minivan comes after truck in age (i.e., older).\n\nThat means:\n- Truck is newer than minivan.\n\nSo among the three:\n- Truck > minivan in terms of newness (truck is newer)\n\nNow, we know limousine is second-newest, so only one vehicle is newer than it.\n\nTherefore, the **only vehicle that can be newer than the limousine is the truck**, because if the minivan were newer than the limousine, then the limousine would be third (oldest), but it’s second-newest — meaning only one vehicle is newer.\n\nSo possibilities:\n- If limousine is second-newest, then one vehicle is newer, two are older or equal — but since all are distinct, one newer, one older.\n\nSo:\n- Newer than limousine: one vehicle\n- Older than limousine: one vehicle\n\nWe already have:\n- Minivan is older than truck → so truck is newer than minivan\n\nSo truck > minivan in newness.\n\nNow, where can the limousine fit?\n\nTry placing limousine in the middle.\n\nSo from newest to oldest:\n1. ???  \n2. Limousine  \n3. ???\n\nNow, who can be first (newest)? It can't be the minivan, because minivan is older than the truck — so minivan cannot be newer than truck.\n\nSo minivan cannot be the newest.\n\nSo the newest must be either the limousine or the truck.\n\nBut limousine is second-newest → so not the newest.\n\nTherefore, **the truck must be the newest**.\n\nSo:\n1. Truck (newest)  \n2. Limousine (second-newest)  \n3. Minivan (oldest)\n\nCheck consistency:\n- Minivan older than truck? Yes — minivan is last, truck is first → yes.\n- Limousine is second-newest? Yes.\n\nSo the order from newest to oldest is: truck, limousine, minivan.\n\nTherefore, the **minivan is the oldest**.\n\nNow look at the options:\n\n(A) The limousine is the oldest → False  \n(B) The truck is the oldest → False  \n(C) The minivan is the oldest → True\n\nSo the answer is (C).\n\nSo the answer is (C) The minivan is the oldest.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 39
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Ana, Rob, and Joe. Joe finished above Ana. Rob finished above Joe.\nOptions:\n(A) Ana finished first\n(B) Rob finished first\n(C) Joe finished first",
+        "target": "(B)",
+        "raw_pred": "We are given two statements about the finishing order of three golfers: Ana, Rob, and Joe.\n\n1. Joe finished above Ana.  \n   → This means Joe's position is better (i.e., numerically lower) than Ana's. So:  \n   Joe < Ana (in terms of finishing position)\n\n2. Rob finished above Joe.  \n   → Rob's position is better than Joe's:  \n   Rob < Joe\n\nNow, combining these:\n\nRob < Joe < Ana\n\nSo the order from first to last is: Rob, then Joe, then Ana.\n\nTherefore, Rob finished first.\n\nSo the answer is (B) Rob finished first.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 40
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a hatchback, a convertible, and a tractor. The convertible is older than the tractor. The hatchback is the second-newest.\nOptions:\n(A) The hatchback is the oldest\n(B) The convertible is the oldest\n(C) The tractor is the oldest",
+        "target": "(B)",
+        "raw_pred": "We are given three vehicles: a hatchback, a convertible, and a tractor. We are told:\n\n1. The **convertible is older than the tractor**.  \n   → So, convertible > tractor in age (i.e., convertible is older).\n\n2. The **hatchback is the second-newest**.  \n   → That means there is one vehicle newer than the hatchback, and one older.\n\nLet’s rank them from oldest to newest.\n\nSince the hatchback is the **second-newest**, that means:\n- One vehicle is newer than the hatchback.\n- One vehicle is older than the hatchback.\n\nSo the order from oldest to newest must be:\n1. Oldest\n2. Hatchback (second-newest)\n3. Newest\n\nSo the hatchback is not the oldest, nor is it the newest — it's in the middle.\n\nNow, from statement 1: **convertible is older than the tractor** → convertible > tractor.\n\nSo the tractor cannot be older than the convertible.\n\nNow let’s consider possibilities.\n\nThe hatchback is in the middle (second-newest), so the oldest must be either the convertible or the tractor.\n\nBut since the convertible is older than the tractor, the tractor cannot be the oldest — because then the convertible would be even older, which would make the convertible the oldest.\n\nWait — actually, if the tractor were the oldest, then the convertible would have to be older than the tractor, which would mean the convertible is even older — impossible, since the tractor would already be the oldest.\n\nSo:  \n- If tractor were oldest → convertible older than tractor → impossible.  \n→ So tractor cannot be oldest.\n\nTherefore, the **convertible must be the oldest**.\n\nThen the tractor is younger than the convertible.\n\nNow, where does the hatchback fit?\n\nWe know:\n- Hatchback is second-newest → so it's not the newest, not the oldest → so it's in the middle.\n\nSo the order from oldest to newest is:\n1. Convertible (oldest)  \n2. Hatchback (second-newest)  \n3. Tractor (newest)\n\nCheck consistency:\n- Convertible older than tractor? Yes — 1st vs 3rd.\n- Hatchback is second-newest? Yes — it's the middle one.\n\nPerfect.\n\nSo the **convertible is the oldest**.\n\nThus, the correct answer is:\n\nSo the answer is (B) The convertible is the oldest",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 41
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Amy, Ana, and Joe. Amy finished below Ana. Ana finished below Joe.\nOptions:\n(A) Amy finished second\n(B) Ana finished second\n(C) Joe finished second",
+        "target": "(B)",
+        "raw_pred": "We are given a golf tournament with three golfers: Amy, Ana, and Joe. The statements are:\n\n1. Amy finished below Ana.  \n2. Ana finished below Joe.\n\nThis means the finishing order from first to third is:\n\n- Joe (first) — since Ana finished below Joe, Joe must be ahead of Ana.\n- Ana (second) — since Amy finished below Ana, Ana must be ahead of Amy.\n- Amy (third)\n\nSo the order is: Joe > Ana > Amy\n\nTherefore, Ana finished second.\n\nSo the answer is (B) Ana finished second.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 42
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were three golfers: Ana, Mel, and Ada. Ada finished above Ana. Mel finished below Ana.\nOptions:\n(A) Ana finished last\n(B) Mel finished last\n(C) Ada finished last",
+        "target": "(B)",
+        "raw_pred": "We are given the following information about the finishing positions of three golfers: Ana, Mel, and Ada.\n\n1. **Ada finished above Ana.**  \n   → This means Ada's position is better (i.e., a lower number) than Ana’s. For example, if Ana finished 2nd, Ada must have finished 1st.\n\n2. **Mel finished below Ana.**  \n   → Mel's position is worse (i.e., a higher number) than Ana’s. So if Ana finished 2nd, Mel must have finished 3rd.\n\nLet’s analyze the implications:\n\n- From (1): Ada > Ana (in rank; meaning Ada has a better position)\n- From (2): Mel < Ana (Mel has a worse position)\n\nSo ordering from best to worst (1st to 3rd):\n\nWe know:\n- Ada is ahead of Ana → Ada < Ana (in position number)\n- Mel is behind Ana → Mel > Ana\n\nSo combining:\nAda < Ana < Mel\n\nTherefore, the order from first to last is:\n1. Ada  \n2. Ana  \n3. Mel\n\nThus, **Mel finished last**.\n\nSo the answer is (B) Mel finished last.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 43
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a yellow book, a green book, and a red book. The red book is to the left of the green book. The yellow book is to the left of the red book.\nOptions:\n(A) The yellow book is the rightmost\n(B) The green book is the rightmost\n(C) The red book is the rightmost",
+        "target": "(B)",
+        "raw_pred": "We are given a set of three books: yellow, green, and red, arranged in a fixed order on a shelf.\n\nLet’s analyze the clues:\n\n1. \"The red book is to the left of the green book.\"  \n   → So, red is not on the rightmost position; green must be to the right of red.\n\n2. \"The yellow book is to the left of the red book.\"  \n   → So, yellow is not on the rightmost position; red must be to the right of yellow.\n\nFrom these two statements:\n- Yellow is to the left of red.\n- Red is to the left of green.\n\nSo the order from left to right must be: **Yellow → Red → Green**\n\nTherefore, the rightmost book is the **green book**.\n\nSo the answer is (B) The green book is the rightmost.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 44
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a shelf, there are three books: a gray book, a purple book, and a red book. The purple book is to the left of the red book. The gray book is to the left of the purple book.\nOptions:\n(A) The gray book is the leftmost\n(B) The purple book is the leftmost\n(C) The red book is the leftmost",
+        "target": "(A)",
+        "raw_pred": "We are given three books: a gray book, a purple book, and a red book, arranged on a shelf in a fixed order.\n\nThe clues are:\n\n1. The purple book is to the left of the red book.  \n2. The gray book is to the left of the purple book.\n\nLet’s analyze step by step.\n\nFrom clue (2): Gray book is to the left of the purple book.  \nSo the order must be: gray – purple – ???  \n\nFrom clue (1): Purple book is to the left of the red book.  \nSo the order must be: purple – red.\n\nCombining both:\n- Gray is left of purple\n- Purple is left of red\n\nTherefore, the full order from left to right must be:  \n**Gray book → Purple book → Red book**\n\nSo the gray book is the leftmost.\n\nNow let’s evaluate the options:\n\n(A) The gray book is the leftmost — ✅ True  \n(B) The purple book is the leftmost — ❌ False  \n(C) The red book is the leftmost — ❌ False\n\nSo the answer is (A) The gray book is the leftmost.",
+        "processed_pred": "A",
+        "is_correct": 1,
+        "idx": 45
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. On a branch, there are three birds: a blue jay, a falcon, and a raven. The falcon is to the left of the blue jay. The falcon is to the right of the raven.\nOptions:\n(A) The blue jay is the second from the left\n(B) The falcon is the second from the left\n(C) The raven is the second from the left",
+        "target": "(B)",
+        "raw_pred": "We are given a scenario with three birds on a branch: a blue jay, a falcon, and a raven. We are told two things:\n\n1. The falcon is to the left of the blue jay.  \n2. The falcon is to the right of the raven.\n\nLet’s analyze this step by step.\n\n### Step 1: Use the first clue\n- \"The falcon is to the left of the blue jay\" → Falcon < Blue Jay (in position from left to right)\n\n### Step 2: Use the second clue\n- \"The falcon is to the right of the raven\" → Raven < Falcon\n\nSo combining both:\nRaven < Falcon < Blue Jay\n\nThis gives us a strict order from left to right:\n**Raven, Falcon, Blue Jay**\n\nNow let's determine positions:\n- First from the left: Raven\n- Second from the left: Falcon\n- Third from the left: Blue Jay\n\nNow check the options:\n\n(A) The blue jay is the second from the left → False (it's third)  \n(B) The falcon is the second from the left → True  \n(C) The raven is the second from the left → False (it's first)\n\nSo the correct answer is (B).\n\nSo the answer is (B) The falcon is the second from the left.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 46
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: apples, pears, and loquats. The pears are more expensive than the loquats. The pears are less expensive than the apples.\nOptions:\n(A) The apples are the cheapest\n(B) The pears are the cheapest\n(C) The loquats are the cheapest",
+        "target": "(C)",
+        "raw_pred": "We are given the following information:\n\n- The pears are more expensive than the loquats.  \n  → So: pears > loquats\n\n- The pears are less expensive than the apples.  \n  → So: pears < apples\n\nCombining these two inequalities:\n\nloquats < pears < apples\n\nTherefore, the order from cheapest to most expensive is:  \n**loquats < pears < apples**\n\nSo the **loquats are the cheapest**.\n\nSo the answer is (C) The loquats are the cheapest.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 47
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells three fruits: apples, peaches, and loquats. The loquats are less expensive than the apples. The peaches are more expensive than the apples.\nOptions:\n(A) The apples are the most expensive\n(B) The peaches are the most expensive\n(C) The loquats are the most expensive",
+        "target": "(B)",
+        "raw_pred": "We are given the following information about the prices of three fruits: apples, peaches, and loquats.\n\n1. The loquats are less expensive than the apples.  \n   → So: loquats < apples\n\n2. The peaches are more expensive than the apples.  \n   → So: apples < peaches\n\nCombining these two inequalities:\n\nloquats < apples < peaches\n\nTherefore, the order from least expensive to most expensive is:  \nloquats < apples < peaches\n\nSo the peaches are the most expensive.\n\nNow let's evaluate the options:\n\n(A) The apples are the most expensive — False, because peaches are more expensive.  \n(B) The peaches are the most expensive — True.  \n(C) The loquats are the most expensive — False, they are the cheapest.\n\nSo the answer is (B) The peaches are the most expensive.",
+        "processed_pred": "B",
+        "is_correct": 1,
+        "idx": 48
+    },
+    {
+        "input": "The following paragraphs each describe a set of three objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are three vehicles: a motorcyle, a limousine, and a convertible. The motorcyle is newer than the limousine. The convertible is newer than the motorcyle.\nOptions:\n(A) The motorcyle is the newest\n(B) The limousine is the newest\n(C) The convertible is the newest",
+        "target": "(C)",
+        "raw_pred": "We are given the following information:\n\n1. The motorcycle is newer than the limousine.  \n   → Motorcycle > Limousine (in terms of newness)\n\n2. The convertible is newer than the motorcycle.  \n   → Convertible > Motorcycle\n\nFrom these two statements, we can chain the comparisons:\n\nConvertible > Motorcycle > Limousine\n\nTherefore, the convertible is the newest of the three.\n\nSo the answer is (C) The convertible is the newest.",
+        "processed_pred": "C",
+        "is_correct": 1,
+        "idx": 49
+    }
+]
