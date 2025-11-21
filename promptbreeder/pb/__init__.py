@@ -8,7 +8,8 @@ from typing import List
 
 from rich import print
 import time
-from cohere import Client
+# from cohere import Client
+from typing import Any
 
 from pb.mutation_operators import mutate
 from pb import gsm
@@ -41,7 +42,7 @@ def create_population(tp_set: List, mutator_set: List, problem_description: str)
 
     return Population(**data)
 
-def init_run(population: Population, model: Client, num_evals: int):
+def init_run(population: Population, model: Any, num_evals: int):
     """ The first run of the population that consumes the prompt_description and 
     creates the first prompt_tasks.
     
@@ -72,7 +73,7 @@ def init_run(population: Population, model: Client, num_evals: int):
     
     return population
 
-def run_for_n(n: int, population: Population, model: Client, num_evals: int):
+def run_for_n(n: int, population: Population, model: Any, num_evals: int):
     """ Runs the genetic algorithm for n generations.
     """     
     p = population
@@ -85,7 +86,7 @@ def run_for_n(n: int, population: Population, model: Client, num_evals: int):
 
     return p
 
-def _evaluate_fitness(population: Population, model: Client, num_evals: int) -> Population:
+def _evaluate_fitness(population: Population, model: Any, num_evals: int) -> Population:
     """ Evaluates each prompt P on a batch of Q&A samples, and populates the fitness values.
     """
     # need to query each prompt, and extract the answer. hardcoded 4 examples for now.
