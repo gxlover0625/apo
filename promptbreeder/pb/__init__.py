@@ -126,14 +126,12 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int) -> Pop
             if valid:
                 # 0.25 = 1 / 4 examples
                 population.units[unit_index].fitness += (1 / num_evals)
-
-            if unit.fitness > elite_fitness:
-                # I am copying this bc I don't know how it might get manipulated by future mutations.
-
-                unit = population.units[unit_index]
-                
-                current_elite = unit.model_copy()
-                elite_fitness = unit.fitness
+        
+        # Check if this unit is the best after evaluating all samples
+        if population.units[unit_index].fitness > elite_fitness:
+            # I am copying this bc I don't know how it might get manipulated by future mutations.
+            current_elite = population.units[unit_index].model_copy()
+            elite_fitness = population.units[unit_index].fitness
     
     # append best unit of generation to the elites list.
     population.elites.append(current_elite)
