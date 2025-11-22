@@ -6,6 +6,7 @@ import os
 import logging
 import argparse
 import asyncio
+import random
 
 from dotenv import load_dotenv
 from rich import print
@@ -58,10 +59,10 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Run the PromptBreeder Algorithm. Number of units is mp * ts.')
-parser.add_argument('-mp', '--num_mutation_prompts', default=2, type=int)     
-parser.add_argument('-ts', '--num_thinking_styles', default=4, type=int)     
+parser.add_argument('-mp', '--num_mutation_prompts', default=5, type=int)     
+parser.add_argument('-ts', '--num_thinking_styles', default=5, type=int)     
 parser.add_argument('-e', '--num_evals', default=10, type=int)     
-parser.add_argument('-n', '--simulations', default=10, type=int)     
+parser.add_argument('-n', '--simulations', default=20, type=int)     
 parser.add_argument('-p', '--problem', default="Solve the math word problem, giving your answer as an arabic numeral.")       
 
 args = vars(parser.parse_args())
@@ -76,8 +77,10 @@ co = OpenAIWrapper(
     model=os.environ['OPENAI_MODEL']
 )
 
-tp_set = mutation_prompts[:int(args['num_mutation_prompts'])]
-mutator_set= thinking_styles[:int(args['num_thinking_styles'])]
+# tp_set = mutation_prompts[:int(args['num_mutation_prompts'])]
+tp_set = random.sample(mutation_prompts, int(args['num_mutation_prompts']))
+# mutator_set= thinking_styles[:int(args['num_thinking_styles'])]
+mutator_set = random.sample(thinking_styles, int(args['num_thinking_styles']))
 
 logger.info(f'You are prompt-optimizing for the problem: {args["problem"]}')
 
@@ -92,4 +95,5 @@ run_for_n(n=int(args['simulations']), population=p, model=co, num_evals=int(args
 
 print("%"*80)
 print("done processing! final gen:")
-print(p.units)
+# print(p.units)
+print(p.elites)
