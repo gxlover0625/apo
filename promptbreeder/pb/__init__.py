@@ -83,6 +83,7 @@ def run_for_n(n: int, population: Population, model: Any, num_evals: int):
         print("done mutation")
         _evaluate_fitness(p, model, num_evals)
         print("done evaluation")
+        print(p.elites)
 
     return p
 
