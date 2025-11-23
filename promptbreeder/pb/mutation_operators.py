@@ -114,9 +114,13 @@ def working_out_task_prompt(unit: EvolutionUnit, model: Any, **kwargs) -> Evolut
     Returns: 
         EvolutionUnit: the evolution unit to replace the loser unit.
     """
-    RANDOM_WORKING_OUT = random.sample(gsm8k_examples, 1)[0]
+    # RANDOM_WORKING_OUT = random.sample(gsm8k_examples, 1)[0]
+    RANDOM_WORKING_OUT = random.sample(kwargs['train_set'], 1)[0]
+    if os.environ['TASK'] == "causal_judgement":
+        question = RANDOM_WORKING_OUT['input']
+        answer = RANDOM_WORKING_OUT['target']
   
-    unit.P = model.generate("I gave a friend an instruction and some advice. Here are the correct examples of his workings out " + RANDOM_WORKING_OUT['question'] +" " +  RANDOM_WORKING_OUT['answer'] + " The instruction was: ")[0].text
+    unit.P = model.generate("I gave a friend an instruction and some advice. Here are the correct examples of his workings out " + question +" " +  answer + " The instruction was: ")[0].text
     return unit 
 
 # Prompt crossover and context shuffling. These happen AFTER mutation operators. 
@@ -150,7 +154,7 @@ POST_MUTATORS = [
     context_shuffling
 ]
 
-def mutate(population: Population, model: Any) -> Population:
+def mutate(population: Population, model: Any, train_set: Any) -> Population:
     """Select and apply a random mutator"""
     # steps
     # 1. parse through the population, grouping each evo unit by 2
@@ -192,6 +196,7 @@ def mutate(population: Population, model: Any) -> Population:
             'model' : model,
             'elites' : population.elites,
             'problem_description': population.problem_description,
+            'train_set': train_set,
         }
 
         # uniformly pick and call a random mutation operator on the losing unit

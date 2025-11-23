@@ -42,7 +42,7 @@ def create_population(tp_set: List, mutator_set: List, problem_description: str)
 
     return Population(**data)
 
-def init_run(population: Population, opt_model: Any, task_model: Any, num_evals: int):
+def init_run(population: Population, opt_model: Any, task_model: Any, num_evals: int, train_set: Any, eval_fn: Any):
     """ The first run of the population that consumes the prompt_description and 
     creates the first prompt_tasks.
     
@@ -69,25 +69,25 @@ def init_run(population: Population, opt_model: Any, task_model: Any, num_evals:
     for i, item in enumerate(results):
         population.units[i].P = item[0].text
 
-    _evaluate_fitness(population, task_model, num_evals)
+    _evaluate_fitness(population, task_model, num_evals, train_set, eval_fn)
     
     return population
 
-def run_for_n(n: int, population: Population, opt_model: Any, task_model: Any, num_evals: int):
+def run_for_n(n: int, population: Population, opt_model: Any, task_model: Any, num_evals: int, train_set: Any, eval_fn: Any):
     """ Runs the genetic algorithm for n generations.
     """     
     p = population
     for i in range(n):  
         print(f"================== Population {i} ================== ")
-        mutate(p, opt_model)
+        mutate(p, opt_model, train_set)
         print("done mutation")
-        _evaluate_fitness(p, task_model, num_evals)
+        _evaluate_fitness(p, task_model, num_evals, train_set, eval_fn)
         print("done evaluation")
         print(p.elites)
 
     return p
 
-def _evaluate_fitness(population: Population, model: Any, num_evals: int) -> Population:
+def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_set:Any, eval_fn: Any) -> Population:
     """ Evaluates each prompt P on a batch of Q&A samples, and populates the fitness values.
     """
     # need to query each prompt, and extract the answer. hardcoded 4 examples for now.
@@ -97,15 +97,18 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int) -> Pop
 
     #batch = random.sample(gsm8k_examples, num_evals)
     # instead of random, its better for reproducibility 
-    batch = gsm8k_examples[:num_evals]
+    # batch = gsm8k_examples[:num_evals]
+    batch = train_set[:num_evals]
 
     elite_fitness = -1
+    current_elite = None
     examples = []
     for unit in population.units:
         # set the fitness to zero from past run.
         unit.fitness = 0
         # todo. model.batch this or multithread
-        examples.append([unit.P + ' \n' + example['question'] for example in batch])
+        if os.environ['TASK'] == "causal_judgement":
+            examples.append([unit.P + ' \n' + example['input'] for example in batch])
 
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(examples)) as executor:
@@ -123,7 +126,9 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int) -> Pop
     # the LLM before further input Q.
     for unit_index, fitness_results in enumerate(results):
         for i, x in enumerate(fitness_results):
-            valid = re.search(gsm.gsm_extract_answer(batch[i]['answer']), x[0].text)
+            # valid = re.search(gsm.gsm_extract_answer(batch[i]['answer']), x[0].text)
+            if os.environ['TASK'] == "causal_judgement":
+                valid = eval_fn(x[0].text, batch[i]['target'])
             if valid:
                 # 0.25 = 1 / 4 examples
                 population.units[unit_index].fitness += (1 / num_evals)
