@@ -15,6 +15,46 @@ from openai import OpenAI
 from dataclasses import dataclass
 from typing import List
 
+import json
+import re
+import numpy as np
+
+# copy from
+# https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
+def bbh_freeform_postprocess(text: str) -> str:
+    ans = text
+    ans_line = ans.split('answer is ')
+    if len(ans_line) != 1:
+        ans = ans_line[1].strip()
+    ans = ans.split('\n')[0].strip()
+
+    if ans.endswith('.'):
+        ans = ans[:-1].strip()
+
+    match = re.search(r'\*\*(.*?)\*\*', ans)
+    if match:
+        return match.group(1)
+
+    return ans
+
+def bbh_freeform_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = bbh_freeform_postprocess(prediction)
+    ref = ground_truth_answer
+    return int(pred == ref)
+
+def load_task(dataset_name:str, data_path: str):
+    random.seed(42)
+    np.random.seed(42)
+    if dataset_name == "causal_judgement":
+        with open(data_path, "r") as f:
+            data = json.load(f)['examples']
+        random.shuffle(data)
+        train_data = data[:37]
+        eval_data = data[37: 37+74]
+        test_data = data[37+74:]
+        eval_fn = bbh_freeform_eval_fn
+        return train_data, eval_data, test_data, eval_fn
+        
 @dataclass
 class Generation:
     text: str
@@ -63,9 +103,12 @@ parser.add_argument('-mp', '--num_mutation_prompts', default=5, type=int)
 parser.add_argument('-ts', '--num_thinking_styles', default=5, type=int)     
 parser.add_argument('-e', '--num_evals', default=10, type=int)     
 parser.add_argument('-n', '--simulations', default=20, type=int)     
-parser.add_argument('-p', '--problem', default="Solve the math word problem, giving your answer as an arabic numeral.")       
+parser.add_argument('-p', '--problem', default="Solve the math word problem, giving your answer as an arabic numeral.")
+parser.add_argument('-d', '--data', default="causal_judgement")
+parser.add_argument('--path', type=str, required=True)       
 
 args = vars(parser.parse_args())
+train_set, eval_set, test_set, eval_fn = load_task(args['data'], args['path'])
 
 total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*args['num_evals']
 
