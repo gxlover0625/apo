@@ -55,7 +55,12 @@ def init_run(population: Population, opt_model: Any, task_model: Any, num_evals:
     prompts = []
 
     for unit in population.units:    
-        template= f"{unit.T} {unit.M} INSTRUCTION: {population.problem_description} INSTRUCTION MUTANT = "
+        # template= f"{unit.T} {unit.M} INSTRUCTION: {population.problem_description} INSTRUCTION MUTANT = "
+        template = (
+            f"{unit.M} {unit.T}\n"
+            f"Current INSTRUCTION (need to be mutated, do not solve): {population.problem_description}\n"
+            f"Generate a mutated instruction and wrap it in <MUTANT> and </MUTANT> tags."
+        )
         prompts.append(template)
     
  
@@ -67,7 +72,10 @@ def init_run(population: Population, opt_model: Any, task_model: Any, num_evals:
 
     assert len(results) == population.size, "size of google response to population is mismatched"
     for i, item in enumerate(results):
-        population.units[i].P = item[0].text
+        try:
+            population.units[i].P = item[0].text.split("<MUTANT>")[1].split("</MUTANT>")[0]
+        except:
+            population.units[i].P = item[0].text
 
     _evaluate_fitness(population, task_model, num_evals, train_set, eval_fn)
     
@@ -112,14 +120,8 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
 
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(examples)) as executor:
-        future_to_fit = {executor.submit(model.batch_generate, example_batch,  temperature=0): example_batch for example_batch in examples}
-        for future in concurrent.futures.as_completed(future_to_fit):
-            example_batch = future_to_fit[future]  # Get the prompt corresponding to this future
-            try:
-                data = future.result()
-                results.append(data)
-            except Exception as exc:
-                print(f"Exception: {exc}")
+        # map() preserves order: results[i] corresponds to examples[i]
+        results = list(executor.map(lambda batch: model.batch_generate(batch, temperature=0), examples))
 
 
     # https://arxiv.org/pdf/2309.16797.pdf#page=5, P is a task-prompt to condition 

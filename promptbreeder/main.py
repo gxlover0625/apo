@@ -111,6 +111,7 @@ args = vars(parser.parse_args())
 train_set, eval_set, test_set, eval_fn = load_task(args['data'], args['path'])
 os.environ['TASK'] = args['data']
 args['num_evals'] = len(train_set)
+args['problem'] = """You must give your final answer by starting with 'So the answer is'"""
 
 total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*args['num_evals']
 
@@ -129,9 +130,9 @@ task_model = OpenAIWrapper(
 )
 
 # tp_set = mutation_prompts[:int(args['num_mutation_prompts'])]
-tp_set = random.sample(mutation_prompts, int(args['num_mutation_prompts']))
+tp_set = random.sample(thinking_styles, int(args['num_thinking_styles']))
 # mutator_set= thinking_styles[:int(args['num_thinking_styles'])]
-mutator_set = random.sample(thinking_styles, int(args['num_thinking_styles']))
+mutator_set = random.sample(mutation_prompts, int(args['num_mutation_prompts']))
 
 logger.info(f'You are prompt-optimizing for the problem: {args["problem"]}')
 
