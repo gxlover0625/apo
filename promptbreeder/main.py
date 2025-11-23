@@ -71,10 +71,16 @@ total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*arg
 
 # set num_workers to total_evaluations so we always have a thread 
 # co = cohere.Client(api_key=os.environ['COHERE_API_KEY'],  num_workers=total_evaluations, max_retries=5, timeout=30) #override the 2 min timeout with 30s. 
-co = OpenAIWrapper(
+opt_model = OpenAIWrapper(
     base_url=os.environ['OPENAI_BASE_URL'],
     api_key=os.environ['OPENAI_API_KEY'],
-    model=os.environ['OPENAI_MODEL']
+    model=os.environ['OPENAI_OPT_MODEL']
+)
+
+task_model = OpenAIWrapper(
+    base_url=os.environ['OPENAI_BASE_URL'],
+    api_key=os.environ['OPENAI_API_KEY'],
+    model=os.environ['OPENAI_TASK_MODEL']
 )
 
 # tp_set = mutation_prompts[:int(args['num_mutation_prompts'])]
@@ -88,10 +94,10 @@ logger.info(f'Creating the population...')
 p = create_population(tp_set=tp_set, mutator_set=mutator_set, problem_description=args['problem'])
 
 logger.info(f'Generating the initial prompts...')
-init_run(p, co, int(args['num_evals']))
+init_run(p, opt_model, task_model, int(args['num_evals']))
 
 logger.info(f'Starting the genetic algorithm...')
-run_for_n(n=int(args['simulations']), population=p, model=co, num_evals=int(args['num_evals']))
+run_for_n(n=int(args['simulations']), population=p, opt_model=opt_model, task_model=task_model, num_evals=int(args['num_evals']))
 
 print("%"*80)
 print("done processing! final gen:")

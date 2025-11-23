@@ -42,7 +42,7 @@ def create_population(tp_set: List, mutator_set: List, problem_description: str)
 
     return Population(**data)
 
-def init_run(population: Population, model: Any, num_evals: int):
+def init_run(population: Population, opt_model: Any, task_model: Any, num_evals: int):
     """ The first run of the population that consumes the prompt_description and 
     creates the first prompt_tasks.
     
@@ -59,7 +59,7 @@ def init_run(population: Population, model: Any, num_evals: int):
         prompts.append(template)
     
  
-    results = model.batch_generate(prompts)
+    results = opt_model.batch_generate(prompts)
 
     end_time = time.time()
 
@@ -69,19 +69,19 @@ def init_run(population: Population, model: Any, num_evals: int):
     for i, item in enumerate(results):
         population.units[i].P = item[0].text
 
-    _evaluate_fitness(population, model, num_evals)
+    _evaluate_fitness(population, task_model, num_evals)
     
     return population
 
-def run_for_n(n: int, population: Population, model: Any, num_evals: int):
+def run_for_n(n: int, population: Population, opt_model: Any, task_model: Any, num_evals: int):
     """ Runs the genetic algorithm for n generations.
     """     
     p = population
     for i in range(n):  
         print(f"================== Population {i} ================== ")
-        mutate(p, model)
+        mutate(p, opt_model)
         print("done mutation")
-        _evaluate_fitness(p, model, num_evals)
+        _evaluate_fitness(p, task_model, num_evals)
         print("done evaluation")
         print(p.elites)
 
