@@ -116,7 +116,7 @@ def working_out_task_prompt(unit: EvolutionUnit, model: Any, **kwargs) -> Evolut
     """
     # RANDOM_WORKING_OUT = random.sample(gsm8k_examples, 1)[0]
     RANDOM_WORKING_OUT = random.sample(kwargs['train_set'], 1)[0]
-    if os.environ['TASK'] == "causal_judgement":
+    if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes"]:
         question = RANDOM_WORKING_OUT['input']
         answer = RANDOM_WORKING_OUT['target']
   
