@@ -95,7 +95,7 @@ tg.set_backward_engine(llm_api_eval, override=True)
 train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=llm_api_eval)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 # STARTING_SYSTEM_PROMPT = train_set.get_task_description()
-STARTING_SYSTEM_PROMPT = """You must give your final answer by starting with 'So the answer is'"""
+STARTING_SYSTEM_PROMPT = """Let's think step by step. You must give your final answer by starting with 'So the answer is'"""
 
 print(STARTING_SYSTEM_PROMPT)
 
