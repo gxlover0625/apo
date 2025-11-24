@@ -142,7 +142,8 @@ args = vars(parser.parse_args())
 train_set, eval_set, test_set, eval_fn = load_task(args['data'], args['path'])
 os.environ['TASK'] = args['data']
 args['num_evals'] = len(train_set)
-args['problem'] = """You must give your final answer by starting with 'So the answer is'"""
+# args['problem'] = """You must give your final answer by starting with 'So the answer is'"""
+args['problem'] = """Let's think step by step."""
 
 total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*args['num_evals']
 

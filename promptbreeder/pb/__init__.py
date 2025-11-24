@@ -116,7 +116,9 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
         unit.fitness = 0
         # todo. model.batch this or multithread
         if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes"]:
-            examples.append([unit.P + ' \n' + example['input'] for example in batch])
+            # examples.append([unit.P + ' \n' + example['input'] for example in batch])
+            output_suffix = """You must give your final answer by starting with 'So the answer is'"""
+            examples.append([f"{example['input']}\n{unit.P} {output_suffix}"  for example in batch])
 
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
