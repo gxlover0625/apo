@@ -96,11 +96,11 @@ train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=l
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 # STARTING_SYSTEM_PROMPT = train_set.get_task_description()
 if args.dataset == "BBH_logical_deduction_seven_objects":
-    default_desc = """Deduce the order of a sequence of objects based on the clues and information about their spacial relationships and placements."""
+    default_desc = """A logical deduction task which requires deducing the order of a sequence of objects."""
 elif args.dataset == "BBH_causal_judgement":
-    default_desc = """Given a short story (involving moral, intentional, or counterfactual analysis), determine how a typical person would answer a causal question about the story."""
+    default_desc = """Answer questions about causal attribution."""
 elif args.dataset == "BBH_geometric_shapes":
-    default_desc = """Given a full SVG path element containing multiple commands, determine the geometric shape that would be generated if one were to execute the full path element."""
+    default_desc = """Name geometric shapes from their SVG paths."""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
 STARTING_SYSTEM_PROMPT = f"""{default_desc} You must give your final answer by starting with 'So the answer is'"""
