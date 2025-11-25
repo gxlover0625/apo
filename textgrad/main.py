@@ -95,7 +95,15 @@ tg.set_backward_engine(llm_api_eval, override=True)
 train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=llm_api_eval)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 # STARTING_SYSTEM_PROMPT = train_set.get_task_description()
-STARTING_SYSTEM_PROMPT = """Let's think step by step. You must give your final answer by starting with 'So the answer is'"""
+if args.dataset == "BBH_tracking_shuffled_objects_seven_objects":
+    default_desc = """Given the initial positions of a set of objects and a series of transformations (namely, pairwise swaps) applied to them, determine the final positions of the objects."""
+elif args.dataset == "BBH_causal_judgement":
+    default_desc = """Given a short story (involving moral, intentional, or counterfactual analysis), determine how a typical person would answer a causal question about the story."""
+elif args.dataset == "BBH_geometric_shapes":
+    default_desc = """Given a full SVG path element containing multiple commands, determine the geometric shape that would be generated if one were to execute the full path element."""
+else:
+    raise ValueError(f"Unknown dataset: {args.dataset}")
+STARTING_SYSTEM_PROMPT = f"""{default_desc} You must give your final answer by starting with 'So the answer is'"""
 
 print(STARTING_SYSTEM_PROMPT)
 
