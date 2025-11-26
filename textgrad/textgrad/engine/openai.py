@@ -94,7 +94,8 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
             stop=None,
             temperature=temperature,
             max_tokens=max_tokens,
-            top_p=top_p,
+            seed=42
+            # top_p=top_p,
         )
 
         response = response.choices[0].message.content
