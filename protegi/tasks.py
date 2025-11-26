@@ -214,7 +214,8 @@ class CausalJudgementTask(DataProcessor):
         acc_cnt = 0
         pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
         for i, ex in pbar:
-            user_message = f"{prompt}\n{ex['text']}"
+            output_format = """You must give your final answer by starting with 'So the answer is'"""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
             pred = utils.chatgpt(
                 user_message,
                 temperature=0.0,
@@ -272,7 +273,8 @@ class GeometricShapesTask(DataProcessor):
         acc_cnt = 0
         pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
         for i, ex in pbar:
-            user_message = f"{prompt}\n{ex['text']}"
+            output_format = """You must give your final answer by starting with 'So the answer is'"""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
             pred = utils.chatgpt(
                 user_message,
                 temperature=0.0,

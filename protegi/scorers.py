@@ -10,7 +10,9 @@ from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess
 
 def predict_on_example(inputs):
     ex, predictor, prompt = inputs
-    user_message = f"{prompt}\n{ex['text']}"
+    if os.environ['TASK'] in ["logical_deduction_seven_objects", "causal_judgement", "geometric_shapes"]:
+        output_format = """You must give your final answer by starting with 'So the answer is'"""
+        user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     pred = utils.chatgpt(
         user_message,
         temperature=0.0,
