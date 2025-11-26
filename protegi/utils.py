@@ -30,11 +30,19 @@ def parse_sectioned_prompt(s):
 
 
 def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=4096, 
-                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=10):
+                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=10, **kwargs):
     client = OpenAI(
         api_key=os.environ["OPENAI_API_KEY"],
         base_url=os.environ["OPENAI_BASE_URL"]
     )
+    if 'opt' in kwargs:
+        model = os.environ['OPENAI_OPT_MODEL']
+        temperature = 0.7
+    elif 'task' in kwargs:
+        model = os.environ['OPENAI_TASK_MODEL']
+        temperature = 0.
+    else:
+        model = os.environ['OPENAI_MODEL']
 
     messages = [{"role": "user", "content": prompt}]
     
@@ -42,11 +50,12 @@ def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=4096,
     while True:
         try:
             response = client.chat.completions.create(
-                model=os.environ['OPENAI_MODEL'],
+                model=model,
                 messages=messages,
                 temperature=temperature,
                 n=n,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
+                seed=42
             )
             break
         except Exception as e:
