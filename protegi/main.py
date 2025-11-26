@@ -124,7 +124,15 @@ if __name__ == '__main__':
     with open(args.out, 'a') as outf:
         outf.write(json.dumps(config) + '\n')
 
-    candidates = [open(fp.strip()).read() for fp in args.prompts.split(',')]
+    # candidates = [open(fp.strip()).read() for fp in args.prompts.split(',')]
+    if args.task == "logical_deduction_seven_objects":
+        candidates = ["""A logical deduction task which requires deducing the order of a sequence of objects."""]
+    elif args.task == "causal_judgement":
+        candidates = ["""Answer questions about causal attribution."""]
+    elif args.task == "geometric_shapes":
+        candidates = ["""Name geometric shapes from their SVG paths."""]
+    else:
+        raise NotImplementedError(f"Task {args.task} not supported")
 
     for round in tqdm(range(config['rounds'] + 1)):
         print("STARTING ROUND ", round)
