@@ -219,7 +219,8 @@ class CausalJudgementTask(DataProcessor):
                 user_message,
                 temperature=0.0,
                 n=1,
-                max_tokens=4096
+                max_tokens=4096,
+                task=True
             )[0]
             preds.append(bbh_freeform_postprocess(pred))
             labels.append(ex['label'])
@@ -276,7 +277,8 @@ class GeometricShapesTask(DataProcessor):
                 user_message,
                 temperature=0.0,
                 n=1,
-                max_tokens=4096
+                max_tokens=4096,
+                task=True
             )[0]
             # preds.append(bbh_mcq_postprocess(pred))
             processed_pred = bbh_mcq_postprocess(pred)

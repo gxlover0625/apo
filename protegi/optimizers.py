@@ -70,7 +70,7 @@ class ProTeGi(PromptOptimizer):
         Wrap each reason with <START> and </START>
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
-        res = utils.chatgpt(gradient_prompt, n=n)
+        res = utils.chatgpt(gradient_prompt, n=n, opt=True)
         feedbacks = []
         new_prompts = []
         for r in res:    
@@ -96,7 +96,7 @@ class ProTeGi(PromptOptimizer):
         The {steps_per_gradient} new prompts are:
         """
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
-        res = utils.chatgpt(transformation_prompt, n=n)
+        res = utils.chatgpt(transformation_prompt, n=n, opt=True)
         new_prompts = []
         for r in res:   
             new_prompts += self.parse_tagged_text(r, "<START>", "</START>")
@@ -109,7 +109,7 @@ class ProTeGi(PromptOptimizer):
         # new_instructions = [x for x in new_instructions if x]
         new_instructions = []
         for i in range(n):
-            instruction = utils.chatgpt(rewriter_prompt, n=1)[0]
+            instruction = utils.chatgpt(rewriter_prompt, n=1, opt=True)[0]
             new_instructions.append(instruction)
         
         new_instructions = [x for x in new_instructions if x]

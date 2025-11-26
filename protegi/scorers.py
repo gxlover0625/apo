@@ -15,7 +15,8 @@ def predict_on_example(inputs):
         user_message,
         temperature=0.0,
         n=1,
-        max_tokens=4096
+        max_tokens=4096,
+        task=True
     )[0]
     if os.environ['TASK'] in ['causal_judgement']:
         pred = bbh_freeform_postprocess(pred)
