@@ -143,7 +143,15 @@ train_set, eval_set, test_set, eval_fn = load_task(args['data'], args['path'])
 os.environ['TASK'] = args['data']
 args['num_evals'] = len(train_set)
 # args['problem'] = """You must give your final answer by starting with 'So the answer is'"""
-args['problem'] = """Let's think step by step."""
+# args['problem'] = """Let's think step by step."""
+if args['data'] == "geometric_shapes":
+    args['problem'] = """Name geometric shapes from their SVG paths."""
+elif args['data'] == "causal_judgement":
+    args['problem'] = """Answer questions about causal attribution."""
+elif args['data'] == "logical_deduction_seven_objects":
+    args['problem'] = """A logical deduction task which requires deducing the order of a sequence of objects."""
+else:
+    raise ValueError(f"Unsupported data type: {args['data']}")
 
 total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*args['num_evals']
 
