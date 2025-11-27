@@ -34,6 +34,7 @@ def call_openai_server_single_prompt(
     messages=[
       {"role": "user", "content": prompt},
     ],
+    seed=42
   )
   return response.choices[0].message.content
   # try:

@@ -110,6 +110,7 @@ def main(_):
   optimizer_llm_name = _OPTIMIZER.value
   dataset_name = _DATASET.value.lower()
   task_name = _TASK.value
+  os.environ['TASK'] = task_name
   meta_prompt_type = _META_PROMPT_TYPE.value
 
   assert dataset_name in {
@@ -730,9 +731,19 @@ def main(_):
   num_generated_instructions_in_each_step = 8
   num_search_steps = 200
 
+  if task_name == "causal_judgement":
+    init_prompt = """Answer questions about causal attribution."""
+  elif task_name == "geometric_shapes":
+    init_prompt = """Name geometric shapes from their SVG paths."""
+  elif task_name == "logical_deduction_seven_objects":
+    init_prompt = """A logical deduction task which requires deducing the order of a sequence of objects."""
+  else:
+    raise ValueError(f"Unknown task: {task_name}")
+
   initial_instructions = [
       # "Let's solve the problem.",
-      """You must give your final answer by starting with 'So the answer is'"""
+      # """You must give your final answer by starting with 'So the answer is'"""
+      init_prompt,
       # "",
       # "The answer is",
   ]

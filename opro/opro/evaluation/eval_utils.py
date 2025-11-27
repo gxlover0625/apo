@@ -599,7 +599,11 @@ def simple_evaluate_single_instruction(
 
   results = []
   for idx in eval_index_all:
-    raw_prompt = f"{instruction}\n{data[idx]['input']}"
+    if os.environ['TASK'] in ["causal_judgement", "geometric_shapes", "logical_deduction_seven_objects"]:
+      format_require = """You must give your final answer by starting with 'So the answer is'"""
+    else:
+      format_require = ""
+    raw_prompt = f"{instruction}\n{data[idx]['input']}\n{format_require}"
     raw_answer = call_server_func(raw_prompt)[0]
     true_answer = data[idx]["target"]
 
