@@ -34,9 +34,15 @@ def call_openai_server_single_prompt(
     messages=[
       {"role": "user", "content": prompt},
     ],
-    seed=42
+    seed=42,
+    stream=True
   )
-  return response.choices[0].message.content
+  full_content = ""
+  for chunk in response:
+    content = chunk.choices[0].delta.content
+    if content:
+      full_content += content
+  return full_content
   # try:
   #   completion = openai.ChatCompletion.create(
   #       model=model,
