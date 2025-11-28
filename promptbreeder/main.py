@@ -110,8 +110,14 @@ class OpenAIWrapper:
                 }
             ],
             temperature=temperature,
+            stream=True
         )
-        res_str = response.choices[0].message.content
+        full_content = ""
+        for chunk in response:
+            content = chunk.choices[0].delta.content
+            if content:
+                full_content += content
+        res_str = full_content
         return [Generation(text=res_str)]
     
     def batch_generate(self, prompts:List[str], temperature:float=None, **kwargs) -> List[List[Generation]]:
