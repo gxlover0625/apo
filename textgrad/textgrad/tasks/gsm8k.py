@@ -1,6 +1,9 @@
 import platformdirs
 
 from .base import Dataset
+import os
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+from datasets import load_dataset
 
 class GSM8K(Dataset):
     def __init__(self, subset:str, root: str=None, split: str="train", *args, **kwargs):
@@ -36,8 +39,34 @@ class GSM8K(Dataset):
     def get_task_description(self):
         return "You will answer a mathemetical reasoning question. Think step by step. The last line of your response should be of the following format: 'Answer: $VALUE' where VALUE is a numerical value."
 
+class GSM8K_GPO(Dataset):
+    def __init__(self, root:str, split:str):
+        dataset = load_dataset("openai/gsm8k", 'main', cache_dir=root)
+        train_all_data = dataset['train'].shuffle(seed=42)
+        test_all_data = dataset['test'].shuffle(seed=42)
+
+        # follow GPO settings
+        trainset = train_all_data.select(range(100))
+        devset = train_all_data.select(range(100, 200))
+        testset = test_all_data.select(range(300))
+        if split == "train":
+            self.data = trainset
+        elif split == "val":
+            self.data = devset
+        elif split == "test":
+            self.data = testset
     
+    def __len__(self):
+        return len(self.data)
     
+    def __getitem__(self, index):
+        row = self.data[index]
+        question = row['question']
+        answer = row['answer']
+        return question, answer
+    
+    def get_task_description(self):
+        return "Let's think step by step. Put your final answer within \\boxed{} in the last line."
     
 class GSM8K_DSPy(GSM8K):
     def __init__(self, root:str=None, split: str="train"):

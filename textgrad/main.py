@@ -10,6 +10,7 @@ import random
 
 from openai import OpenAI
 from textgrad.engine.local_model_openai_api import ChatExternalClient
+from pathlib import Path
 load_dotenv(override=True)
 
 def set_seed(seed):
@@ -92,18 +93,25 @@ tg.set_backward_engine(llm_api_eval, override=True)
 
 # Load the data and the evaluation function
 # train_set, val_set, test_set, eval_fn = load_task("BBH_object_counting", evaluation_api=llm_api_eval)
-train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=llm_api_eval)
+root_dir = Path(__file__).resolve().parent.parent / "data"
+train_set, val_set, test_set, eval_fn = load_task(args.dataset, evaluation_api=llm_api_eval, root=root_dir)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 # STARTING_SYSTEM_PROMPT = train_set.get_task_description()
 if args.dataset == "BBH_logical_deduction_seven_objects":
     default_desc = """A logical deduction task which requires deducing the order of a sequence of objects."""
+    output_format = """You must give your final answer by starting with 'So the answer is'"""
 elif args.dataset == "BBH_causal_judgement":
     default_desc = """Answer questions about causal attribution."""
+    output_format = """You must give your final answer by starting with 'So the answer is'"""
 elif args.dataset == "BBH_geometric_shapes":
     default_desc = """Name geometric shapes from their SVG paths."""
+    output_format = """You must give your final answer by starting with 'So the answer is'"""
+elif args.dataset == "GSM8K_GPO":
+    default_desc = """Let's think step by step."""
+    output_format = """Put your final answer within \\boxed{} in the last line."""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
-STARTING_SYSTEM_PROMPT = f"""{default_desc} You must give your final answer by starting with 'So the answer is'"""
+STARTING_SYSTEM_PROMPT = f"""{default_desc} {output_format}"""
 
 print(STARTING_SYSTEM_PROMPT)
 

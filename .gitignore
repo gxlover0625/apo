@@ -6,3 +6,4 @@ logs/
 *.egg-info/
 .vscode/
 .DS_Store
+data/
