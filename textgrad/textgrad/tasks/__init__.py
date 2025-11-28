@@ -64,6 +64,23 @@ def bbh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variab
     ref = str(ground_truth_answer.value)
     return int(pred == ref)
 
+# copy from
+# https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/gsm8k.py#L38C1-L49C23
+def gsm8k_dataset_postprocess(text: str) -> str:
+    return text.split('#### ')[1].replace(',', '')
+
+def gsm8k_postprocess(text: str) -> str:
+    text = text.split('Question:')[0]
+    numbers = re.findall(r'\-?\d+\.\d+|\-?\d+', text)
+    if not numbers:
+        return 'NULL'
+    return numbers[-1]
+
+def gsm8k_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
+    pred = gsm8k_postprocess(str(prediction.value))
+    ref = gsm8k_dataset_postprocess(str(ground_truth_answer.value))
+    return int(pred == ref)
+
 def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tuple[Dataset, Dataset, Callable]:
     """
     Args:
@@ -151,6 +168,16 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         test_set = BigBenchHard(task_name, split="test", *args, **kwargs)
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(bbh_mcq_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
+    elif task_name == "GSM8K_GPO":
+        from textgrad.tasks.gsm8k import GSM8K_GPO
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = GSM8K_GPO(root=kwargs.get("root"), split="train")
+        val_set = GSM8K_GPO(root=kwargs.get("root"), split="val")
+        test_set = GSM8K_GPO(root=kwargs.get("root"), split="test")
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(gsm8k_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:
