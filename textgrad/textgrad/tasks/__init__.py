@@ -173,9 +173,9 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
     elif task_name == "GSM8K_GPO":
         from textgrad.tasks.gsm8k import GSM8K_GPO
         from textgrad.autograd.string_based_ops import StringBasedFunction
-        train_set = GSM8K_GPO(root=kwargs.get("root"), split="train")
-        val_set = GSM8K_GPO(root=kwargs.get("root"), split="val")
-        test_set = GSM8K_GPO(root=kwargs.get("root"), split="test")
+        train_set = GSM8K_GPO(root=kwargs.get("data_dir"), split="train")
+        val_set = GSM8K_GPO(root=kwargs.get("data_dir"), split="val")
+        test_set = GSM8K_GPO(root=kwargs.get("data_dir"), split="test")
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(gsm8k_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
