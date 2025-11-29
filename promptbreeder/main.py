@@ -18,6 +18,7 @@ from typing import List
 import json
 import re
 import numpy as np
+import time
 
 # copy from
 # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
@@ -101,24 +102,31 @@ class OpenAIWrapper:
     def generate(self, prompt:str, temperature:float=None, **kwargs) -> List[Generation]:
         if temperature is None:
             temperature = 0.7
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=temperature,
-            stream=True
-        )
-        full_content = ""
-        for chunk in response:
-            content = chunk.choices[0].delta.content
-            if content:
-                full_content += content
-        res_str = full_content
-        return [Generation(text=res_str)]
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=temperature,
+                    stream=True,
+                    seed=42
+                )
+                full_content = ""
+                for chunk in response:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        full_content += content
+                return [Generation(text=full_content)]
+            except Exception as e:
+                print(e)
+                time.sleep(2 ** (attempt + 1))
+        return [Generation(text="")]
     
     def batch_generate(self, prompts:List[str], temperature:float=None, **kwargs) -> List[List[Generation]]:
         if temperature is None:
@@ -139,7 +147,7 @@ parser = argparse.ArgumentParser(description='Run the PromptBreeder Algorithm. N
 parser.add_argument('-mp', '--num_mutation_prompts', default=5, type=int)     
 parser.add_argument('-ts', '--num_thinking_styles', default=5, type=int)     
 parser.add_argument('-e', '--num_evals', default=10, type=int)     
-parser.add_argument('-n', '--simulations', default=20, type=int)     
+parser.add_argument('-n', '--simulations', default=10, type=int)     
 parser.add_argument('-p', '--problem', default="Solve the math word problem, giving your answer as an arabic numeral.")
 parser.add_argument('-d', '--data', default="causal_judgement")
 parser.add_argument('--path', type=str, required=True)       
