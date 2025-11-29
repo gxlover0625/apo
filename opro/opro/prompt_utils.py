@@ -27,22 +27,29 @@ def call_openai_server_single_prompt(
     base_url=os.environ['OPENAI_BASE_URL'],
     api_key=os.environ['OPENAI_API_KEY'],
   )
-  response = client.chat.completions.create(
-    model=model,
-    temperature=temperature,
-    max_tokens=max_decode_steps,
-    messages=[
-      {"role": "user", "content": prompt},
-    ],
-    seed=42,
-    stream=True
-  )
-  full_content = ""
-  for chunk in response:
-    content = chunk.choices[0].delta.content
-    if content:
-      full_content += content
-  return full_content
+  max_retries = 3
+  for attempt in range(max_retries):
+    try:
+      response = client.chat.completions.create(
+        model=model,
+        temperature=temperature,
+        messages=[
+          {"role": "user", "content": prompt},
+        ],
+        seed=42,
+        stream=True
+      )
+      full_content = ""
+      for chunk in response:
+        content = chunk.choices[0].delta.content
+        if content:
+          full_content += content
+      return full_content
+    except Exception as e:
+      time.sleep(2 ** (attempt + 1))
+      print(e)
+  
+  return ""
   # try:
   #   completion = openai.ChatCompletion.create(
   #       model=model,
