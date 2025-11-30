@@ -47,7 +47,7 @@ def call_openai_server_single_prompt(
       return full_content
     except Exception as e:
       time.sleep(2 ** (attempt + 1))
-      print(e)
+      print(f"{attempt + 1} attempt failed: {e}")
   
   return ""
   # try:

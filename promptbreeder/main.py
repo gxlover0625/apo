@@ -124,7 +124,7 @@ class OpenAIWrapper:
                         full_content += content
                 return [Generation(text=full_content)]
             except Exception as e:
-                print(e)
+                print(f"{attempt + 1} attempt failed: {e}")
                 time.sleep(2 ** (attempt + 1))
         return [Generation(text="")]
     
