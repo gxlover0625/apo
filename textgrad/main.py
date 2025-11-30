@@ -109,6 +109,9 @@ elif args.dataset == "BBH_geometric_shapes":
 elif args.dataset == "GSM8K_GPO":
     default_desc = """Let's think step by step."""
     output_format = """Put your final answer within \\boxed{} in the last line."""
+elif args.dataset == "WSC":
+    default_desc = """Let's solve the problem."""
+    output_format = """You must give your final answer by starting with 'So the answer is'"""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
 STARTING_SYSTEM_PROMPT = f"""{default_desc} {output_format}"""
