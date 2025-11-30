@@ -59,6 +59,8 @@ def bbh_mcq_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
     ref = bbh_mcq_postprocess(str(ground_truth_answer.value))
     return int(pred == ref)
 
+wsc_mcq_eval_fn = bbh_mcq_eval_fn
+
 def bbh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
     pred = bbh_freeform_postprocess(str(prediction.value))
     ref = str(ground_truth_answer.value)
@@ -178,6 +180,16 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         test_set = GSM8K_GPO(root=kwargs.get("data_dir"), split="test")
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(gsm8k_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
+    elif task_name == "WSC":
+        from textgrad.tasks.wsc import WSC
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = WSC(root=kwargs.get("data_dir"), split="train")
+        val_set = WSC(root=kwargs.get("data_dir"), split="val")
+        test_set = WSC(root=kwargs.get("data_dir"), split="test")
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(wsc_mcq_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:
