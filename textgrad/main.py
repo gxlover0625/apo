@@ -60,7 +60,7 @@ def run_validation_revert(system_prompt: tg.Variable, results, model, eval_fn, v
     print("previous_performance: ", previous_performance)
     previous_prompt = results["prompt"][-1]
     
-    if val_performance < previous_performance:
+    if val_performance <= previous_performance:
         print(f"rejected prompt: {system_prompt.value}")
         system_prompt.set_value(previous_prompt)
         val_performance = previous_performance
