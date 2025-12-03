@@ -27,6 +27,8 @@ def get_task_class(task_name):
         return tasks.GeometricShapesTask
     elif task_name == "logical_deduction_seven_objects":
         return tasks.LogicalDeductionSevenObjectsTask
+    elif task_name == "WSC":
+        return tasks.WSCTask
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -131,6 +133,8 @@ if __name__ == '__main__':
         candidates = ["""Answer questions about causal attribution."""]
     elif args.task == "geometric_shapes":
         candidates = ["""Name geometric shapes from their SVG paths."""]
+    elif args.task == "WSC":
+        candidates = ["""Let's solve the problem."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")
 

@@ -11,6 +11,7 @@ import numpy as np
 import re
 import utils
 from tqdm import tqdm
+from pathlib import Path
 
 class DataProcessor(ABC):
     def __init__(self, data_dir, max_threads=1):
@@ -300,3 +301,72 @@ class GeometricShapesTask(DataProcessor):
 
 class LogicalDeductionSevenObjectsTask(GeometricShapesTask):
     pass
+
+def load_jsonl(data_path:str):
+    data = []
+    with open(data_path, "r") as f:
+        for line in f:
+            data.append(json.loads(line))
+    return data
+
+class WSCTask(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        train_path = Path(data_dir) / "train.jsonl"
+        eval_path = Path(data_dir) / "eval.jsonl"
+        test_path = Path(data_dir) / "test.jsonl"
+
+        self.train_data = load_jsonl(train_path)
+        self.eval_data = load_jsonl(eval_path)
+        self.test_data = load_jsonl(test_path)
+    
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({'id': f'train-{idx}', 'label': sample['output'], 'text': sample['input']})
+        return exs
+    
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({'id': f'test-{idx}', 'label': sample['output'], 'text': sample['input']})
+        return exs
+    
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({'id': f'eval-{idx}', 'label': sample['output'], 'text': sample['input']})
+        return exs
+    
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            output_format = """You must give your final answer by starting with 'So the answer is'"""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                max_tokens=4096,
+                task=True
+            )[0]
+            # preds.append(bbh_mcq_postprocess(pred))
+            processed_pred = bbh_mcq_postprocess(pred)
+            if len(processed_pred) == 1 and processed_pred.isupper():
+                processed_pred = f"({processed_pred})"
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            accuracy = bbh_mcq_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+    
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred
+        
