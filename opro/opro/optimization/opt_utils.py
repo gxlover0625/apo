@@ -155,6 +155,7 @@ def gen_meta_prompt(
       "mmlu",
       "bbh",
       "gsm8k",
+      "wsc"
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert num_score_buckets == np.inf or isinstance(num_score_buckets, int)
 
@@ -212,6 +213,9 @@ def gen_meta_prompt(
         elif dataset_name == "bbh":
           question = data[idx]["input"]
           true_answer = data[idx]["target"]
+        elif dataset_name == "wsc":
+          question = data[idx]["input"]
+          true_answer = data[idx]["output"]
         else:
           assert dataset_name == "gsm8k"
           question = data.iloc[idx, 0]
@@ -310,6 +314,8 @@ def gen_meta_prompt(
       instruction_task_description = "grade school math"
     elif dataset_name == "mmlu":
       instruction_task_description = task_name
+    elif dataset_name == "wsc":
+      instruction_task_description = "pronoun coreference resolution"
     else:
       assert dataset_name == "bbh"
       instruction_task_description = " ".join(task_name.split("_"))
@@ -405,6 +411,7 @@ def run_evolution(**kwargs):
       "mmlu",
       "bbh",
       "gsm8k",
+      "wsc"
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert optimizer_llm_temperature_schedule in {
       "constant",
@@ -481,6 +488,9 @@ def run_evolution(**kwargs):
   elif dataset_name in {"gsm8k"}:
     is_multiple_choice = False
     is_multiple_choice_eval = False
+  elif dataset_name == "wsc":
+    is_multiple_choice = True
+    is_multiple_choice_eval = True
   else:
     assert dataset_name == "bbh"
     is_multiple_choice = []

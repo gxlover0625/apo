@@ -117,6 +117,7 @@ def main(_):
       "mmlu",
       "bbh",
       "gsm8k",
+      "wsc",
   }, "The lower-case dataset name must be one of mmlu, bbh, or gsm8k."
   if dataset_name == "mmlu":
     assert task_name in {
@@ -155,6 +156,8 @@ def main(_):
         "web_of_lies",
         "word_sorting",
     }
+  elif dataset_name == "wsc":
+    pass
   else:
     assert dataset_name == "gsm8k"
     assert task_name in {"train", "test"}
@@ -216,6 +219,10 @@ def main(_):
   elif dataset_name == "bbh":
     root_data_folder_path = os.path.join(
         ROOT_DATA_FOLDER_PATH, "BIG-Bench-Hard-data/"
+    )
+  elif dataset_name == "wsc":
+    root_data_folder_path = os.path.join(
+      ROOT_DATA_FOLDER_PATH, "WSC"
     )
   else:
     assert dataset_name == "gsm8k"
@@ -579,7 +586,11 @@ def main(_):
         "sports_understanding",  # yes or no
         "web_of_lies",  # yes or no
     }
-
+  elif dataset_name == "wsc":
+    tasks_all = [task_name]
+    multiple_choice_tasks = set(tasks_all)
+    boolean_tasks = set()
+    numerical_output_tasks = set()
   else:
     assert dataset_name in {"gsm8k"}
     tasks_all = [task_name]
@@ -603,6 +614,10 @@ def main(_):
         f"prediction_treat_as_number: {prediction_treat_as_number},"
         f" prediction_treat_as_bool: {prediction_treat_as_bool}"
     )
+  elif dataset_name == "wsc":
+    raw_data = []
+    prediction_treat_as_number = False
+    prediction_treat_as_bool = False
   else:
     assert dataset_name == "gsm8k"
     raw_data = pd.DataFrame()
@@ -628,6 +643,19 @@ def main(_):
           task_name, base_dir=root_data_folder_path
       )
       raw_data += single_task_list
+    elif dataset_name == "wsc":
+      task_name = t
+      train_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"train.jsonl"), lines=True
+      )
+      eval_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"eval.jsonl"), lines=True
+      )
+      test_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"test.jsonl"), lines=True
+      )
+      combined_df = pd.concat([train_df, eval_df, test_df], ignore_index=True)
+      raw_data = [{"input": row["input"], "output": row["output"]} for _, row in combined_df.iterrows()]
     else:
       assert dataset_name == "gsm8k"
       task_name = t
@@ -638,6 +666,8 @@ def main(_):
   if dataset_name == "mmlu":
     num_examples = raw_data.shape[0]
   elif dataset_name == "bbh":
+    num_examples = len(raw_data)
+  elif dataset_name == "wsc":
     num_examples = len(raw_data)
   else:
     assert dataset_name in {"gsm8k"}
@@ -651,6 +681,9 @@ def main(_):
   elif dataset_name == "gsm8k":
     train_ratio = 0.035
     eval_ratio = 0
+  elif dataset_name == "wsc":
+    train_ratio = 50 / 250
+    eval_ratio = 50 / 250
   else:
     # 按比例的分数，我会废除掉，按照textgrad的方式，切分50：100：100
     assert dataset_name == "bbh"
@@ -681,6 +714,11 @@ def main(_):
     train_index = indices[:50]
     eval_index = indices[50: 150]
     test_index = indices[150: ]
+  elif dataset_name == "wsc":
+    indices = np.arange(num_examples)
+    train_index = indices[:50]
+    eval_index = indices[50: 100]
+    test_index = indices[100: ]
   else:
     train_index = np.sort(
         np.array(
@@ -737,6 +775,8 @@ def main(_):
     init_prompt = """Name geometric shapes from their SVG paths."""
   elif task_name == "logical_deduction_seven_objects":
     init_prompt = """A logical deduction task which requires deducing the order of a sequence of objects."""
+  elif task_name == "wsc":
+    init_prompt = """Let's solve the problem."""
   else:
     raise ValueError(f"Unknown task: {task_name}")
 

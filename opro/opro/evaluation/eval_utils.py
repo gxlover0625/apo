@@ -194,6 +194,7 @@ def gen_prompt(
       "gsm8k",
       "multiarith",
       "aqua",
+      "wsc"
   }, (
       "The lower-case dataset name must be one of mmlu, bbh, gsm8k, multiarith,"
       " or aqua."
@@ -211,6 +212,8 @@ def gen_prompt(
   if dataset_name == "mmlu":
     question = _format_mmlu_example(data, idx)
   elif dataset_name == "bbh":
+    question = data[idx]["input"]
+  elif dataset_name == "wsc":
     question = data[idx]["input"]
   elif dataset_name == "gsm8k":
     question = data.iloc[idx, 0]
@@ -276,6 +279,8 @@ def fetch_true_answer(data, idx, dataset_name):
     return data.iloc[idx, -1]
   elif dataset_name == "bbh":
     return data[idx]["target"]
+  elif dataset_name == "wsc":
+    return data[idx]["output"]
   elif dataset_name == "gsm8k":
     return data.iloc[idx, 1]
   elif dataset_name == "multiarith":
@@ -600,17 +605,26 @@ def simple_evaluate_single_instruction(
   results = []
   for idx in eval_index_all:
     if os.environ['TASK'] in ["causal_judgement", "geometric_shapes", "logical_deduction_seven_objects"]:
+      question = data[idx]['input']
+      label = data[idx]['target']
+      format_require = """You must give your final answer by starting with 'So the answer is'"""
+    elif os.environ['TASK'] in ['wsc']:
+      question = data[idx]['input']
+      label = data[idx]['output']
       format_require = """You must give your final answer by starting with 'So the answer is'"""
     else:
       format_require = ""
-    raw_prompt = f"{instruction}\n{data[idx]['input']}\n{format_require}"
+    raw_prompt = f"{instruction}\n{question}\n{format_require}"
     raw_answer = call_server_func(raw_prompt)[0]
-    true_answer = data[idx]["target"]
+    true_answer = label
 
     if dataset_name in ["bbh"] and prediction_treat_as_bool:
       parsed_answer = bbh_freeform_postprocess(raw_answer)
       accuracy = bbh_freeform_eval_fn(parsed_answer, true_answer)
     elif dataset_name in ["bbh"] and is_multiple_choice:
+      parsed_answer = bbh_mcq_postprocess(raw_answer)
+      accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
+    elif dataset_name in ["wsc"] and is_multiple_choice:
       parsed_answer = bbh_mcq_postprocess(raw_answer)
       accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
     else:
