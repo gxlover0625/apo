@@ -119,6 +119,11 @@ def working_out_task_prompt(unit: EvolutionUnit, model: Any, **kwargs) -> Evolut
     if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes"]:
         question = RANDOM_WORKING_OUT['input']
         answer = RANDOM_WORKING_OUT['target']
+    elif os.environ['TASK'] == "wsc":
+        question = RANDOM_WORKING_OUT['input']
+        answer = RANDOM_WORKING_OUT['output']
+    else:
+        raise ValueError(f"Unsupported data type: {os.environ['TASK']}")
   
     unit.P = model.generate("I gave a friend an instruction and some advice. Here are the correct examples of his workings out " + question +" " +  answer + " The instruction was: ")[0].text
     return unit 

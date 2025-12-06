@@ -19,6 +19,7 @@ import json
 import re
 import numpy as np
 import time
+from pathlib import Path
 
 # copy from
 # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/bbh.py#L48C1-L62C15
@@ -63,6 +64,13 @@ def bbh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
     ref = bbh_mcq_postprocess(ground_truth_answer)
     return int(pred == ref)
 
+def load_jsonl(data_path:str):
+    data = []
+    with open(data_path, "r") as f:
+        for line in f:
+            data.append(json.loads(line))
+    return data
+
 def load_task(dataset_name:str, data_path: str):
     random.seed(42)
     np.random.seed(42)
@@ -82,6 +90,13 @@ def load_task(dataset_name:str, data_path: str):
         train_data = data[:50]
         eval_data = data[50: 150]
         test_data = data[150:]
+        eval_fn = bbh_mcq_eval_fn
+        return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "wsc":
+        data_dir = Path(data_path) / "WSC"
+        train_data = load_jsonl(data_dir / "train.jsonl")
+        eval_data = load_jsonl(data_dir / "eval.jsonl")
+        test_data = load_jsonl(data_dir / "test.jsonl")
         eval_fn = bbh_mcq_eval_fn
         return train_data, eval_data, test_data, eval_fn
     else:
@@ -164,6 +179,8 @@ elif args['data'] == "causal_judgement":
     args['problem'] = """Answer questions about causal attribution."""
 elif args['data'] == "logical_deduction_seven_objects":
     args['problem'] = """A logical deduction task which requires deducing the order of a sequence of objects."""
+elif args['data'] == "wsc":
+    args['problem'] = """Let's solve the problem."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
 
