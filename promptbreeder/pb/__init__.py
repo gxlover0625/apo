@@ -115,7 +115,7 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
         # set the fitness to zero from past run.
         unit.fitness = 0
         # todo. model.batch this or multithread
-        if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes"]:
+        if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes", "wsc"]:
             # examples.append([unit.P + ' \n' + example['input'] for example in batch])
             output_suffix = """You must give your final answer by starting with 'So the answer is'"""
             examples.append([f"{unit.P}\n{example['input']}\n{output_suffix}"  for example in batch])
@@ -133,6 +133,10 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
             # valid = re.search(gsm.gsm_extract_answer(batch[i]['answer']), x[0].text)
             if os.environ['TASK'] in ["causal_judgement", "logical_deduction_seven_objects", "geometric_shapes"]:
                 valid = eval_fn(x[0].text, batch[i]['target'])
+            elif os.environ['TASK'] == "wsc":
+                valid = eval_fn(x[0].text, batch[i]['output'])
+            else:
+                pass
             if valid:
                 # 0.25 = 1 / 4 examples
                 population.units[unit_index].fitness += (1 / num_evals)
