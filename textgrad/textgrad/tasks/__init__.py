@@ -67,6 +67,49 @@ def bbh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variab
     return int(pred == ref)
 
 # copy from
+# https://github.com/open-compass/opencompass/blob/d836b49fee431cd8109b0b687133ce08a8e286a5/opencompass/datasets/bbeh.py#L32C1-L57C34
+def bbeh_freeform_postprocess(text: str) -> str:
+    # Extract answer using specified prefixes
+    prefixes = [
+        'The answer is: ', 'The answer is ', 'The final answer is: ',
+        'The final answer is '
+    ]
+    answer = text
+    for prefix in prefixes:
+        if prefix in text:
+            answer = text.split(prefix)[-1]
+            break
+
+    # Remove formatting markup
+    if '\\boxed' in answer:
+        answer = re.sub(r'\\boxed{(.*?)}', r'\1', answer)  # latex box
+    if '\\text' in answer:
+        answer = re.sub(r'\\text(?:tt)?{(.*?)}', r'\1', answer)  # text/texttt
+    if '**' in answer:
+        answer = re.sub(r'\*\*(.*?)\*\*', r'\1', answer)  # bold
+
+    # Take first line and clean
+    if '\n' in answer:
+        answer = answer.split('\n')[0].strip()
+
+    return answer.strip().lower()
+
+def bbeh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
+    pred = bbeh_freeform_postprocess(str(prediction.value))
+    ref = str(ground_truth_answer.value).lower()
+    correct = False
+    if pred == ref:
+        correct = True
+    elif pred == ref.strip("'\"()[]"):
+        correct = True
+    elif ',' in ref:
+        norm_pred = re.sub(r'\s*,\s*', ',', pred)
+        norm_ref = re.sub(r'\s*,\s*', ',', ref)
+        if norm_pred == norm_ref:
+            correct = True
+    return int(correct)
+
+# copy from
 # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/gsm8k.py#L38C1-L49C23
 def gsm8k_dataset_postprocess(text: str) -> str:
     return text.split('#### ')[1].replace(',', '')
@@ -190,6 +233,17 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         test_set = WSC(root=kwargs.get("data_dir"), split="test")
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(wsc_mcq_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
+    elif task_name == "BBEH_causal_understanding":
+        from .bbeh import BigBenchExtraHard
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        task_name = task_name[5:]
+        train_set = BigBenchExtraHard(task_name, split="train", *args, **kwargs)
+        val_set = BigBenchExtraHard(task_name, split="val", *args, **kwargs)
+        test_set = BigBenchExtraHard(task_name, split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(bbeh_freeform_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:
