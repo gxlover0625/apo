@@ -72,6 +72,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", type=str, required=True, default="BBH_tracking_shuffled_objects_seven_objects")
 parser.add_argument("--task_model", type=str, required=True, default="Qwen3-4B-Instruct-2507")
 parser.add_argument("--opt_model", type=str, required=True, default="Qwen3-4B-Instruct-2507")
+parser.add_argument("--prompting", type=str, default="direct")
 args = parser.parse_args()
 # llm_api_eval = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
 # llm_api_test = tg.get_engine(engine_name="experimental:Qwen3-4B-Instruct-2507")
@@ -117,6 +118,12 @@ elif args.dataset == "BBEH_causal_understanding":
     output_format = "Think step by step, and when you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
+if args.prompting == "cot":
+    output_format += " Let's think step by step."
+elif args.prompting == "stepback":
+    output_format += """ Please first think about the principles involved in solving this task which could be helpful. And then provide a solution step by step for this question."""
+elif args.prompting == "rephrase":
+    output_format += """ Rephrase and expand the question, and respond."""
 STARTING_SYSTEM_PROMPT = f"""{default_desc} {output_format}"""
 
 print(STARTING_SYSTEM_PROMPT)
