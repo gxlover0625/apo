@@ -103,7 +103,7 @@ if args.dataset == "BBH_logical_deduction_seven_objects":
     output_format = """You must give your final answer by starting with 'So the answer is'"""
 elif args.dataset == "BBH_causal_judgement":
     default_desc = """Answer questions about causal attribution."""
-    output_format = """You must give your final answer by starting with 'So the answer is'"""
+    output_format = """You must give your final answer by starting with 'So the answer is Yes/No.'"""
 elif args.dataset == "BBH_geometric_shapes":
     default_desc = """Name geometric shapes from their SVG paths."""
     output_format = """You must give your final answer by starting with 'So the answer is'"""
@@ -119,11 +119,11 @@ elif args.dataset == "BBEH_causal_understanding":
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
 if args.prompting == "cot":
-    output_format += " Let's think step by step."
+    output_format += ". Let's think step by step."
 elif args.prompting == "stepback":
-    output_format += """ Please first think about the principles involved in solving this task which could be helpful. And then provide a solution step by step for this question."""
+    output_format += """. Please first think about the principles involved in solving this task which could be helpful. And then provide a solution step by step for this question."""
 elif args.prompting == "rephrase":
-    output_format += """ Rephrase and expand the question, and respond."""
+    output_format += """. Rephrase and expand the question, and respond."""
 STARTING_SYSTEM_PROMPT = f"""{default_desc} {output_format}"""
 
 print(STARTING_SYSTEM_PROMPT)
