@@ -121,7 +121,7 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
             examples.append([f"{unit.P}\n{example['input']}\n{output_suffix}"  for example in batch])
 
     results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         # map() preserves order: results[i] corresponds to examples[i]
         results = list(executor.map(lambda batch: model.batch_generate(batch, temperature=0), examples))
 
