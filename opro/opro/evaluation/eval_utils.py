@@ -602,8 +602,7 @@ def simple_evaluate_single_instruction(
     ref = bbh_mcq_postprocess(ground_truth_answer)
     return int(pred == ref)
 
-  results = []
-  for idx in eval_index_all:
+  def process_single_eval(idx):
     if os.environ['TASK'] in ["causal_judgement", "geometric_shapes", "logical_deduction_seven_objects"]:
       question = data[idx]['input']
       label = data[idx]['target']
@@ -614,6 +613,7 @@ def simple_evaluate_single_instruction(
       format_require = """You must give your final answer by starting with 'So the answer is'"""
     else:
       format_require = ""
+    
     raw_prompt = f"{instruction}\n{question}\n{format_require}"
     raw_answer = call_server_func(raw_prompt)[0]
     true_answer = label
@@ -631,14 +631,23 @@ def simple_evaluate_single_instruction(
       parsed_answer = raw_answer
       accuracy = None
     
-    results.append({
+    return {
       'index_in_raw_dataset': idx,
       'raw_prompt': raw_prompt,
       'raw_answer': raw_answer,
       'parsed_answer': parsed_answer,
       'true_answer': true_answer,
       'accuracy': accuracy
-    })
+    }
+
+  # 多线程处理
+  evaluate_in_parallel = True
+  if evaluate_in_parallel:
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=4) as executor:
+      results = list(executor.map(process_single_eval, eval_index_all))
+  else:
+    results = [process_single_eval(idx) for idx in eval_index_all]
 
   df = pd.DataFrame(results, columns=[
       'index_in_raw_dataset',

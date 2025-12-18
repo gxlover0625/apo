@@ -27,7 +27,7 @@ def call_openai_server_single_prompt(
     base_url=os.environ['OPENAI_BASE_URL'],
     api_key=os.environ['OPENAI_API_KEY'],
   )
-  max_retries = 3
+  max_retries = 5
   for attempt in range(max_retries):
     try:
       response = client.chat.completions.create(
