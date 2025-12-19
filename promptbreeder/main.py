@@ -117,7 +117,7 @@ class OpenAIWrapper:
     def generate(self, prompt:str, temperature:float=None, **kwargs) -> List[Generation]:
         if temperature is None:
             temperature = 0.7
-        max_retries = 3
+        max_retries = 5
         for attempt in range(max_retries):
             try:
                 response = self.client.chat.completions.create(
