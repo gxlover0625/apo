@@ -32,9 +32,9 @@ class SPO_LLM:
             raise ValueError("'model' parameter is required")
 
         try:
-            model_config = LLMsConfig.default().get("gpt-4o-mini")
+            model_config = LLMsConfig.default().get(model)
             if model_config is None:
-                raise ValueError(f"Model gpt-4o-mini not found in configuration")
+                raise ValueError(f"Model {model} not found in configuration")
 
             config = model_config
 

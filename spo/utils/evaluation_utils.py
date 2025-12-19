@@ -13,6 +13,8 @@ def count_tokens(sample: dict):
     if not sample:
         return 0
     else:
+        # 不影响prompt选择
+        return 1
         encoding = tiktoken.get_encoding("cl100k_base")
         return len(encoding.encode(str(sample["answers"])))
 
