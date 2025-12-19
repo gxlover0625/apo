@@ -124,6 +124,8 @@ elif args.prompting == "stepback":
     output_format += """. Please first think about the principles involved in solving this task which could be helpful. And then provide a solution step by step for this question."""
 elif args.prompting == "rephrase":
     output_format += """. Rephrase and expand the question, and respond."""
+elif args.prompting == "ps":
+    output_format += """. Let's first understand the problem and devise a plan to solve the problem. Then, let's carry out the plan and solve the problem step by step."""
 STARTING_SYSTEM_PROMPT = f"""{default_desc} {output_format}"""
 
 print(STARTING_SYSTEM_PROMPT)
