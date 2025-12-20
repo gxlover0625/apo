@@ -1,0 +1,47 @@
+prompt: |
+  Let's solve the problem.
+
+requirements: |
+  You must give your final answer by starting with 'So the answer is'
+
+count: None
+
+qa:
+  - question: |
+      The following paragraphs each describe a set of seven objects arranged in a fixed order. The statements are logically consistent within each paragraph. In an antique car show, there are seven vehicles: a motorcyle, a sedan, a station wagon, a tractor, a minivan, a bus, and a truck. The motorcyle is older than the minivan. The minivan is older than the tractor. The bus is newer than the truck. The station wagon is the third-newest. The sedan is older than the truck. The tractor is older than the sedan.
+      Options:
+      (A) The motorcyle is the oldest
+      (B) The sedan is the oldest
+      (C) The station wagon is the oldest
+      (D) The tractor is the oldest
+      (E) The minivan is the oldest
+      (F) The bus is the oldest
+      (G) The truck is the oldest
+    answer: |
+      So the answer is (A).
+
+  - question: |
+      The following paragraphs each describe a set of seven objects arranged in a fixed order. The statements are logically consistent within each paragraph. In a golf tournament, there were seven golfers: Ana, Eve, Ada, Dan, Rob, Amy, and Joe. Dan finished third. Ana finished above Ada. Amy finished last. Dan finished below Rob. Eve finished below Ada. Rob finished below Joe.
+      Options:
+      (A) Ana finished last
+      (B) Eve finished last
+      (C) Ada finished last
+      (D) Dan finished last
+      (E) Rob finished last
+      (F) Amy finished last
+      (G) Joe finished last
+    answer: |
+      So the answer is (F).
+
+  - question: |
+      The following paragraphs each describe a set of seven objects arranged in a fixed order. The statements are logically consistent within each paragraph. A fruit stand sells seven fruits: plums, kiwis, cantaloupes, pears, watermelons, apples, and loquats. The watermelons are more expensive than the cantaloupes. The apples are less expensive than the cantaloupes. The watermelons are the second-most expensive. The loquats are less expensive than the kiwis. The apples are more expensive than the loquats. The loquats are the third-cheapest. The plums are the cheapest.
+      Options:
+      (A) The plums are the second-cheapest
+      (B) The kiwis are the second-cheapest
+      (C) The cantaloupes are the second-cheapest
+      (D) The pears are the second-cheapest
+      (E) The watermelons are the second-cheapest
+      (F) The apples are the second-cheapest
+      (G) The loquats are the second-cheapest
+    answer: |
+      So the answer is (D).

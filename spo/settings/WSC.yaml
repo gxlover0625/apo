@@ -1,0 +1,29 @@
+prompt: |
+  Let's solve the problem.
+
+requirements: |
+  You must give your final answer by starting with 'So the answer is'
+
+count: None
+
+qa:
+  - question: |
+      Steve follows Fred's example in everything. He influences him hugely. What does the pronoun "He" refer to?
+      (A) Steve
+      (B) Fred
+    answer: |
+      So the answer is (B).
+
+  - question: |
+      Beth didn't get angry with Sally, who had cut her off, because she stopped and apologized. What does the pronoun "she" refer to?
+      (A) Beth
+      (B) Sally
+    answer: |
+      So the answer is (B).
+
+  - question: |
+      Tom threw his schoolbag down to Ray after he reached the top of the stairs. What does the pronoun "he" refer to?
+      (A) Tom
+      (B) Ray
+    answer: |
+      So the answer is (A).
