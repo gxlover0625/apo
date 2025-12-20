@@ -1,8 +1,10 @@
 prompt: |
   Let's solve the problem.
+  You must give your final answer by starting with 'So the answer is'
 
 requirements: |
-  You must give your final answer by starting with 'So the answer is'
+  Must give final answer by starting with 'So the answer is'.
+  The provided prompt needs to adapt to all current types of questions.
 
 count: None
 
@@ -12,6 +14,8 @@ qa:
       (A) Steve
       (B) Fred
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (B).
 
   - question: |
@@ -19,6 +23,8 @@ qa:
       (A) Beth
       (B) Sally
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (B).
 
   - question: |
@@ -26,4 +32,6 @@ qa:
       (A) Tom
       (B) Ray
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (A).

@@ -1,8 +1,10 @@
 prompt: |
   Let's solve the problem.
+  You must give your final answer by starting with 'So the answer is'
 
 requirements: |
-  You must give your final answer by starting with 'So the answer is'
+  Must give final answer by starting with 'So the answer is'.
+  The provided prompt needs to adapt to all current types of questions.
 
 count: None
 
@@ -18,6 +20,8 @@ qa:
       (F) The bus is the oldest
       (G) The truck is the oldest
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (A).
 
   - question: |
@@ -31,6 +35,8 @@ qa:
       (F) Amy finished last
       (G) Joe finished last
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (F).
 
   - question: |
@@ -44,4 +50,6 @@ qa:
       (F) The apples are the second-cheapest
       (G) The loquats are the second-cheapest
     answer: |
+      A lot of thinking and analysis processes.
+      ...
       So the answer is (D).
