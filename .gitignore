@@ -7,3 +7,4 @@ logs/
 .vscode/
 .DS_Store
 data/
+agent_dev/
