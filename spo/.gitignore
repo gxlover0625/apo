@@ -1,0 +1,5 @@
+/config/config2.yaml
+__pycache__/
+*/__pycache__/
+*/.checkpoints/
+/workspace

@@ -1,0 +1,37 @@
+prompt: |
+  Let's solve the problem.
+  You must give your final answer by starting with 'So the answer is'
+
+requirements: |
+  Must give final answer by starting with 'So the answer is'.
+  The provided prompt needs to adapt to all current types of questions.
+
+count: None
+
+qa:
+  - question: |
+      Steve follows Fred's example in everything. He influences him hugely. What does the pronoun "He" refer to?
+      (A) Steve
+      (B) Fred
+    answer: |
+      A lot of thinking and analysis processes.
+      ...
+      So the answer is (B).
+
+  - question: |
+      Beth didn't get angry with Sally, who had cut her off, because she stopped and apologized. What does the pronoun "she" refer to?
+      (A) Beth
+      (B) Sally
+    answer: |
+      A lot of thinking and analysis processes.
+      ...
+      So the answer is (B).
+
+  - question: |
+      Tom threw his schoolbag down to Ray after he reached the top of the stairs. What does the pronoun "he" refer to?
+      (A) Tom
+      (B) Ray
+    answer: |
+      A lot of thinking and analysis processes.
+      ...
+      So the answer is (A).
