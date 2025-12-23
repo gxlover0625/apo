@@ -1,5 +1,6 @@
 summarize_prompt = """# Task Description
 You are given a solved instance consisting of a problem and its correct reasoning trajectory.
+Your task is to abstract this instance into a reusable problem-solving prototype, separating what kind of problem this is from how such problems are solved.
 
 question:
 ```
@@ -11,15 +12,13 @@ reasoning trajectory:
 {reasoning_trajectory}
 ```
 
-Your task is to abstract this instance into a reusable problem-solving prototype that can be applied to other problems sharing the same underlying structure but different surface content.
-The prototype should capture how the problem is cognitively structured and how it is strategically solved, rather than what the problem is about.
-
 ## Output Requirements:
-### Context (Structural Archetype)
-Describe the type of cognitive task involved.
-- Focus on the information processing pattern, structural constraints, and reasoning demands.
+### Context (Problem Scenario Signature)
+Describe the specific scenario reflected by the question.
+- Focus primarily on observable task details and scenario characteristics derived from the problem itself like input–output form, information organization, constraintion, the goal, etc.
 - Characterize what kind of thinking is required (e.g., transformation, alignment, selection under constraints, abstraction from evidence).
 - Do not reference specific domains, entities, values, or terminology from the original instance.
+- Keep the Context concise and discriminative, not explanatory.
 
 ### Solution Steps (Strategic Workflow)
 Provide a generalized solution strategy.
@@ -31,7 +30,7 @@ Provide a generalized solution strategy.
 ## Output Format
 Provide the `Context` and `Solution Steps` in the following json format:
 {{
-    "context": "Concise description of the problem's structural type",
+    "context": "Concise description of the problem scenario",
     "solution_steps": [
         "1. High-level reasoning operation",
         "2. High-level reasoning operation",
