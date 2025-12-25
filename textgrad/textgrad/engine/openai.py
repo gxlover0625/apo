@@ -93,7 +93,7 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
             presence_penalty=0,
             stop=None,
             temperature=temperature,
-            max_tokens=max_tokens,
+            # max_tokens=max_tokens,
             seed=42
             # top_p=top_p,
         )

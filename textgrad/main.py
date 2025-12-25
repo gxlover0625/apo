@@ -116,8 +116,13 @@ elif args.dataset == "WSC":
 elif args.dataset == "BBEH_causal_understanding":
     default_desc = """Reply Yes or No based on the answer the majority of people would give. If you think people would be split roughly 50-50 between Yes and No then reply Ambiguous."""
     output_format = "Think step by step, and when you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+elif args.dataset == "AGIEvalMath":
+    default_desc = """Let's think step by step."""
+    output_format = """"""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
+
+
 if args.prompting == "cot":
     output_format += ". Let's think step by step."
 elif args.prompting == "stepback":
