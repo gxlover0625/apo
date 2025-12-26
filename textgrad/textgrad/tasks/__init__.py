@@ -109,6 +109,32 @@ def bbeh_freeform_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Varia
             correct = True
     return int(correct)
 
+# def bbeh_mcq_postprocess(text: str) -> str:
+#     # Extract answer using specified prefixes
+#     prefixes = [
+#         'The answer is: ', 'The answer is ', 'The final answer is: ',
+#         'The final answer is '
+#     ]
+#     answer = text
+#     for prefix in prefixes:
+#         if prefix in text:
+#             answer = text.split(prefix)[-1]
+#             break
+
+#     # Remove parentheses if present
+#     answer = answer.strip('()')
+
+#     # Take first line and clean
+#     if '\n' in answer:
+#         answer = answer.split('\n')[0].strip()
+
+#     return answer.strip().lower()
+
+# def bbeh_mcq_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
+#     pred = bbeh_mcq_postprocess(str(prediction.value))
+#     ref = str(ground_truth_answer.value).lower().strip("()")
+#     return int(pred == ref)
+
 # copy from
 # https://github.com/open-compass/opencompass/blob/b54e28c1db039e962987c31116e6c6d0c3906a14/opencompass/datasets/gsm8k.py#L38C1-L49C23
 def gsm8k_dataset_postprocess(text: str) -> str:
@@ -204,7 +230,7 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         eval_fn = StringBasedFunction(bbh_freeform_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
     
-    elif "geometric_shapes" in task_name:
+    elif task_name == "BBH_geometric_shapes":
         from .big_bench_hard import BigBenchHard
         from textgrad.autograd.string_based_ops import StringBasedFunction
         task_name = task_name[4:]
@@ -254,6 +280,16 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         test_set = BigBenchExtraHard(task_name, split="test", *args, **kwargs)
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(bbeh_freeform_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
+    elif task_name == "bbeh_geometric_shapes":
+        from .bbeh import BigBenchExtraHard, bbeh_mcq_eval_fn
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = BigBenchExtraHard(task_name, split="train", *args, **kwargs)
+        val_set = BigBenchExtraHard(task_name, split="val", *args, **kwargs)
+        test_set = BigBenchExtraHard(task_name, split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(bbeh_mcq_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif "BBH" in task_name:
