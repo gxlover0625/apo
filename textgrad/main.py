@@ -38,7 +38,7 @@ def eval_dataset(test_set, eval_fn, model, max_samples: int=None):
     if max_samples is None:
         max_samples = len(test_set)
     accuracy_list = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         futures = []
         for _, sample in enumerate(test_set):
             
@@ -125,6 +125,9 @@ elif args.dataset == "bbeh_boardgame_qa":
 elif args.dataset == "AGIEvalMath":
     default_desc = """Let's think step by step."""
     output_format = """"""
+elif args.dataset == "Geo_Group":
+    default_desc = """Identify geometric shapes from their SVG paths."""
+    output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 else:
     raise ValueError(f"Unknown dataset: {args.dataset}")
 
