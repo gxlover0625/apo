@@ -54,7 +54,7 @@ def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=4096,
                 messages=messages,
                 temperature=temperature,
                 n=n,
-                max_tokens=max_tokens,
+                # max_tokens=max_tokens,
                 seed=42
             )
             break

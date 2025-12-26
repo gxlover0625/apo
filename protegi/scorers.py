@@ -6,24 +6,32 @@ from tqdm import tqdm
 import concurrent.futures
 import utils
 import os
-from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess
+from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess, bbeh_mcq_eval_fn, preprocess_sample
 
 def predict_on_example(inputs):
     ex, predictor, prompt = inputs
     if os.environ['TASK'] in ["logical_deduction_seven_objects", "causal_judgement", "geometric_shapes", "WSC"]:
         output_format = """You must give your final answer by starting with 'So the answer is'"""
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+    elif os.environ['TASK'] == "bbeh_geometric_shapes":
+        output_format = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
+        user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     pred = utils.chatgpt(
         user_message,
         temperature=0.0,
         n=1,
-        max_tokens=4096,
+        # max_tokens=4096,
         task=True
     )[0]
     if os.environ['TASK'] in ['causal_judgement']:
         pred = bbh_freeform_postprocess(pred)
     elif os.environ['TASK'] in ['geometric_shapes', 'logical_deduction_seven_objects', "WSC"]:
         pred = bbh_mcq_postprocess(pred)
+        if len(pred) == 1 and pred.isupper():
+            pred = f"({pred})"
+    elif os.environ['TASK'] == "bbeh_geometric_shapes":
+        pred = preprocess_sample(pred)
+        pred = pred.upper()
         if len(pred) == 1 and pred.isupper():
             pred = f"({pred})"
     # pred = predictor.inference(ex, prompt)

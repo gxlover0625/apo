@@ -29,6 +29,8 @@ def get_task_class(task_name):
         return tasks.LogicalDeductionSevenObjectsTask
     elif task_name == "WSC":
         return tasks.WSCTask
+    elif task_name == "bbeh_geometric_shapes":
+        return tasks.BBEHGeo
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -135,6 +137,8 @@ if __name__ == '__main__':
         candidates = ["""Name geometric shapes from their SVG paths."""]
     elif args.task == "WSC":
         candidates = ["""Let's solve the problem."""]
+    elif args.task == "bbeh_geometric_shapes":
+        candidates = ["""Identify geometric shapes from their SVG paths."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")
 

@@ -369,4 +369,145 @@ class WSCTask(DataProcessor):
     
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
-        
+
+def strip_latex(response: str) -> str:
+  if response.startswith("$") and response.endswith("$"):
+    response = response[1:-1]
+  if "boxed{" in response and response.endswith("}"):
+    response = response[0:-1].split("boxed{")[1]
+  if "text{" in response and response.endswith("}"):
+    response = response[0:-1].split("text{")[1]
+  if "texttt{" in response and response.endswith("}"):
+    response = response[0:-1].split("texttt{")[1]
+  return response
+
+def extract_answer(sample: str) -> str:
+  """Extracts the final answer from the sample."""
+  answer_prefixes = [
+      "The answer is:",
+      "The final answer is ",
+      "The final answer is: ",
+      "The answer is "
+  ]
+  answer = sample
+  for answer_prefix in answer_prefixes:
+    if answer_prefix in answer:
+      answer = answer.split(answer_prefix)[-1].strip()
+  if answer.endswith("."):
+    answer = answer[:-1]
+  return strip_latex(answer)
+
+
+def fuzzy_match(prediction: str, reference: str) -> bool:
+  """Fuzzy match function for BigBench Extra Hard."""
+  if prediction == reference:
+    return True
+
+  # (a) vs a
+  if len(prediction) == 3 and prediction[0] == "(" and prediction[-1] == ")":
+    return prediction[1] == reference
+  if len(reference) == 3 and reference[0] == "(" and reference[-1] == ")":
+    return reference[1] == prediction
+
+  # Numbers
+  try:
+    if float(prediction) == float(reference):
+      return True
+  except ValueError:
+    pass
+
+  # quote issues
+  if prediction.replace("'", "") == reference.replace("'", ""):
+    return True
+
+  # Bracket issues
+  if f"[{reference}]" == prediction or f"[{prediction}]" == reference:
+    return True
+
+  # Question mark issues
+  if prediction.endswith("?") and prediction[:-1] == reference:
+    return True
+
+  return False
+
+def preprocess_sample(sample: str) -> str:
+  prediction = extract_answer(sample.strip()).lower()
+  prediction = prediction.replace(", ", ",").replace("**", "")
+  prediction = prediction.split("\n")[0]
+  prediction = prediction[0:-1] if prediction.endswith(".") else prediction
+  return prediction
+
+def preprocess_reference(reference: str) -> str:
+  reference = reference.strip().lower()
+  reference = reference.replace(", ", ",")
+  return reference
+
+def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = preprocess_sample(prediction)
+    ref = preprocess_reference(ground_truth_answer)
+    return fuzzy_match(pred, ref)
+
+class BBEHGeo(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        with open(data_dir, "r") as f:
+            all_data = json.load(f)['examples']
+
+        random.seed(42)
+        np.random.seed(42)
+        random.shuffle(all_data)
+        self.train_data = all_data[:50]
+        self.eval_data = all_data[50: 100]
+        self.test_data = all_data[100:]
+    
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({'id': f'train-{idx}', 'label': sample['target'], 'text': sample['input'], 'source': "BBEH_Geometric_Shapes"})
+        return exs
+    
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({'id': f'test-{idx}', 'label': sample['target'], 'text': sample['input'], 'source': "BBEH_Geometric_Shapes"})
+        return exs
+    
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({'id': f'eval-{idx}', 'label': sample['target'], 'text': sample['input'], 'source': "BBEH_Geometric_Shapes"})
+        return exs
+    
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            output_format = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                # max_tokens=4096,
+                task=True
+            )[0]
+            # preds.append(bbh_mcq_postprocess(pred))
+            processed_pred = preprocess_sample(pred)
+            processed_pred = processed_pred.upper()
+            if len(processed_pred) == 1 and processed_pred.isupper():
+                processed_pred = f"({processed_pred})"
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            # accuracy = bbh_mcq_eval_fn(pred, ex['label'])
+            accuracy = bbeh_mcq_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+    
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred
