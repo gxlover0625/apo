@@ -292,6 +292,16 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         eval_fn = StringBasedFunction(bbeh_mcq_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
+    elif task_name == "bbeh_boardgame_qa":
+        from .bbeh import BigBenchExtraHard, bbeh_freeform_eval_fn
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = BigBenchExtraHard(task_name, split="train", *args, **kwargs)
+        val_set = BigBenchExtraHard(task_name, split="val", *args, **kwargs)
+        test_set = BigBenchExtraHard(task_name, split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(bbeh_freeform_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+
     elif "BBH" in task_name:
         from textgrad.loss import MultiFieldTokenParsedEvaluation
         from .big_bench_hard import BigBenchHard

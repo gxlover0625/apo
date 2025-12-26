@@ -119,6 +119,9 @@ elif args.dataset == "BBEH_causal_understanding":
 elif args.dataset == "bbeh_geometric_shapes":
     default_desc = """Identify geometric shapes from their SVG paths."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+elif args.dataset == "bbeh_boardgame_qa":
+    default_desc = """Let's solve the problem."""
+    output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 elif args.dataset == "AGIEvalMath":
     default_desc = """Let's think step by step."""
     output_format = """"""

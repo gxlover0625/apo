@@ -99,6 +99,8 @@ def bbeh_mcq_eval_fn(prediction: tg.Variable, ground_truth_answer: tg.Variable):
     ref = preprocess_reference(str(ground_truth_answer.value))
     return int(fuzzy_match(pred, ref))
 
+bbeh_freeform_eval_fn = bbeh_mcq_eval_fn
+
 class BigBenchExtraHard(Dataset):
     def __init__(self, task_name: str, root: str=None, split: str="train", *args, **kwargs):
         if root is None:
