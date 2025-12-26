@@ -1,0 +1,94 @@
+prompt: |
+  Identify geometric shapes from their SVG paths.
+  When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\"
+
+requirements: |
+  When providing the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\"
+  The provided prompt needs to adapt to all current types of questions.
+
+count: None
+
+qa:
+  - question: |
+      This SVG path element <path d="M 62.00,77.00 L 17.00,31.00 L 96.00,39.00 L 62.00,77.00"/> draws a 
+      Options:
+      (A) circle
+      (B) heptagon
+      (C) hexagon
+      (D) kite
+      (E) line
+      (F) octagon
+      (G) pentagon
+      (H) rectangle
+      (I) sector
+      (J) triangle
+    answer: |
+      The answer is: (j)
+
+  - question: |
+      Suppose we draw this SVG path element: M 5.18221,-11.14137 L 1.14009,-2.4511 M 0.0,5.13 L 0.0,14.4229 M 9.40443,-21.60915 L 11.4963,-18.62778 M 3.5912,16.48025 L 5.98534,14.80041 M 13.63668,9.43187 L 11.47444,10.949 L 9.92437,12.0366 M 2.8287,-1.98475 L 9.12485,-6.40243 M 0.0,1.3851 L 0.0,5.13 M 8.93334,12.73195 L 2.144,3.05567 M 4.49284,-18.16295 L 9.40443,-21.60915 M -5.51538,-10.19504 L 0.65348,-10.74075 M 2.144,3.05567 L 0.0,0.0 M 11.4963,-18.62778 L 14.90936,-13.76343 M 9.12485,-6.40243 L 11.55044,-8.10434 M 0.65348,-10.74075 L 1.36947,-10.80409 M 1.14009,-2.4511 L 0.0,0.0 L 0.0,1.3851 M 14.90936,-13.76343 L 16.46203,-11.55054 M 20.48378,4.62761 L 13.63668,9.43187 M 0.0,0.0 L 2.8287,-1.98475 M 4.49284,-18.16295 L 1.37422,-15.97478 M 0.0,14.4229 L 0.0,19.0 M 1.37422,-15.97478 L -7.0576,-10.05861 M -6.61036,-10.09817 L -5.51538,-10.19504 M 5.97494,-16.05064 L 4.49284,-18.16295 M 11.55044,-8.10434 L 15.65978,-2.24764 M 1.36947,-10.80409 L 2.96313,-10.94507 L 5.18221,-11.14137 M 11.55044,-8.10434 L 5.97494,-16.05064 M 9.92437,12.0366 L 9.36939,12.426 M 5.98534,14.80041 L 8.93334,12.73195 M 0.0,19.0 L 3.5912,16.48025 M 9.36939,12.426 L 8.93334,12.73195 M -7.0576,-10.05861 L -6.61036,-10.09817 M 15.65978,-2.24764 L 20.48378,4.62761 . Out of the following shapes:
+      1. rectangle that is not a square and with no diagonals drawn
+      2. square with no diagonals drawn
+      3. triangle that is not a right triangle
+      4. right triangle
+      5. parallelogram that is not a rectangle and with no diagonals drawn
+      6. trapezoid with exactly one pair of parallel sides and with no diagonals drawn
+      7. irregular convex pentagon with no diagonals drawn
+      8. irregular concave pentagon with no diagonals drawn
+      9. regular pentagon with no diagonals drawn
+      10. regular hexagon with no diagonals drawn
+      which one(s) can be viewed when the lines in the SVG are visualized? Note that a shape with n sides should not necessarily be drawn by n lines; e.g., a triangle might be drawn by 4 lines, two of which collinear.
+      Options:
+      (A) only 4
+      (B) 1, 8, 3 and 7
+      (C) 1, 4 and 8
+      (D) 4 and 8
+      (E) 1 and 2
+      (F) 1 and 4
+      (G) 4, 8, 3 and 6
+      (H) 8 and 3
+      (I) 1, 4, 8, 5 and 9
+      (J) 1, 4 and 3
+      (K) only 1
+      (L) 4, 8 and 3
+      (M) only 8
+      (N) 8, 2 and 3
+      (O) 4 and 9
+      (P) 4, 8 and 5
+      Coordinates have been rounded to 5 decimal places so ignore slight differences.
+    answer: |
+      The answer is: (c)
+
+  - question: |
+      Suppose we draw this SVG path element: M -21.21527,37.70682 L -20.78892,38.01658 M -23.32978,46.25191 L -22.99548,46.89587 M -21.21527,37.70682 L -21.29739,37.18833 M 3.42015,29.89793 L 3.21787,29.46414 M -0.15862,7.81307 L 0.0,6.0 M 0.0,5.0496 L 0.0,4.56 M -1.26607,12.51404 L -0.61009,12.97336 M -22.07556,48.04867 L -21.79699,48.13685 M -6.34415,8.95833 L -4.27989,10.40374 M -18.42166,37.26436 L -23.12395,43.73649 M 16.74106,23.673 L 14.59839,19.07802 M 4.75177,25.30008 L 8.24106,23.673 M 11.38437,12.18555 L 8.5,6.0 M -19.96129,38.61789 L -17.17018,40.64575 M -17.02486,37.04312 L -16.43708,36.23411 M -19.41635,48.16072 L -19.43805,48.16416 M 4.85523,32.97548 L 3.42015,29.89793 M -18.85763,48.07222 L -19.16493,48.12089 M -4.27989,10.40374 L -3.5918,10.88554 M 0.0,6.0 L 3.62607,13.77612 M 0.9758,6.0 L 0.73185,6.0 M -0.59272,21.29232 L -2.8005,16.55772 M -19.40638,47.97686 L -19.45427,48.04277 M 6.12533,32.38322 L 4.85523,32.97548 M -21.7909,39.76073 L -21.11437,40.25226 M 3.60982,25.83258 L 2.54781,26.3278 M 0.0,0.0 L 4.335,0.0 M -23.46659,45.98838 L -23.44068,46.03829 M 0.0,6.0 L 0.0,5.71488 M -22.39084,39.32485 L -21.7909,39.76073 M 3.21787,29.46414 L 2.57732,28.09048 M 2.52497,26.33845 L 4.75177,25.30008 M -22.36987,44.3999 L -22.94739,45.19478 M -19.29315,48.1412 L -19.41635,48.16072 M 2.10783,27.08367 L 1.8969,26.63133 M -22.46025,47.9269 L -22.2679,47.98779 M 0.73185,6.0 L 0.0,6.0 M -19.16493,48.12089 L -19.29315,48.1412 M -17.02486,37.04312 L -18.83421,39.53347 M 8.24106,23.673 L 9.98647,27.41605 M -19.33267,47.87541 L -19.40638,47.97686 M -20.43872,41.74189 L -21.05425,42.58909 M 3.62607,13.77612 L 8.24106,23.673 M -22.19737,44.16247 L -22.36987,44.3999 M 14.06272,17.92927 L 11.38437,12.18555 M 12.67763,23.673 L 14.44606,23.673 M 4.335,0.0 L 8.5,0.0 M -5.63542,10.47821 L -6.34415,8.95833 M -18.83421,39.53347 L -20.43872,41.74189 M 1.75365,6.0 L 0.9758,6.0 M 0.0,4.56 L 0.0,0.0 M 2.54781,26.3278 L 1.8969,26.63133 M 10.80133,30.20277 L 10.29471,30.43901 M 11.19938,30.01716 L 10.80133,30.20277 M 8.24106,23.673 L 3.60982,25.83258 M 8.24106,23.673 L 9.68186,23.673 M -21.05425,42.58909 L -22.19737,44.16247 M -19.7858,41.21752 L -16.72772,43.43935 M -21.79699,48.13685 L -19.44541,48.88124 M -0.61009,12.97336 L -0.15862,7.81307 M -22.99548,46.89587 L -22.6869,47.49029 M -19.44568,48.16537 L -19.55603,48.18284 M -18.96825,47.37382 L -19.33267,47.87541 M -21.34358,36.89668 L -21.4365,36.31002 M 8.5,6.0 L 3.485,6.0 M -23.44068,46.03829 L -23.32978,46.25191 M 9.98647,27.41605 L 11.19938,30.01716 M -22.2679,47.98779 L -22.07556,48.04867 M 14.59839,19.07802 L 14.06272,17.92927 M -22.6869,47.49029 L -22.46025,47.9269 M 3.485,6.0 L 1.75365,6.0 M -22.94739,45.19478 L -23.4905,45.94231 M 10.90921,23.673 L 12.67763,23.673 M -23.4905,45.94231 L -23.46659,45.98838 M 1.8969,26.63133 L 2.52497,26.33845 M -21.29739,37.18833 L -21.34358,36.89668 M -21.11437,40.25226 L -19.7858,41.21752 M -3.5918,10.88554 L -1.26607,12.51404 M 9.74023,30.69757 L 6.12533,32.38322 M -2.8005,16.55772 L -5.63542,10.47821 M 9.68186,23.673 L 10.90921,23.673 M -19.45427,48.04277 L -19.55603,48.18284 M 1.8969,26.63133 L -0.59272,21.29232 M 2.57732,28.09048 L 2.10783,27.08367 M 14.44606,23.673 L 16.74106,23.673 M 10.29471,30.43901 L 9.74023,30.69757 M -20.78892,38.01658 L -19.96129,38.61789 M 0.0,5.71488 L 0.0,5.0496 M -19.43805,48.16416 L -19.44568,48.16537 . Out of the following shapes:
+      1. rectangle that is not a square and with no diagonals drawn
+      2. square with no diagonals drawn
+      3. triangle that is not a right triangle
+      4. right triangle
+      5. parallelogram that is not a rectangle and with no diagonals drawn
+      6. trapezoid with exactly one pair of parallel sides and with no diagonals drawn
+      7. irregular convex pentagon with no diagonals drawn
+      8. irregular concave pentagon with no diagonals drawn
+      9. regular pentagon with no diagonals drawn
+      10. regular hexagon with no diagonals drawn
+      which one(s) can be viewed when the lines in the SVG are visualized? Note that a shape with n sides should not necessarily be drawn by n lines; e.g., a triangle might be drawn by 4 lines, two of which collinear.
+      Options:
+      (A) 1, 5, 7 and 9
+      (B) 1, 2, 5 and 10
+      (C) only 6
+      (D) 2, 5, 8 and 7
+      (E) 1, 2, 5 and 8
+      (F) 2 and 9
+      (G) 1, 2, 8 and 9
+      (H) none of the above
+      (I) only 5
+      (J) 1 and 6
+      (K) 2 and 8
+      (L) 2, 5, 3 and 7
+      (M) 1, 2 and 8
+      (N) 1, 5, 8, 6 and 10
+      (O) only 8
+      (P) 1 and 8
+      Coordinates have been rounded to 5 decimal places so ignore slight differences.
+    answer: |
+      The answer is: (e)
