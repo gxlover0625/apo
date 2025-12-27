@@ -511,3 +511,78 @@ class BBEHGeo(DataProcessor):
     
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
+
+class GeoGroup(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        bbh_task_dir = kwargs['bbh_task_dir']
+        bbeh_task_dir = kwargs['bbeh_task_dir']
+        self.bbh_task = GeometricShapesTask(
+            bbh_task_dir, max_threads
+        )
+        self.bbeh_task = BBEHGeo(
+            bbeh_task_dir, max_threads
+        )
+
+        # 合并 train 数据
+        self.train_data = []
+        min_length = min(len(self.bbh_task.train_data), len(self.bbeh_task.train_data))
+        for sample in self.bbh_task.train_data[:min_length]:
+            self.train_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
+        for sample in self.bbeh_task.train_data[:min_length]:
+            self.train_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+        
+        # 合并 eval 数据
+        self.eval_data = []
+        min_length = min(len(self.bbh_task.eval_data), len(self.bbeh_task.eval_data))
+        for sample in self.bbh_task.eval_data[:min_length]:
+            self.eval_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
+        for sample in self.bbeh_task.eval_data[:min_length]:
+            self.eval_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+        
+        # 合并 test 数据
+        self.test_data = []
+        min_length = min(len(self.bbh_task.test_data), len(self.bbeh_task.test_data))
+        for sample in self.bbh_task.test_data[:min_length]:
+            self.test_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
+        for sample in self.bbeh_task.test_data[:min_length]:
+            self.test_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+    
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({
+                'id': f'train-{idx}',
+                'label': sample['target'],
+                'text': sample['input'],
+                'source': sample['source']
+            })
+        return exs
+    
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({
+                'id': f'eval-{idx}',
+                'label': sample['target'],
+                'text': sample['input'],
+                'source': sample['source']
+            })
+        return exs
+
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({
+                'id': f'test-{idx}',
+                'label': sample['target'],
+                'text': sample['input'],
+                'source': sample['source']
+            })
+        return exs
+    
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        return self.bbeh_task.evaluate(model, prompt, test_exs, n, *args, **kwargs)
+
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred

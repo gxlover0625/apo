@@ -31,6 +31,8 @@ def get_task_class(task_name):
         return tasks.WSCTask
     elif task_name == "bbeh_geometric_shapes":
         return tasks.BBEHGeo
+    elif task_name == "Geo_Group":
+        return tasks.GeoGroup
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -107,7 +109,12 @@ if __name__ == '__main__':
 
     config['eval_budget'] = config['samples_per_eval'] * config['eval_rounds'] * config['eval_prompts_per_round']
     
-    task = get_task_class(args.task)(args.data_dir, args.max_threads)
+    if args.task not in ["Geo_Group"]:
+        task = get_task_class(args.task)(args.data_dir, args.max_threads)
+    else:
+        bbh_task_dir = os.environ['bbh_task_dir']
+        bbeh_task_dir = os.environ['bbeh_task_dir']
+        task = get_task_class(args.task)(None, args.max_threads, bbh_task_dir=bbh_task_dir, bbeh_task_dir=bbeh_task_dir)
     scorer = get_scorer(args.scorer)()
     evaluator = get_evaluator(args.evaluator)(config)
     bf_eval = get_evaluator('bf')(config)
@@ -138,6 +145,8 @@ if __name__ == '__main__':
     elif args.task == "WSC":
         candidates = ["""Let's solve the problem."""]
     elif args.task == "bbeh_geometric_shapes":
+        candidates = ["""Identify geometric shapes from their SVG paths."""]
+    elif args.task == "Geo_Group":
         candidates = ["""Identify geometric shapes from their SVG paths."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")

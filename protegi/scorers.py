@@ -13,7 +13,7 @@ def predict_on_example(inputs):
     if os.environ['TASK'] in ["logical_deduction_seven_objects", "causal_judgement", "geometric_shapes", "WSC"]:
         output_format = """You must give your final answer by starting with 'So the answer is'"""
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
-    elif os.environ['TASK'] == "bbeh_geometric_shapes":
+    elif os.environ['TASK'] in ["bbeh_geometric_shapes", "Geo_Group"]:
         output_format = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     pred = utils.chatgpt(
@@ -29,7 +29,7 @@ def predict_on_example(inputs):
         pred = bbh_mcq_postprocess(pred)
         if len(pred) == 1 and pred.isupper():
             pred = f"({pred})"
-    elif os.environ['TASK'] == "bbeh_geometric_shapes":
+    elif os.environ['TASK'] in ["bbeh_geometric_shapes", "Geo_Group"]:
         pred = preprocess_sample(pred)
         pred = pred.upper()
         if len(pred) == 1 and pred.isupper():
@@ -46,7 +46,7 @@ class Cached01Scorer:
         def compute_scores(prompts_exs):
             out_scores = {}
             inputs = [(ex, predictor, prompt) for prompt, ex in prompts_exs]
-            with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
                 futures = [executor.submit(predict_on_example, ex) for ex in inputs]
                 for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='01 scorer'):
                     prompt, ex, pred = future.result()            
