@@ -2,6 +2,8 @@ import argparse
 import os
 import random
 import numpy as np
+import logging
+import pickle
 
 from uuid import uuid4
 from pathlib import Path
@@ -13,7 +15,8 @@ from textgrad.tasks import load_task
 from task import get_eval_fn
 from embedding import get_db, add_single_doc, query_topk_threshold
 from agent import AnswerAgent, SummaryAgent
-from prototype import Prototype, Demonstration
+from prototype import Prototype, Demonstration, Strategy
+from tqdm import tqdm
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -32,6 +35,7 @@ def call_llm(prompt=None, model=None, temperature=0):
     )
     return response.choices[0].message.content
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 seed_everything()
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", type=str, required=True)
@@ -42,7 +46,10 @@ train_set, val_set, test_set, _ = load_task(args.dataset, evaluation_api=None, d
 eval_fn = get_eval_fn(args.dataset)
 print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
 
-db = get_db(collection_name="mvp_test_main_02", emb_model="Doubao-Embedding-Large-Text")
+from datetime import datetime
+current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+print(f"mvp_test_main_{current_date}")
+db = get_db(collection_name=f"mvp_test_main_{current_date}", emb_model="Doubao-Embedding-Large-Text")
 print(db)
 
 ans_agent = AnswerAgent(model="Qwen3-235B-A22B-Instruct-2507", temperature=0., call_fn=call_llm)
@@ -51,15 +58,17 @@ sum_agent = SummaryAgent(model="Qwen3-235B-A22B-Instruct-2507", temperature=0., 
 
 ## Before Training
 prototype_dict = {}
+with open("prototype_dict.pkl", "wb") as f:
+    pickle.dump(prototype_dict, f)
 if args.dataset == "Geo_Group":
     init_instruction = """Identify geometric shapes from their SVG paths."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 
 ### Start Training
-for idx, train_sample in enumerate(train_set):
+for idx, train_sample in tqdm(enumerate(train_set)):
     question, gt = train_sample
     retrieve_prototype = query_topk_threshold(
-        db, query=question, topk=1, threshold=0.5
+        db, query=question, topk=1, threshold=0.8
     )
     if len(retrieve_prototype) == 0:
         #### reflexion
@@ -71,15 +80,55 @@ for idx, train_sample in enumerate(train_set):
             eval_fn=eval_fn
         )
         if is_success:
-            # TODO 进入总结prototype环节，目标是context、strategy
-
-
             prototype_id = str(uuid4())
+
+            past_reflections = "\n".join([f"- {m}" for m in memory]) if memory else "None"
+            context, solution_steps, pitfalls = sum_agent.summary(question, trajectory, past_reflections)
+            strategy = Strategy(
+                solution_steps=solution_steps,
+                pitfalls=pitfalls
+            )
             demo = Demonstration(
                 question=question,
                 trajectory=trajectory
             )
             demos = [demo]
+            new_prototype = Prototype(
+                prototype_id=prototype_id,
+                context=context,
+                demos=demos,
+                strategy=strategy,
+            )
+            add_single_doc(
+                db, context, doc_id=prototype_id, doc_metadata={"prototype_id": prototype_id}
+            )
+            prototype_dict[prototype_id] = new_prototype
+            logging.info(f"[Sample {idx}] is creating prototype")
+            with open("prototype_dict.pkl", "wb") as f:
+                pickle.dump(prototype_dict, f)
         else:
             #### skip this case
+            logging.info(f"[Sample {idx}] not pass after reflexion")
             pass
+    else:
+        chosen_id = retrieve_prototype[0]["metadata"]["prototype_id"]
+        chosen_prototype = prototype_dict[chosen_id]
+        is_success, final_response = ans_agent.answer_with_prototype(
+            instruction=init_instruction,
+            output_format=output_format,
+            question=question,
+            gt=gt,
+            eval_fn=eval_fn,
+            prototype=chosen_prototype
+        )
+        if is_success:
+            new_demo = Demonstration(question=question, trajectory=final_response)
+            chosen_prototype.update_demo(new_demo)
+            logging.info(f"[Sample {idx}] pass with chosen prototype")
+        else:
+            logging.info(f"[Sample {idx}] not pass with chosen prototype")
+            pass
+
+
+
+### inferencing

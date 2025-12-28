@@ -1,5 +1,6 @@
 import re
-from prompts.summarize import reflection_prompt
+from prompts.summarize import reflection_prompt, summarize_prompt
+from prototype import Prototype
 
 class Agent:
     def __init__(self, model:str, temperature:float=0., call_fn=None):
@@ -9,6 +10,14 @@ class Agent:
     
     def direct_answer(self, prompt):
         return self.call_fn(prompt, model=self.model, temperature=self.temperature)
+    
+    def extract_tag_content(self, tag_name, text):
+        pattern = f"<{tag_name}>\s*(.*?)\s*</{tag_name}>"
+        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+        else:
+            return text
 
     def __call__(self, prompt):
         return self.direct_answer(prompt)
@@ -22,12 +31,13 @@ class AnswerAgent(Agent):
             past_reflections=past_reflections
         )
         reflection_result = self.direct_answer(meta_prompt)
-        pattern = r"<reflection>(.*?)</reflection>"
-        match = re.search(pattern, reflection_result, re.DOTALL)
-        if match:
-            return match.group(1).strip()
-        else:
-            return reflection_result
+        return self.extract_tag_content("reflection", reflection_result)
+        # pattern = r"<reflection>(.*?)</reflection>"
+        # match = re.search(pattern, reflection_result, re.DOTALL)
+        # if match:
+        #     return match.group(1).strip()
+        # else:
+        #     return reflection_result
     
     def reflexion_answer(self, instruction, output_format, question, gt, eval_fn, *args, **kwargs):
         memory = []
@@ -43,7 +53,7 @@ class AnswerAgent(Agent):
                 prompt = (
                     f"Instruction: {instruction}\n"
                     f"Question: {question}\n\n"
-                    f"Previous reflections:\n{past_reflections}\n\n"
+                    f"Previous reflections on past failures:\n{past_reflections}\n\n"
                     f"Previous Attempt: {last_trajectory}\n\n"
                     f"Based on the instruction and previous reflections above, carefully answer the question again.\n"
                     f"{output_format}"
@@ -68,6 +78,39 @@ class AnswerAgent(Agent):
             t += 1
         return is_success, trajectory, memory
     
+    def answer_with_prototype(self, instruction, output_format, question, gt, eval_fn, prototype, *args, **kwargs):
+        demos_str = ""
+        for idx, demo in enumerate(prototype.demos, 1):
+            demos_str += (
+                f"Example {idx}\n"
+                f"Question: {demo.question}\n"
+                f"Answer: {demo.trajectory}"
+            )
+        prompt = (
+            f"{instruction}\n"
+            f"{question}\n\n"
+            f"Solution steps for reference:\n{prototype.strategy.solution_steps}\n\n"
+            f"Common Pitfalss:\n{prototype.strategy.pitfalls}\n\n"
+            f"Demonstrations:\n\n{demos_str}\n\n"
+            f"{output_format}"
+        )
+        final_response = self.direct_answer(prompt)
+        is_success = False
+        if eval_fn(final_response, gt):
+            is_success = True
+            return is_success, final_response
+        else:
+            return is_success, final_response
+    
 class SummaryAgent(Agent):
-    def summary(self, *args, **kwargs):
-        pass
+    def summary(self, question, trajectory, past_reflections, *args, **kwargs):
+        summary_prompt = summarize_prompt.format(
+            question=question,
+            trajectory=trajectory,
+            past_reflections=past_reflections
+        )
+        summary_result = self.direct_answer(summary_prompt)
+        context = self.extract_tag_content("context", summary_result)
+        solution_steps = self.extract_tag_content("solution_steps", summary_result)
+        pitfalls = self.extract_tag_content("pitfalls", summary_result)
+        return context, solution_steps, pitfalls
