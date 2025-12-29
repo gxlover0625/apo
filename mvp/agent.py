@@ -126,6 +126,29 @@ class AnswerAgent(Agent):
         else:
             return is_success, final_response
     
+    def answer_with_prototype_v2(self, instruction, output_format, question, gt, eval_fn, prototype, *args, **kwargs):
+        demos_str = ""
+        for idx, demo in enumerate(prototype.demos, 1):
+            demos_str += (
+                f"### Example {idx}\n"
+                f"Question: {demo.question}\n"
+                f"Answer: {demo.trajectory}\n"
+            )
+        sys_prompt = (
+            f"## Task\n{instruction}\n\n"
+            f"## Success Solution Steps\n{prototype.strategy.solution_steps}\n\n"
+            f"## Success Cases:\n{demos_str}\n\n"
+            f"## Common Pitfalls:\n{prototype.strategy.pitfalls}\n\n"
+        )
+        user_prompt = f"{question}\n{output_format}"
+        final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+        is_success = False
+        if eval_fn(final_response, gt):
+            is_success = True
+            return is_success, final_response
+        else:
+            return is_success, final_response
+    
 class SummaryAgent(Agent):
     def summary(self, question, trajectory, past_reflections, *args, **kwargs):
         summary_prompt = summarize_prompt.format(

@@ -36,14 +36,20 @@ class MyCustomEmbeddingFunction(EmbeddingFunction):
         norm_embeddings = raw_embeddings / np.where(norm == 0, 1, norm)
         return norm_embeddings.tolist()
 
-def get_db(restore_path="./db", collection_name="default", emb_model=None):
+def get_db(restore_path="./db", collection_name="default", emb_model=None, inference=False):
     client = chromadb.PersistentClient(path=restore_path)
     custom_ef = MyCustomEmbeddingFunction(model_name=emb_model)
-    collection = client.get_or_create_collection(
-        name=collection_name, 
-        embedding_function=custom_ef,
-        metadata={"hnsw:space": "cosine"}
-    )
+    if inference:
+        collection = client.get_collection(
+            name=collection_name, 
+            embedding_function=custom_ef,
+        )
+    else:
+        collection = client.create_collection(
+            name=collection_name, 
+            embedding_function=custom_ef,
+            metadata={"hnsw:space": "cosine"}
+        )
     return collection
 
 def query_topk_threshold(collection, query:str, topk=3, threshold=0.5):

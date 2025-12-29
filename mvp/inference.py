@@ -48,6 +48,8 @@ parser.add_argument("--dataset", type=str, required=True)
 parser.add_argument("--model",type=str, required=True)
 parser.add_argument("--exp_name", type=str, required=True)
 parser.add_argument("--embed_model", type=str, required=True)
+parser.add_argument("--db_path", type=str, required=True)
+parser.add_argument("--dict_path", type=str, required=True)
 args = parser.parse_args()
 
 # Data & Prompt setup
@@ -60,9 +62,9 @@ if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 
 # Training setup
-with open(f"prototype_dict_{args.exp_name}.pkl", "rb") as f:
+with open(f"{args.dict_path}", "rb") as f:
     prototype_dict = pickle.load(f)
-db = get_db(collection_name=f"mvp_{args.exp_name}", emb_model=args.embed_model)
+db = get_db(collection_name=f"{args.db_path}", emb_model=args.embed_model, inference=True)
 ans_agent = AnswerAgent(model=args.model, temperature=0., call_fn=call_llm)
 sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 
@@ -83,7 +85,7 @@ def process_single_sample(train_sample):
     else:
         chosen_id = retrieve_prototype[0]["metadata"]["prototype_id"]
         chosen_prototype = prototype_dict[chosen_id]
-        is_success, final_response = ans_agent.answer_with_prototype(
+        is_success, final_response = ans_agent.answer_with_prototype_v2(
             instruction=init_instruction,
             output_format=output_format,
             question=question,
