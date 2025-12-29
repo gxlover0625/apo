@@ -9,6 +9,9 @@ from uuid import uuid4
 from pathlib import Path
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_random_exponential
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 
 from textgrad.tasks import load_task
 
@@ -16,7 +19,6 @@ from task import get_eval_fn
 from embedding import get_db, add_single_doc, query_topk_threshold
 from agent import AnswerAgent, SummaryAgent
 from prototype import Prototype, Demonstration, Strategy
-from tqdm import tqdm
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -58,58 +60,26 @@ if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 
 # Training setup
-prototype_dict = {}
+with open(f"prototype_dict_{args.exp_name}.pkl", "rb") as f:
+    prototype_dict = pickle.load(f)
 db = get_db(collection_name=f"mvp_{args.exp_name}", emb_model=args.embed_model)
 ans_agent = AnswerAgent(model=args.model, temperature=0., call_fn=call_llm)
 sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 
-## Start Training
-for idx, train_sample in tqdm(enumerate(train_set)):
+def process_single_sample(train_sample):
     question, gt = train_sample
     retrieve_prototype = query_topk_threshold(
-        db, query=question, topk=1, threshold=0.7
+        db, query=question, topk=1, threshold=0.5
     )
     if len(retrieve_prototype) == 0:
         #### reflexion
-        is_success, trajectory, memory = ans_agent.reflexion_answer(
+        is_success, prediction = ans_agent.answer_without_reflection(
             instruction=init_instruction,
             output_format=output_format,
             question=question,
             gt=gt,
             eval_fn=eval_fn
         )
-        if is_success:
-            prototype_id = str(uuid4())
-
-            past_reflections = "\n".join([f"- {m}" for m in memory]) if memory else "None"
-            context, solution_steps, pitfalls = sum_agent.summary(question, trajectory, past_reflections)
-            strategy = Strategy(
-                solution_steps=solution_steps,
-                pitfalls=pitfalls
-            )
-            demo = Demonstration(
-                question=question,
-                trajectory=trajectory
-            )
-            demos = [demo]
-            new_prototype = Prototype(
-                prototype_id=prototype_id,
-                context=context,
-                demos=demos,
-                strategy=strategy,
-            )
-            add_single_doc(
-                db, context, doc_id=prototype_id, doc_metadata={"prototype_id": prototype_id}
-            )
-            prototype_dict[prototype_id] = new_prototype
-            logging.info(f"[Sample {idx}] is creating prototype")
-            print(f"[Sample {idx}] is creating prototype")
-            with open(f"prototype_dict_{args.exp_name}.pkl", "wb") as f:
-                pickle.dump(prototype_dict, f)
-        else:
-            #### skip this case
-            logging.info(f"[Sample {idx}] not pass after reflexion")
-            print(f"[Sample {idx}] not pass after reflexion")
     else:
         chosen_id = retrieve_prototype[0]["metadata"]["prototype_id"]
         chosen_prototype = prototype_dict[chosen_id]
@@ -121,11 +91,19 @@ for idx, train_sample in tqdm(enumerate(train_set)):
             eval_fn=eval_fn,
             prototype=chosen_prototype
         )
-        if is_success:
-            new_demo = Demonstration(question=question, trajectory=final_response)
-            chosen_prototype.update_demo(new_demo)
-            logging.info(f"[Sample {idx}] pass with chosen prototype")
-            print(f"[Sample {idx}] pass with chosen prototype")
-        else:
-            logging.info(f"[Sample {idx}] not pass with chosen prototype")
-            print(f"[Sample {idx}] not pass with chosen prototype")
+    return 1 if is_success else 0
+
+## Start Training
+correct_count = 0
+results = []
+lock = Lock()
+with ThreadPoolExecutor(max_workers=8) as executor:
+    futures = [executor.submit(process_single_sample, sample) for sample in test_set]
+    pbar = tqdm(as_completed(futures), total=len(futures))
+    for future in pbar:
+        result = future.result()
+        with lock:
+            results.append(result)
+            correct_count += result
+            current_acc = correct_count / len(results)
+        pbar.set_description(f"acc: {current_acc:.4f}")
