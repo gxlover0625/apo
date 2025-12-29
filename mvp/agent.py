@@ -54,19 +54,29 @@ class AnswerAgent(Agent):
             past_reflections = "\n".join([f"- {m}" for m in memory]) if memory else "None"
             if t == 0:
                 # prompt = f"{instruction}\n{question}\n{output_format}"
-                sys_prompt = f"{instruction} {output_format}"
-                user_prompt = f"{question}"
+                # sys_prompt = f"{instruction} {output_format}"
+                # user_prompt = f"{question}"
+                prompt = f"{instruction}\n{question}\n{output_format}"
             else:
-                sys_prompt = f"{instruction} {output_format}"
-                user_prompt = (
-                    f"## Question\n{question}\n\n"
-                    f"## Past Failure Reflections\n{past_reflections}\n\n"
-                    f"## Previous Attempt\n{last_trajectory}\n\n"
-                    f"Answer the question again, explicitly avoiding the mistakes described above."
+                # sys_prompt = f"{instruction} {output_format}"
+                # user_prompt = (
+                #     f"## Question\n{question}\n\n"
+                #     f"## Past Failure Reflections\n{past_reflections}\n\n"
+                #     f"## Previous Attempt\n{last_trajectory}\n\n"
+                #     f"Answer the question again, explicitly avoiding the mistakes described above."
+                # )
+                prompt = (
+                    f"Instruction: {instruction}\n"
+                    f"Question: {question}\n\n"
+                    f"Previous reflections on past failures:\n{past_reflections}\n\n"
+                    f"Previous Attempt: {last_trajectory}\n\n"
+                    f"Based on the instruction and previous reflections above, carefully answer the question again.\n"
+                    f"{output_format}"
                 )
 
             # Generate trajectory
-            trajectory = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+            # trajectory = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+            trajectory = self.direct_answer(user_prompt=prompt)
             last_trajectory = trajectory
 
             # Evaluate trajectory
@@ -88,18 +98,27 @@ class AnswerAgent(Agent):
         demos_str = ""
         for idx, demo in enumerate(prototype.demos, 1):
             demos_str += (
-                f"### Example {idx}\n"
+                f"Example {idx}\n"
                 f"Question: {demo.question}\n"
-                f"Answer: {demo.trajectory}\n"
+                f"Answer: {demo.trajectory}"
             )
-        sys_prompt = (
-            f"## Task\n{instruction}\n\n"
-            f"## Success Solution Steps\n{prototype.strategy.solution_steps}\n\n"
-            f"## Success Cases:\n{demos_str}\n\n"
-            f"## Common Pitfalls:\n{prototype.strategy.pitfalls}\n\n"
+        # sys_prompt = (
+        #     f"## Task\n{instruction}\n\n"
+        #     f"## Success Solution Steps\n{prototype.strategy.solution_steps}\n\n"
+        #     f"## Success Cases:\n{demos_str}\n\n"
+        #     f"## Common Pitfalls:\n{prototype.strategy.pitfalls}\n\n"
+        # )
+        # user_prompt = f"{question}\n{output_format}"
+        prompt = (
+            f"{instruction}\n"
+            f"{question}\n\n"
+            f"Solution steps for reference:\n{prototype.strategy.solution_steps}\n\n"
+            f"Common Pitfalss:\n{prototype.strategy.pitfalls}\n\n"
+            f"Demonstrations:\n\n{demos_str}\n\n"
+            f"{output_format}"
         )
-        user_prompt = f"{question}\n{output_format}"
-        final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+        # final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+        final_response = self.direct_answer(user_prompt=prompt)
         is_success = False
         if eval_fn(final_response, gt):
             is_success = True

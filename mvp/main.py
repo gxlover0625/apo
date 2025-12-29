@@ -9,6 +9,8 @@ from uuid import uuid4
 from pathlib import Path
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_random_exponential
+from tqdm import tqdm
+from datetime import datetime
 
 from textgrad.tasks import load_task
 
@@ -16,7 +18,6 @@ from task import get_eval_fn
 from embedding import get_db, add_single_doc, query_topk_threshold
 from agent import AnswerAgent, SummaryAgent
 from prototype import Prototype, Demonstration, Strategy
-from tqdm import tqdm
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -59,7 +60,8 @@ if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"
 
 # Training setup
 prototype_dict = {}
-db = get_db(collection_name=f"mvp_{args.exp_name}", emb_model=args.embed_model)
+current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+db = get_db(collection_name=f"{args.exp_name}_{current_date}", emb_model=args.embed_model)
 ans_agent = AnswerAgent(model=args.model, temperature=0., call_fn=call_llm)
 sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 
@@ -104,7 +106,7 @@ for idx, train_sample in tqdm(enumerate(train_set)):
             prototype_dict[prototype_id] = new_prototype
             logging.info(f"[Sample {idx}] is creating prototype")
             print(f"[Sample {idx}] is creating prototype")
-            with open(f"prototype_dict_{args.exp_name}.pkl", "wb") as f:
+            with open(f"prototype_dict_{args.exp_name}_{current_date}.pkl", "wb") as f:
                 pickle.dump(prototype_dict, f)
         else:
             #### skip this case
