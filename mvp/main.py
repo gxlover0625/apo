@@ -62,6 +62,8 @@ if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"
 prototype_dict = {}
 current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 db = get_db(collection_name=f"{args.exp_name}_{current_date}", emb_model=args.embed_model)
+print('db name:', f"{args.exp_name}_{current_date}")
+print('dict saving path:', f"prototype_dict_{args.exp_name}_{current_date}.pkl")
 ans_agent = AnswerAgent(model=args.model, temperature=0., call_fn=call_llm)
 sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 

@@ -99,7 +99,7 @@ def process_single_sample(train_sample):
 correct_count = 0
 results = []
 lock = Lock()
-with ThreadPoolExecutor(max_workers=8) as executor:
+with ThreadPoolExecutor(max_workers=1) as executor:
     futures = [executor.submit(process_single_sample, sample) for sample in test_set]
     pbar = tqdm(as_completed(futures), total=len(futures))
     for future in pbar:
