@@ -8,3 +8,5 @@ logs/
 .DS_Store
 data/
 agent_dev/
+db/
+*.pkl
