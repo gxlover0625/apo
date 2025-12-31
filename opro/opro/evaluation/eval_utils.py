@@ -194,7 +194,8 @@ def gen_prompt(
       "gsm8k",
       "multiarith",
       "aqua",
-      "wsc"
+      "wsc",
+      "geo_group"
   }, (
       "The lower-case dataset name must be one of mmlu, bbh, gsm8k, multiarith,"
       " or aqua."
@@ -214,6 +215,8 @@ def gen_prompt(
   elif dataset_name == "bbh":
     question = data[idx]["input"]
   elif dataset_name == "wsc":
+    question = data[idx]["input"]
+  elif dataset_name == "geo_group":
     question = data[idx]["input"]
   elif dataset_name == "gsm8k":
     question = data.iloc[idx, 0]
@@ -280,6 +283,8 @@ def fetch_true_answer(data, idx, dataset_name):
   elif dataset_name == "bbh":
     return data[idx]["target"]
   elif dataset_name == "wsc":
+    return data[idx]["output"]
+  elif dataset_name == "geo_group":
     return data[idx]["output"]
   elif dataset_name == "gsm8k":
     return data.iloc[idx, 1]
@@ -537,6 +542,99 @@ def get_accuracy_of_list(
   )
   return np.average(accuracy_list)
 
+def strip_latex(response: str) -> str:
+  if response.startswith("$") and response.endswith("$"):
+    response = response[1:-1]
+  if "boxed{" in response and response.endswith("}"):
+    response = response[0:-1].split("boxed{")[1]
+  if "text{" in response and response.endswith("}"):
+    response = response[0:-1].split("text{")[1]
+  if "texttt{" in response and response.endswith("}"):
+    response = response[0:-1].split("texttt{")[1]
+  return response
+
+def extract_answer(sample: str) -> str:
+  """Extracts the final answer from the sample."""
+  answer_prefixes = [
+      "The answer is:",
+      "The final answer is ",
+      "The final answer is: ",
+      "The answer is "
+  ]
+  answer = sample
+  for answer_prefix in answer_prefixes:
+    if answer_prefix in answer:
+      answer = answer.split(answer_prefix)[-1].strip()
+  if answer.endswith("."):
+    answer = answer[:-1]
+  return strip_latex(answer)
+
+def extract_answer(sample: str) -> str:
+  """Extracts the final answer from the sample."""
+  answer_prefixes = [
+      "The answer is:",
+      "The final answer is ",
+      "The final answer is: ",
+      "The answer is "
+  ]
+  answer = sample
+  for answer_prefix in answer_prefixes:
+    if answer_prefix in answer:
+      answer = answer.split(answer_prefix)[-1].strip()
+  if answer.endswith("."):
+    answer = answer[:-1]
+  return strip_latex(answer)
+
+
+def fuzzy_match(prediction: str, reference: str) -> bool:
+  """Fuzzy match function for BigBench Extra Hard."""
+  if prediction == reference:
+    return True
+
+  # (a) vs a
+  if len(prediction) == 3 and prediction[0] == "(" and prediction[-1] == ")":
+    return prediction[1] == reference
+  if len(reference) == 3 and reference[0] == "(" and reference[-1] == ")":
+    return reference[1] == prediction
+
+  # Numbers
+  try:
+    if float(prediction) == float(reference):
+      return True
+  except ValueError:
+    pass
+
+  # quote issues
+  if prediction.replace("'", "") == reference.replace("'", ""):
+    return True
+
+  # Bracket issues
+  if f"[{reference}]" == prediction or f"[{prediction}]" == reference:
+    return True
+
+  # Question mark issues
+  if prediction.endswith("?") and prediction[:-1] == reference:
+    return True
+
+  return False
+
+def preprocess_sample(sample: str) -> str:
+  prediction = extract_answer(sample.strip()).lower()
+  prediction = prediction.replace(", ", ",").replace("**", "")
+  prediction = prediction.split("\n")[0]
+  prediction = prediction[0:-1] if prediction.endswith(".") else prediction
+  return prediction
+
+def preprocess_reference(reference: str) -> str:
+  reference = reference.strip().lower()
+  reference = reference.replace(", ", ",")
+  return reference
+
+def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = preprocess_sample(prediction)
+    ref = preprocess_reference(ground_truth_answer)
+    return fuzzy_match(pred, ref)
+
 def simple_evaluate_single_instruction(
   data,
   instruction,
@@ -611,6 +709,10 @@ def simple_evaluate_single_instruction(
       question = data[idx]['input']
       label = data[idx]['output']
       format_require = """You must give your final answer by starting with 'So the answer is'"""
+    elif os.environ['TASK'] in ['geo_group']:
+      question = data[idx]['input']
+      label = data[idx]['output']
+      format_require = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
     else:
       format_require = ""
     
@@ -627,6 +729,9 @@ def simple_evaluate_single_instruction(
     elif dataset_name in ["wsc"] and is_multiple_choice:
       parsed_answer = bbh_mcq_postprocess(raw_answer)
       accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
+    elif dataset_name in ["geo_group"] and is_multiple_choice:
+      parsed_answer = preprocess_sample(raw_answer)
+      accuracy = bbeh_mcq_eval_fn(parsed_answer, true_answer)
     else:
       parsed_answer = raw_answer
       accuracy = None
@@ -644,7 +749,7 @@ def simple_evaluate_single_instruction(
   evaluate_in_parallel = True
   if evaluate_in_parallel:
     from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
       results = list(executor.map(process_single_eval, eval_index_all))
   else:
     results = [process_single_eval(idx) for idx in eval_index_all]
