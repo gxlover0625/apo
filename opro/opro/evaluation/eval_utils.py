@@ -749,7 +749,7 @@ def simple_evaluate_single_instruction(
   evaluate_in_parallel = True
   if evaluate_in_parallel:
     from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
       results = list(executor.map(process_single_eval, eval_index_all))
   else:
     results = [process_single_eval(idx) for idx in eval_index_all]
