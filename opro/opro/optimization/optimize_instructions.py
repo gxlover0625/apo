@@ -786,6 +786,8 @@ def main(_):
   else:
     # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     old_instruction_score_threshold = 0.3
+    if os.environ["TASK"] == "geo_group":
+      old_instruction_score_threshold = 0.
 
   if scorer_llm_name == "text-bison":
     extract_final_answer_by_prompting_again = False
