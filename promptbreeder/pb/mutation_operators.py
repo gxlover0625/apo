@@ -122,7 +122,7 @@ def working_out_task_prompt(unit: EvolutionUnit, model: Any, **kwargs) -> Evolut
     elif os.environ['TASK'] == "wsc":
         question = RANDOM_WORKING_OUT['input']
         answer = RANDOM_WORKING_OUT['output']
-    elif os.environ['TASK'] == "Geo_Group":
+    elif os.environ['TASK'] in ["Geo_Group", "Logical_Group"]:
         question = RANDOM_WORKING_OUT['input']
         answer = RANDOM_WORKING_OUT['target']
     else:

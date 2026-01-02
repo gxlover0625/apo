@@ -119,7 +119,7 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
             # examples.append([unit.P + ' \n' + example['input'] for example in batch])
             output_suffix = """You must give your final answer by starting with 'So the answer is'"""
             examples.append([f"{unit.P}\n{example['input']}\n{output_suffix}"  for example in batch])
-        elif os.environ['TASK'] in ["Geo_Group"]:
+        elif os.environ['TASK'] in ["Geo_Group", "Logical_Group"]:
             output_suffix = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
             examples.append([f"{unit.P}\n{example['input']}\n{output_suffix}"  for example in batch])
 
@@ -138,7 +138,7 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
                 valid = eval_fn(x[0].text, batch[i]['target'])
             elif os.environ['TASK'] == "wsc":
                 valid = eval_fn(x[0].text, batch[i]['output'])
-            elif os.environ['TASK'] == "Geo_Group":
+            elif os.environ['TASK'] in ["Geo_Group", "Logical_Group"]:
                 valid = eval_fn(x[0].text, batch[i]['target'])
             else:
                 pass
