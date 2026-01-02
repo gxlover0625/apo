@@ -71,6 +71,99 @@ def load_jsonl(data_path:str):
             data.append(json.loads(line))
     return data
 
+def strip_latex(response: str) -> str:
+  if response.startswith("$") and response.endswith("$"):
+    response = response[1:-1]
+  if "boxed{" in response and response.endswith("}"):
+    response = response[0:-1].split("boxed{")[1]
+  if "text{" in response and response.endswith("}"):
+    response = response[0:-1].split("text{")[1]
+  if "texttt{" in response and response.endswith("}"):
+    response = response[0:-1].split("texttt{")[1]
+  return response
+
+def extract_answer(sample: str) -> str:
+  """Extracts the final answer from the sample."""
+  answer_prefixes = [
+      "The answer is:",
+      "The final answer is ",
+      "The final answer is: ",
+      "The answer is "
+  ]
+  answer = sample
+  for answer_prefix in answer_prefixes:
+    if answer_prefix in answer:
+      answer = answer.split(answer_prefix)[-1].strip()
+  if answer.endswith("."):
+    answer = answer[:-1]
+  return strip_latex(answer)
+
+def extract_answer(sample: str) -> str:
+  """Extracts the final answer from the sample."""
+  answer_prefixes = [
+      "The answer is:",
+      "The final answer is ",
+      "The final answer is: ",
+      "The answer is "
+  ]
+  answer = sample
+  for answer_prefix in answer_prefixes:
+    if answer_prefix in answer:
+      answer = answer.split(answer_prefix)[-1].strip()
+  if answer.endswith("."):
+    answer = answer[:-1]
+  return strip_latex(answer)
+
+
+def fuzzy_match(prediction: str, reference: str) -> bool:
+  """Fuzzy match function for BigBench Extra Hard."""
+  if prediction == reference:
+    return True
+
+  # (a) vs a
+  if len(prediction) == 3 and prediction[0] == "(" and prediction[-1] == ")":
+    return prediction[1] == reference
+  if len(reference) == 3 and reference[0] == "(" and reference[-1] == ")":
+    return reference[1] == prediction
+
+  # Numbers
+  try:
+    if float(prediction) == float(reference):
+      return True
+  except ValueError:
+    pass
+
+  # quote issues
+  if prediction.replace("'", "") == reference.replace("'", ""):
+    return True
+
+  # Bracket issues
+  if f"[{reference}]" == prediction or f"[{prediction}]" == reference:
+    return True
+
+  # Question mark issues
+  if prediction.endswith("?") and prediction[:-1] == reference:
+    return True
+
+  return False
+
+def preprocess_sample(sample: str) -> str:
+  prediction = extract_answer(sample.strip()).lower()
+  prediction = prediction.replace(", ", ",").replace("**", "")
+  prediction = prediction.split("\n")[0]
+  prediction = prediction[0:-1] if prediction.endswith(".") else prediction
+  return prediction
+
+def preprocess_reference(reference: str) -> str:
+  reference = reference.strip().lower()
+  reference = reference.replace(", ", ",")
+  return reference
+
+def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = preprocess_sample(prediction)
+    ref = preprocess_reference(ground_truth_answer)
+    return fuzzy_match(pred, ref)
+
 def load_task(dataset_name:str, data_path: str):
     random.seed(42)
     np.random.seed(42)
@@ -98,6 +191,33 @@ def load_task(dataset_name:str, data_path: str):
         eval_data = load_jsonl(data_dir / "eval.jsonl")
         test_data = load_jsonl(data_dir / "test.jsonl")
         eval_fn = bbh_mcq_eval_fn
+        return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "Geo_Group":
+        from textgrad.tasks import load_task as lt
+        data_dir = Path(__file__).resolve().parent.parent / "data"
+        train_data, eval_data, test_data, _ = lt("Geo_Group", evaluation_api=None, data_dir=data_dir)
+        train_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in train_data
+        ]
+        eval_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in eval_data
+        ]
+        test_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in test_data
+        ]
+        eval_fn = bbeh_mcq_eval_fn
         return train_data, eval_data, test_data, eval_fn
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
@@ -181,6 +301,8 @@ elif args['data'] == "logical_deduction_seven_objects":
     args['problem'] = """A logical deduction task which requires deducing the order of a sequence of objects."""
 elif args['data'] == "wsc":
     args['problem'] = """Let's solve the problem."""
+elif args['data'] == "Geo_Group":
+    args['problem'] = """Identify geometric shapes from their SVG paths."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
 

@@ -118,6 +118,7 @@ def main(_):
       "bbh",
       "gsm8k",
       "wsc",
+      "geo_group"
   }, "The lower-case dataset name must be one of mmlu, bbh, or gsm8k."
   if dataset_name == "mmlu":
     assert task_name in {
@@ -157,6 +158,8 @@ def main(_):
         "word_sorting",
     }
   elif dataset_name == "wsc":
+    pass
+  elif dataset_name == "geo_group":
     pass
   else:
     assert dataset_name == "gsm8k"
@@ -223,6 +226,10 @@ def main(_):
   elif dataset_name == "wsc":
     root_data_folder_path = os.path.join(
       ROOT_DATA_FOLDER_PATH, "WSC"
+    )
+  elif dataset_name == "geo_group":
+    root_data_folder_path = os.path.join(
+      ROOT_DATA_FOLDER_PATH, "Geo_Group"
     )
   else:
     assert dataset_name == "gsm8k"
@@ -591,6 +598,11 @@ def main(_):
     multiple_choice_tasks = set(tasks_all)
     boolean_tasks = set()
     numerical_output_tasks = set()
+  elif dataset_name == "geo_group":
+    tasks_all = [task_name]
+    multiple_choice_tasks = set(tasks_all)
+    boolean_tasks = set()
+    numerical_output_tasks = set()
   else:
     assert dataset_name in {"gsm8k"}
     tasks_all = [task_name]
@@ -615,6 +627,10 @@ def main(_):
         f" prediction_treat_as_bool: {prediction_treat_as_bool}"
     )
   elif dataset_name == "wsc":
+    raw_data = []
+    prediction_treat_as_number = False
+    prediction_treat_as_bool = False
+  elif dataset_name == "geo_group":
     raw_data = []
     prediction_treat_as_number = False
     prediction_treat_as_bool = False
@@ -656,6 +672,19 @@ def main(_):
       )
       combined_df = pd.concat([train_df, eval_df, test_df], ignore_index=True)
       raw_data = [{"input": row["input"], "output": row["output"]} for _, row in combined_df.iterrows()]
+    elif dataset_name == "geo_group":
+      task_name = t
+      splits = ["train", "val", "test"]
+      processed_dfs = {}
+      for split in splits:
+        df_bbh = pd.read_csv(os.path.join(root_data_folder_path, "bbh_geo", f"{split}.csv"))
+        df_bbeh = pd.read_csv(os.path.join(root_data_folder_path, "bbeh_geo", f"{split}.csv"))
+        min_len = min(len(df_bbh), len(df_bbeh))
+        combined = pd.concat([df_bbh[:min_len], df_bbeh[:min_len]], ignore_index=True)
+        processed_dfs[split] = combined.sample(frac=1, random_state=42).reset_index(drop=True)
+
+      combined_df = pd.concat([processed_dfs["train"], processed_dfs["val"], processed_dfs["test"]], ignore_index=True)
+      raw_data = [{"input": row["x"], "output": row["y"]} for _, row in combined_df.iterrows()]
     else:
       assert dataset_name == "gsm8k"
       task_name = t
@@ -668,6 +697,8 @@ def main(_):
   elif dataset_name == "bbh":
     num_examples = len(raw_data)
   elif dataset_name == "wsc":
+    num_examples = len(raw_data)
+  elif dataset_name == "geo_group":
     num_examples = len(raw_data)
   else:
     assert dataset_name in {"gsm8k"}
@@ -684,6 +715,9 @@ def main(_):
   elif dataset_name == "wsc":
     train_ratio = 50 / 250
     eval_ratio = 50 / 250
+  elif dataset_name == "geo_group":
+    train_ratio = 100 / 400
+    eval_ratio = 100 / 400
   else:
     # 按比例的分数，我会废除掉，按照textgrad的方式，切分50：100：100
     assert dataset_name == "bbh"
@@ -719,6 +753,11 @@ def main(_):
     train_index = indices[:50]
     eval_index = indices[50: 100]
     test_index = indices[100: ]
+  elif dataset_name == "geo_group":
+    indices = np.arange(num_examples)
+    train_index = indices[:100]
+    eval_index = indices[100: 200]
+    test_index = indices[200: ]
   else:
     train_index = np.sort(
         np.array(
@@ -747,6 +786,8 @@ def main(_):
   else:
     # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     old_instruction_score_threshold = 0.3
+    if os.environ["TASK"] == "geo_group":
+      old_instruction_score_threshold = 0.
 
   if scorer_llm_name == "text-bison":
     extract_final_answer_by_prompting_again = False
@@ -777,6 +818,8 @@ def main(_):
     init_prompt = """A logical deduction task which requires deducing the order of a sequence of objects."""
   elif task_name == "wsc":
     init_prompt = """Let's solve the problem."""
+  elif task_name == "geo_group":
+    init_prompt = """Identify geometric shapes from their SVG paths."""
   else:
     raise ValueError(f"Unknown task: {task_name}")
 
