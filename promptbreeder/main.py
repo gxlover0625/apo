@@ -219,6 +219,33 @@ def load_task(dataset_name:str, data_path: str):
         ]
         eval_fn = bbeh_mcq_eval_fn
         return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "Logical_Group":
+        from textgrad.tasks import load_task as lt
+        data_dir = Path(__file__).resolve().parent.parent / "data"
+        train_data, eval_data, test_data, _ = lt("Logical_Group", evaluation_api=None, data_dir=data_dir)
+        train_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in train_data
+        ]
+        eval_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in eval_data
+        ]
+        test_data = [
+            {
+                "input": example[0],
+                "target": example[1] 
+            }
+            for example in test_data
+        ]
+        eval_fn = bbeh_mcq_eval_fn
+        return train_data, eval_data, test_data, eval_fn
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
         
@@ -303,6 +330,8 @@ elif args['data'] == "wsc":
     args['problem'] = """Let's solve the problem."""
 elif args['data'] == "Geo_Group":
     args['problem'] = """Identify geometric shapes from their SVG paths."""
+elif args['data'] == "Logical_Group":
+    args['problem'] = """Let's solve the problem."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
 
