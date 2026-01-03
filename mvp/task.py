@@ -94,5 +94,5 @@ def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
     return fuzzy_match(pred, ref)
 
 def get_eval_fn(dataset_name:str):
-    if dataset_name in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
+    if dataset_name in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes", "Logical_Group"]:
         return bbeh_mcq_eval_fn

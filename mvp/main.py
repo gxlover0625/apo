@@ -57,6 +57,10 @@ print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set
 if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
     init_instruction = """Identify geometric shapes from their SVG paths."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+elif args.dataset in ["Logical_Group"]:
+    init_instruction = """Let's solve the problem."""
+    output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+
 
 # Training setup
 prototype_dict = {}
