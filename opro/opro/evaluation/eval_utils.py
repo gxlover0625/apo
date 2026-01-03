@@ -195,7 +195,8 @@ def gen_prompt(
       "multiarith",
       "aqua",
       "wsc",
-      "geo_group"
+      "geo_group",
+      "logical_group"
   }, (
       "The lower-case dataset name must be one of mmlu, bbh, gsm8k, multiarith,"
       " or aqua."
@@ -217,6 +218,8 @@ def gen_prompt(
   elif dataset_name == "wsc":
     question = data[idx]["input"]
   elif dataset_name == "geo_group":
+    question = data[idx]["input"]
+  elif dataset_name == "logical_group":
     question = data[idx]["input"]
   elif dataset_name == "gsm8k":
     question = data.iloc[idx, 0]
@@ -285,6 +288,8 @@ def fetch_true_answer(data, idx, dataset_name):
   elif dataset_name == "wsc":
     return data[idx]["output"]
   elif dataset_name == "geo_group":
+    return data[idx]["output"]
+  elif dataset_name == "logical_group":
     return data[idx]["output"]
   elif dataset_name == "gsm8k":
     return data.iloc[idx, 1]
@@ -709,7 +714,7 @@ def simple_evaluate_single_instruction(
       question = data[idx]['input']
       label = data[idx]['output']
       format_require = """You must give your final answer by starting with 'So the answer is'"""
-    elif os.environ['TASK'] in ['geo_group']:
+    elif os.environ['TASK'] in ['geo_group', "logical_group"]:
       question = data[idx]['input']
       label = data[idx]['output']
       format_require = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
@@ -729,7 +734,7 @@ def simple_evaluate_single_instruction(
     elif dataset_name in ["wsc"] and is_multiple_choice:
       parsed_answer = bbh_mcq_postprocess(raw_answer)
       accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
-    elif dataset_name in ["geo_group"] and is_multiple_choice:
+    elif dataset_name in ["geo_group", "logical_group"] and is_multiple_choice:
       parsed_answer = preprocess_sample(raw_answer)
       accuracy = bbeh_mcq_eval_fn(parsed_answer, true_answer)
     else:

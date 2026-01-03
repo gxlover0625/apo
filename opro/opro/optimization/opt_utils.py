@@ -156,7 +156,8 @@ def gen_meta_prompt(
       "bbh",
       "gsm8k",
       "wsc",
-      "geo_group"
+      "geo_group",
+      "logical_group"
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert num_score_buckets == np.inf or isinstance(num_score_buckets, int)
 
@@ -218,6 +219,9 @@ def gen_meta_prompt(
           question = data[idx]["input"]
           true_answer = data[idx]["output"]
         elif dataset_name == "geo_group":
+          question = data[idx]["input"]
+          true_answer = data[idx]["output"]
+        elif dataset_name == "logical_group":
           question = data[idx]["input"]
           true_answer = data[idx]["output"]
         else:
@@ -322,6 +326,8 @@ def gen_meta_prompt(
       instruction_task_description = "pronoun coreference resolution"
     elif dataset_name == "geo_group":
       instruction_task_description = "geometric shapes"
+    elif dataset_name == "logical_group":
+      instruction_task_description = "logical reasoning"
     else:
       assert dataset_name == "bbh"
       instruction_task_description = " ".join(task_name.split("_"))
@@ -419,6 +425,7 @@ def run_evolution(**kwargs):
       "gsm8k",
       "wsc",
       "geo_group",
+      "logical_group"
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert optimizer_llm_temperature_schedule in {
       "constant",
@@ -499,6 +506,9 @@ def run_evolution(**kwargs):
     is_multiple_choice = True
     is_multiple_choice_eval = True
   elif dataset_name == "geo_group":
+    is_multiple_choice = True
+    is_multiple_choice_eval = True
+  elif dataset_name == "logical_group":
     is_multiple_choice = True
     is_multiple_choice_eval = True
   else:
