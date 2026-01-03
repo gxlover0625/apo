@@ -512,6 +512,10 @@ class BBEHGeo(DataProcessor):
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
 
+# TODO, 如果未来需要单独测BBEH_BoardGame任务，需要完整实现其逻辑，目前复用主要是看加载数据上的复用，评估方式会存在差异
+class BBEHBoardGame(BBEHGeo):
+    pass
+
 class GeoGroup(DataProcessor):
     def __init__(self, data_dir, max_threads, *args, **kwargs):
         super().__init__(data_dir, max_threads)
@@ -531,6 +535,7 @@ class GeoGroup(DataProcessor):
             self.train_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
         for sample in self.bbeh_task.train_data[:min_length]:
             self.train_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+        random.shuffle(self.train_data)
         
         # 合并 eval 数据
         self.eval_data = []
@@ -539,6 +544,7 @@ class GeoGroup(DataProcessor):
             self.eval_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
         for sample in self.bbeh_task.eval_data[:min_length]:
             self.eval_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+        random.shuffle(self.eval_data)
         
         # 合并 test 数据
         self.test_data = []
@@ -547,6 +553,7 @@ class GeoGroup(DataProcessor):
             self.test_data.append({**sample, 'source': 'BBH_Geometric_Shapes'})
         for sample in self.bbeh_task.test_data[:min_length]:
             self.test_data.append({**sample, 'source': 'BBEH_Geometric_Shapes'})
+        random.shuffle(self.test_data)
     
     def get_train_examples(self, *args, **kwargs):
         exs = []
@@ -586,3 +593,75 @@ class GeoGroup(DataProcessor):
 
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
+
+class LogicalGroup(GeoGroup):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        # super().__init__(data_dir, max_threads)
+        bbh_task_dir = kwargs['bbh_task_dir']
+        bbeh_task_dir = kwargs['bbeh_task_dir']
+        self.bbh_task = LogicalDeductionSevenObjectsTask(
+            bbh_task_dir, max_threads
+        )
+        self.bbeh_task = BBEHBoardGame(
+            bbeh_task_dir, max_threads
+        )
+
+        # 合并 train 数据
+        self.train_data = []
+        min_length = min(len(self.bbh_task.train_data), len(self.bbeh_task.train_data))
+        for sample in self.bbh_task.train_data[:min_length]:
+            self.train_data.append({**sample, 'source': 'BBH_Logical7'})
+        for sample in self.bbeh_task.train_data[:min_length]:
+            self.train_data.append({**sample, 'source': 'BBEH_BoardGame'})
+        random.shuffle(self.train_data)
+        
+        # 合并 eval 数据
+        self.eval_data = []
+        min_length = min(len(self.bbh_task.eval_data), len(self.bbeh_task.eval_data))
+        for sample in self.bbh_task.eval_data[:min_length]:
+            self.eval_data.append({**sample, 'source': 'BBH_Logical7'})
+        for sample in self.bbeh_task.eval_data[:min_length]:
+            self.eval_data.append({**sample, 'source': 'BBEH_BoardGame'})
+        random.shuffle(self.eval_data)
+        
+        # 合并 test 数据
+        self.test_data = []
+        min_length = min(len(self.bbh_task.test_data), len(self.bbeh_task.test_data))
+        for sample in self.bbh_task.test_data[:min_length]:
+            self.test_data.append({**sample, 'source': 'BBH_Logical7'})
+        for sample in self.bbeh_task.test_data[:min_length]:
+            self.test_data.append({**sample, 'source': 'BBEH_BoardGame'})
+        random.shuffle(self.test_data)
+    
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            output_format = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                # max_tokens=4096,
+                task=True
+            )[0]
+            # preds.append(bbh_mcq_postprocess(pred))
+            processed_pred = preprocess_sample(pred)
+            if ex['source'] == 'BBH_Logical7':
+                processed_pred = processed_pred.upper()
+                if len(processed_pred) == 1 and processed_pred.isupper():
+                    processed_pred = f"({processed_pred})"
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            # accuracy = bbh_mcq_eval_fn(pred, ex['label'])
+            accuracy = bbeh_mcq_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+

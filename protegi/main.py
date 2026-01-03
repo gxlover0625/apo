@@ -33,6 +33,8 @@ def get_task_class(task_name):
         return tasks.BBEHGeo
     elif task_name == "Geo_Group":
         return tasks.GeoGroup
+    elif task_name == "Logical_Group":
+        return tasks.LogicalGroup
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -109,7 +111,7 @@ if __name__ == '__main__':
 
     config['eval_budget'] = config['samples_per_eval'] * config['eval_rounds'] * config['eval_prompts_per_round']
     
-    if args.task not in ["Geo_Group"]:
+    if args.task not in ["Geo_Group", "Logical_Group"]:
         task = get_task_class(args.task)(args.data_dir, args.max_threads)
     else:
         bbh_task_dir = os.environ['bbh_task_dir']
@@ -148,6 +150,8 @@ if __name__ == '__main__':
         candidates = ["""Identify geometric shapes from their SVG paths."""]
     elif args.task == "Geo_Group":
         candidates = ["""Identify geometric shapes from their SVG paths."""]
+    elif args.task == "Logical_Group":
+        candidates = ["""Let's solve the problem."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")
 
