@@ -271,6 +271,16 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         eval_fn = StringBasedFunction(agieval_math_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
     
+    elif task_name == "gpqa":
+        from .mygpqa import GPQA, gpqa_eval_fn
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = GPQA(root=kwargs.get("data_dir"), split="train")
+        val_set = GPQA(root=kwargs.get("data_dir"), split="val")
+        test_set = GPQA(root=kwargs.get("data_dir"), split="test")
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(gpqa_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
+    
     elif task_name == "BBEH_causal_understanding":
         from .bbeh import BigBenchExtraHard
         from textgrad.autograd.string_based_ops import StringBasedFunction
