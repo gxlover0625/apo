@@ -23,7 +23,7 @@ def seed_everything(seed=42):
     random.seed(seed)
     np.random.seed(seed)
 
-@retry(stop=stop_after_attempt(3), wait=wait_random_exponential(multiplier=1, max=4))
+@retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=8))
 def call_llm(user_prompt, sys_prompt="You are a helpful assistant.", model=None, temperature=0):
     client = OpenAI(
         base_url=os.environ["OPENAI_BASE_URL"],
@@ -57,7 +57,7 @@ print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set
 if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
     init_instruction = """Identify geometric shapes from their SVG paths."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
-elif args.dataset in ["Logical_Group"]:
+elif args.dataset in ["Logical_Group", "BBH_logical_deduction_seven_objects", "bbeh_boardgame_qa"]:
     init_instruction = """Let's solve the problem."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 
