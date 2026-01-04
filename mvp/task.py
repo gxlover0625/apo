@@ -93,6 +93,22 @@ def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
     ref = preprocess_reference(ground_truth_answer)
     return fuzzy_match(pred, ref)
 
+def gpqa_process_pred(answer):
+    patterns = [r'answer is \((.)\)', r'Answer: \((.)\)', r'answer: \((.)\)', r'answer \((.)\)', r'\((.)\)']
+    for pattern in patterns:
+        match = re.search(pattern, answer)
+        if match and match.group(1) in ['A', 'B', 'C', 'D']:
+            return match.group(1)
+    return None
+  
+def gpqa_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = gpqa_process_pred(prediction)
+    ref = ground_truth_answer
+    return pred == ref
+
 def get_eval_fn(dataset_name:str):
-    if dataset_name in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
+    if dataset_name in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes", "Logical_Group", "BBH_logical_deduction_seven_objects", "bbeh_boardgame_qa"]:
         return bbeh_mcq_eval_fn
+    elif dataset_name in ["gpqa"]:
+        return gpqa_eval_fn
+
