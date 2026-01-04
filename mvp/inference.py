@@ -63,6 +63,9 @@ if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"
 elif args.dataset in ["Logical_Group", "BBH_logical_deduction_seven_objects", "bbeh_boardgame_qa"]:
     init_instruction = """Let's solve the problem."""
     output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+elif args.dataset in ["gpqa"]:
+    init_instruction = """Let's solve the problem."""
+    output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
 
 # Training setup
 with open(f"{args.dict_path}", "rb") as f:
