@@ -10,16 +10,16 @@ count: None
 
 qa:
   - question: |
-      ChIP-seq detected a highly significant binding signal for a lineage-specific transcription factor X to a developmental enhancer in human iPSC-derived mesodermal progenitor cells. However, while this factor has a high-information-content DNA recognition motif, this motif could not be detected at this enhancer. ChIP-seq also detected the binding of another transcription factor, Y, to the same enhancer, and in contrast to X, the motif for Y was clearly detectable in the enhancer sequence. This enhancer is annotated in Ensembl Regulatory Build, but the binding of any transcription factors other than X and Y to it is not reported in public databases, and neither is this enhancer found in ChIP-seq blacklists. What is likely going on?\nA. X binds a cryptic recognition motif within this enhancer\nB. X is recruited to the enhancer through cooperative binding with Y\nC. X is recruited to the target gene promoter of this enhancer\nD. X is recruited to this enhancer either spuriously or not at all (ChIP-seq false-positive)
-    answer: |
-      The correct answer is (B)
-
-  - question: |
-      Hexa-1,5-diyene is coupled in the presence of cupric acetate in pyridine to give Compound A. Compound A undergoes rearrangement in the presence of t-BuOK to give Compound B. Compound B which on partial hydrogenation gives the Compound C (final product) and it also confirms the Huckel Rule. What would be the Compound C?\nA. Cyclotetradecaheptaene\nB. Cyclooctatetraene\nC. Cyclooctadecanonaene\nD. Cyclodecapentaene
+      What is the correct answer to this question: ChIP-seq detected a highly significant binding signal for a lineage-specific transcription factor X to a developmental enhancer in human iPSC-derived mesodermal progenitor cells. However, while this factor has a high-information-content DNA recognition motif, this motif could not be detected at this enhancer. ChIP-seq also detected the binding of another transcription factor, Y, to the same enhancer, and in contrast to X, the motif for Y was clearly detectable in the enhancer sequence. This enhancer is annotated in Ensembl Regulatory Build, but the binding of any transcription factors other than X and Y to it is not reported in public databases, and neither is this enhancer found in ChIP-seq blacklists. What is likely going on?\n\nChoices:\n(A) X is recruited to this enhancer either spuriously or not at all (ChIP-seq false-positive)\n(B) X binds a cryptic recognition motif within this enhancer\n(C) X is recruited to the enhancer through cooperative binding with Y\n(D) X is recruited to the target gene promoter of this enhancer
     answer: |
       The correct answer is (C)
 
   - question: |
-      The state $\\psi$ of a system is given in terms of a complete and orthonormal set of basis vectors $|\\phi_1>,  |\\phi_2>,  |\\phi_3>$ and $| \\phi_4 >$ as $|\\psi> = \\sqrt{1/15} |\\phi_1> + \\sqrt{2/15} |\\phi_2> + 2/ \\sqrt{15} |\\phi_3> + 4/ \\sqrt{15} |\\phi_4>$. The basis vectors $|\\phi_n>$ are eigenstates of the Hamiltonian operator $H$ satisfying $H |\\phi_n> = n E_o |\\phi_n>; n=1, 2, 3, 4. Calculate the average energy of the system in some repeated measurements. \n\nA. 81/23 E_o\n\nB. E_o\n\nC. 1/23 E_o\n\nD. 81/15 E_o
+      What is the correct answer to this question: Hexa-1,5-diyene is coupled in the presence of cupric acetate in pyridine to give Compound A. Compound A undergoes rearrangement in the presence of t-BuOK to give Compound B. Compound B which on partial hydrogenation gives the Compound C (final product) and it also confirms the Huckel Rule. What would be the Compound C?\n\nChoices:\n(A) Cyclooctadecanonaene\n(B) Cyclotetradecaheptaene\n(C) Cyclooctatetraene\n(D) Cyclodecapentaene
     answer: |
       The correct answer is (A)
+
+  - question: |
+      What is the correct answer to this question: A spherical shell with a radius R has an electric charge distribution on its surface. The surface charge density is described by σ(θ)=4 cos(θ), where θ is the angle with respect to z-axis. There are no charges inside or outside the shell, and there's a vacuum in the surrounding space. The goal is to determine the electric potential inside (φ_in) and outside (φ_out) the spherical shell.\n\n\n\nChoices:\n(A) φ_in = (4r/3ε0)cos(θ), φ_out = (2R^3/3ε0 r^2)sin(θ)\n\n\n(B) φ_in = 0 , φ_out = (4R^3/3ε0 r^2)cos(θ)\n\n\n(C) φ_in = 0 , φ_out = (2R^3/3ε0 r^2)sin(θ)\n\n\n(D) φ_in = (4r/3ε0)cos(θ) , φ_out = (4R^3/3ε0 r^2)cos(θ)\n\n
+    answer: |
+      The correct answer is (D)
