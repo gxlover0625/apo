@@ -357,7 +357,7 @@ elif args['data'] == "gpqa":
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
 
-total_evaluations = args['num_mutation_prompts']**args['num_evalsargs['num_thinking_styles']']
+total_evaluations = args['num_mutation_prompts']*args['num_thinking_styles']*args['num_evals']
 
 # set num_workers to total_evaluations so we always have a thread 
 # co = cohere.Client(api_key=os.environ['COHERE_API_KEY'],  num_workers=total_evaluations, max_retries=5, timeout=30) #override the 2 min timeout with 30s. 
