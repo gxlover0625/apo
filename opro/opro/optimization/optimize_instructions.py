@@ -119,7 +119,8 @@ def main(_):
       "gsm8k",
       "wsc",
       "geo_group",
-      "logical_group"
+      "logical_group",
+      "gpqa"
   }, "The lower-case dataset name must be one of mmlu, bbh, or gsm8k."
   if dataset_name == "mmlu":
     assert task_name in {
@@ -163,6 +164,8 @@ def main(_):
   elif dataset_name == "geo_group":
     pass
   elif dataset_name == "logical_group":
+    pass
+  elif dataset_name == "gpqa":
     pass
   else:
     assert dataset_name == "gsm8k"
@@ -237,6 +240,10 @@ def main(_):
   elif dataset_name == "logical_group":
     root_data_folder_path = os.path.join(
       ROOT_DATA_FOLDER_PATH, "Logical_Group"
+    )
+  elif dataset_name == "gpqa":
+    root_data_folder_path = os.path.join(
+      ROOT_DATA_FOLDER_PATH, "GPQA"
     )
   else:
     assert dataset_name == "gsm8k"
@@ -615,6 +622,11 @@ def main(_):
     multiple_choice_tasks = set(tasks_all)
     boolean_tasks = set()
     numerical_output_tasks = set()
+  elif dataset_name == "gpqa":
+    tasks_all = [task_name]
+    multiple_choice_tasks = set(tasks_all)
+    boolean_tasks = set()
+    numerical_output_tasks = set()
   else:
     assert dataset_name in {"gsm8k"}
     tasks_all = [task_name]
@@ -647,6 +659,10 @@ def main(_):
     prediction_treat_as_number = False
     prediction_treat_as_bool = False
   elif dataset_name == "logical_group":
+    raw_data = []
+    prediction_treat_as_number = False
+    prediction_treat_as_bool = False
+  elif dataset_name == "gpqa":
     raw_data = []
     prediction_treat_as_number = False
     prediction_treat_as_bool = False
@@ -714,6 +730,19 @@ def main(_):
 
       combined_df = pd.concat([processed_dfs["train"], processed_dfs["val"], processed_dfs["test"]], ignore_index=True)
       raw_data = [{"input": row["x"], "output": row["y"]} for _, row in combined_df.iterrows()]
+    elif dataset_name == "gpqa":
+      task_name = t
+      train_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"gpqa_train.jsonl"), lines=True
+      )
+      eval_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"gpqa_validation.jsonl"), lines=True
+      )
+      test_df = pd.read_json(
+        os.path.join(root_data_folder_path, f"gpqa_test.jsonl"), lines=True
+      )
+      combined_df = pd.concat([train_df, eval_df, test_df], ignore_index=True)
+      raw_data = [{"question": row["question"], "answer": row["answer"]} for _, row in combined_df.iterrows()]
     else:
       assert dataset_name == "gsm8k"
       task_name = t
@@ -730,6 +759,8 @@ def main(_):
   elif dataset_name == "geo_group":
     num_examples = len(raw_data)
   elif dataset_name == "logical_group":
+    num_examples = len(raw_data)
+  elif dataset_name == "gpqa":
     num_examples = len(raw_data)
   else:
     assert dataset_name in {"gsm8k"}
@@ -752,6 +783,9 @@ def main(_):
   elif dataset_name == "logical_group":
     train_ratio = 100 / 400
     eval_ratio = 100 / 400
+  elif dataset_name == "gpqa":
+    train_ratio = 50 / 200
+    eval_ratio = 50 / 200
   else:
     # 按比例的分数，我会废除掉，按照textgrad的方式，切分50：100：100
     assert dataset_name == "bbh"
@@ -792,6 +826,11 @@ def main(_):
     train_index = indices[:100]
     eval_index = indices[100: 200]
     test_index = indices[200: ]
+  elif dataset_name == "gpqa":
+    indices = np.arange(num_examples)
+    train_index = indices[:50]
+    eval_index = indices[50: 100]
+    test_index = indices[100: ]
   else:
     train_index = np.sort(
         np.array(
@@ -820,7 +859,7 @@ def main(_):
   else:
     # assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
     old_instruction_score_threshold = 0.3
-    if os.environ["TASK"] in ["geo_group", "logical_group"]:
+    if os.environ["TASK"] in ["geo_group", "logical_group", "gpqa"]:
       old_instruction_score_threshold = 0.
 
   if scorer_llm_name == "text-bison":
@@ -855,6 +894,8 @@ def main(_):
   elif task_name == "geo_group":
     init_prompt = """Identify geometric shapes from their SVG paths."""
   elif task_name == "logical_group":
+    init_prompt = """Let's solve the problem."""
+  elif task_name == "gpqa":
     init_prompt = """Let's solve the problem."""
   else:
     raise ValueError(f"Unknown task: {task_name}")

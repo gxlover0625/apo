@@ -196,7 +196,8 @@ def gen_prompt(
       "aqua",
       "wsc",
       "geo_group",
-      "logical_group"
+      "logical_group",
+      "gpqa"
   }, (
       "The lower-case dataset name must be one of mmlu, bbh, gsm8k, multiarith,"
       " or aqua."
@@ -221,6 +222,8 @@ def gen_prompt(
     question = data[idx]["input"]
   elif dataset_name == "logical_group":
     question = data[idx]["input"]
+  elif dataset_name == "gpqa":
+    question = data[idx]["question"]
   elif dataset_name == "gsm8k":
     question = data.iloc[idx, 0]
   elif dataset_name == "multiarith":
@@ -291,6 +294,8 @@ def fetch_true_answer(data, idx, dataset_name):
     return data[idx]["output"]
   elif dataset_name == "logical_group":
     return data[idx]["output"]
+  elif dataset_name == "gpqa":
+    return data[idx]["answer"]
   elif dataset_name == "gsm8k":
     return data.iloc[idx, 1]
   elif dataset_name == "multiarith":
@@ -704,6 +709,19 @@ def simple_evaluate_single_instruction(
     pred = bbh_mcq_postprocess(prediction)
     ref = bbh_mcq_postprocess(ground_truth_answer)
     return int(pred == ref)
+  
+  def gpqa_process_pred(answer):
+    patterns = [r'answer is \((.)\)', r'Answer: \((.)\)', r'answer: \((.)\)', r'answer \((.)\)', r'\((.)\)']
+    for pattern in patterns:
+        match = re.search(pattern, answer)
+        if match and match.group(1) in ['A', 'B', 'C', 'D']:
+            return match.group(1)
+    return None
+  
+  def gpqa_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = gpqa_process_pred(prediction)
+    ref = ground_truth_answer
+    return pred == ref
 
   def process_single_eval(idx):
     if os.environ['TASK'] in ["causal_judgement", "geometric_shapes", "logical_deduction_seven_objects"]:
@@ -718,6 +736,10 @@ def simple_evaluate_single_instruction(
       question = data[idx]['input']
       label = data[idx]['output']
       format_require = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
+    elif os.environ['TASK'] in ['gpqa']:
+      question = data[idx]['question']
+      label = data[idx]['answer']
+      format_require = f"Format your response as follows: \"The correct answer is (insert answer here)\""
     else:
       format_require = ""
     
@@ -736,7 +758,10 @@ def simple_evaluate_single_instruction(
       accuracy = bbh_mcq_eval_fn(parsed_answer, true_answer)
     elif dataset_name in ["geo_group", "logical_group"] and is_multiple_choice:
       parsed_answer = preprocess_sample(raw_answer)
-      accuracy = bbeh_mcq_eval_fn(parsed_answer, true_answer)
+      accuracy = bbeh_mcq_eval_fn(raw_answer, true_answer)
+    elif dataset_name in ["gpqa"] and is_multiple_choice:
+      parsed_answer = gpqa_process_pred(raw_answer)
+      accuracy = gpqa_eval_fn(raw_answer, true_answer)
     else:
       parsed_answer = raw_answer
       accuracy = None
