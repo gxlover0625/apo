@@ -35,6 +35,8 @@ def get_task_class(task_name):
         return tasks.GeoGroup
     elif task_name == "Logical_Group":
         return tasks.LogicalGroup
+    elif task_name == "gpqa":
+        return tasks.GPQA
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -151,6 +153,8 @@ if __name__ == '__main__':
     elif args.task == "Geo_Group":
         candidates = ["""Identify geometric shapes from their SVG paths."""]
     elif args.task == "Logical_Group":
+        candidates = ["""Let's solve the problem."""]
+    elif args.task == "gpqa":
         candidates = ["""Let's solve the problem."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")

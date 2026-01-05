@@ -6,7 +6,7 @@ from tqdm import tqdm
 import concurrent.futures
 import utils
 import os
-from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess, bbeh_mcq_eval_fn, preprocess_sample
+from tasks import bbh_freeform_postprocess, bbh_mcq_postprocess, bbeh_mcq_eval_fn, preprocess_sample, gpqa_eval_fn, gpqa_process_pred
 
 def predict_on_example(inputs):
     ex, predictor, prompt = inputs
@@ -15,6 +15,9 @@ def predict_on_example(inputs):
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     elif os.environ['TASK'] in ["bbeh_geometric_shapes", "Geo_Group", "Logical_Group"]:
         output_format = """When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""""
+        user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+    elif os.environ['TASK'] in ["gpqa"]:
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     pred = utils.chatgpt(
         user_message,
@@ -42,6 +45,9 @@ def predict_on_example(inputs):
             pred = pred.upper()
             if len(pred) == 1 and pred.isupper():
                 pred = f"({pred})"
+    elif os.environ['TASK'] in ["gpqa"]:
+        pred = gpqa_process_pred(pred)
+
     # pred = predictor.inference(ex, prompt)
     return prompt, ex, pred
 

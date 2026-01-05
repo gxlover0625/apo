@@ -665,3 +665,73 @@ class LogicalGroup(GeoGroup):
         acc_score = acc_cnt / min(n, len(test_exs))
         return acc_score, texts, labels, preds
 
+def gpqa_process_pred(answer):
+    patterns = [r'answer is \((.)\)', r'Answer: \((.)\)', r'answer: \((.)\)', r'answer \((.)\)', r'\((.)\)']
+    for pattern in patterns:
+        match = re.search(pattern, answer)
+        if match and match.group(1) in ['A', 'B', 'C', 'D']:
+            return match.group(1)
+    return None
+
+def gpqa_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = gpqa_process_pred(prediction)
+    ref = ground_truth_answer
+    return pred == ref
+
+class GPQA(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        train_path = Path(data_dir) / "gpqa_train.jsonl"
+        eval_path = Path(data_dir) / "gpqa_validation.jsonl"
+        test_path = Path(data_dir) / "gpqa_test.jsonl"
+
+        self.train_data = load_jsonl(train_path)
+        self.eval_data = load_jsonl(eval_path)
+        self.test_data = load_jsonl(test_path)
+    
+    def get_train_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.train_data):
+            exs.append({'id': f'train-{idx}', 'label': sample['answer'], 'text': sample['question']})
+        return exs
+    
+    def get_test_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.test_data):
+            exs.append({'id': f'test-{idx}', 'label': sample['answer'], 'text': sample['question']})
+        return exs
+    
+    def get_eval_examples(self, *args, **kwargs):
+        exs = []
+        for idx, sample in enumerate(self.eval_data):
+            exs.append({'id': f'eval-{idx}', 'label': sample['answer'], 'text': sample['question']})
+        return exs
+    
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                task=True
+            )[0]
+            # preds.append(bbh_mcq_postprocess(pred))
+            processed_pred = gpqa_process_pred(pred)
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            accuracy = gpqa_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+    
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred
