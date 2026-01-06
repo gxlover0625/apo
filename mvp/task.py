@@ -97,7 +97,7 @@ def gpqa_process_pred(answer):
     patterns = [r'answer is \((.)\)', r'Answer: \((.)\)', r'answer: \((.)\)', r'answer \((.)\)', r'\((.)\)']
     for pattern in patterns:
         match = re.search(pattern, answer)
-        if match and match.group(1) in ['A', 'B', 'C', 'D']:
+        if match and match.group(1) in ['A', 'B', 'C', 'D', 'E']:
             return match.group(1)
     return None
   
