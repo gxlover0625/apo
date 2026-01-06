@@ -164,6 +164,19 @@ def bbeh_mcq_eval_fn(prediction: str, ground_truth_answer: str):
     ref = preprocess_reference(ground_truth_answer)
     return fuzzy_match(pred, ref)
 
+def gpqa_process_pred(answer):
+    patterns = [r'answer is \((.)\)', r'Answer: \((.)\)', r'answer: \((.)\)', r'answer \((.)\)', r'\((.)\)']
+    for pattern in patterns:
+        match = re.search(pattern, answer)
+        if match and match.group(1) in ['A', 'B', 'C', 'D']:
+            return match.group(1)
+    return None
+
+def gpqa_eval_fn(prediction: str, ground_truth_answer: str):
+    pred = gpqa_process_pred(prediction)
+    ref = ground_truth_answer
+    return pred == ref
+
 def load_task(dataset_name:str, data_path: str):
     random.seed(42)
     np.random.seed(42)
@@ -245,6 +258,13 @@ def load_task(dataset_name:str, data_path: str):
             for example in test_data
         ]
         eval_fn = bbeh_mcq_eval_fn
+        return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "gpqa":
+        data_dir = Path(data_path) / "GPQA"
+        train_data = load_jsonl(data_dir / "gpqa_train.jsonl")
+        eval_data = load_jsonl(data_dir / "gpqa_validation.jsonl")
+        test_data = load_jsonl(data_dir / "gpqa_test.jsonl")
+        eval_fn = gpqa_eval_fn
         return train_data, eval_data, test_data, eval_fn
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
@@ -331,6 +351,8 @@ elif args['data'] == "wsc":
 elif args['data'] == "Geo_Group":
     args['problem'] = """Identify geometric shapes from their SVG paths."""
 elif args['data'] == "Logical_Group":
+    args['problem'] = """Let's solve the problem."""
+elif args['data'] == "gpqa":
     args['problem'] = """Let's solve the problem."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
