@@ -111,4 +111,6 @@ def get_eval_fn(dataset_name:str):
         return bbeh_mcq_eval_fn
     elif dataset_name in ["gpqa"]:
         return gpqa_eval_fn
+    elif dataset_name in ["agieval_aqua"]:
+        return gpqa_eval_fn
 
