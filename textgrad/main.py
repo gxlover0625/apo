@@ -126,8 +126,10 @@ elif args.dataset == "AGIEvalMath":
     default_desc = """Let's think step by step."""
     output_format = """"""
 elif args.dataset == "agieval_aqua":
+    # default_desc = """Let's solve the problem."""
+    # output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
     default_desc = """Let's solve the problem."""
-    output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
 elif args.dataset == "gpqa":
     default_desc = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""

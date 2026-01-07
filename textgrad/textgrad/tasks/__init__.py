@@ -274,12 +274,14 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
     elif task_name == "agieval_aqua":
         from .aqua import AQUA
         from .mygpqa import gpqa_eval_fn
+        from .bbeh import bbeh_mcq_eval_fn
         from textgrad.autograd.string_based_ops import StringBasedFunction
         train_set = AQUA(root=kwargs.get("data_dir"), split="train")
         val_set = AQUA(root=kwargs.get("data_dir"), split="val")
         test_set = AQUA(root=kwargs.get("data_dir"), split="test")
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
-        eval_fn = StringBasedFunction(gpqa_eval_fn, function_purpose=fn_purpose)
+        # eval_fn = StringBasedFunction(gpqa_eval_fn, function_purpose=fn_purpose)
+        eval_fn = StringBasedFunction(bbeh_mcq_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
 
     elif task_name == "gpqa":
