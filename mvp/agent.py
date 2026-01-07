@@ -138,7 +138,7 @@ class AnswerAgent(Agent):
             f"## Task\n{instruction}\n\n"
             f"## Success Solution Steps\n{prototype.strategy.solution_steps}\n\n"
             f"## Success Cases:\n{demos_str}\n\n"
-            f"## Common Pitfalls:\n{prototype.strategy.pitfalls}\n\n"
+            # f"## Common Pitfalls:\n{prototype.strategy.pitfalls}\n\n"
         )
         user_prompt = f"{question}\n{output_format}"
         final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)

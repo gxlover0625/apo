@@ -80,7 +80,7 @@ sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 def process_single_sample(train_sample):
     question, gt = train_sample
     retrieve_prototype = query_topk_threshold(
-        db, query=question, topk=1, threshold=0.5
+        db, query=question, topk=1, threshold=0.
     )
     if len(retrieve_prototype) == 0:
         #### reflexion
