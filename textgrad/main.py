@@ -125,7 +125,7 @@ elif args.dataset == "bbeh_boardgame_qa":
 elif args.dataset == "AGIEvalMath":
     default_desc = """Let's think step by step."""
     output_format = """"""
-elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat"]:
+elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group"]:
     default_desc = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
 elif args.dataset == "gpqa":

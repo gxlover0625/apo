@@ -303,6 +303,17 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(gpqa_eval_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
+    
+    elif task_name == "math_group":
+        from .math_group import MathGroup
+        from .mygpqa import gpqa_eval_fn
+        from textgrad.autograd.string_based_ops import StringBasedFunction
+        train_set = MathGroup(task_name, root=kwargs.get("data_dir"), split="train", *args, **kwargs)
+        val_set = MathGroup(task_name, root=kwargs.get("data_dir"), split="val", *args, **kwargs)
+        test_set = MathGroup(task_name, root=kwargs.get("data_dir"), split="test", *args, **kwargs)
+        fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
+        eval_fn = StringBasedFunction(gpqa_eval_fn, function_purpose=fn_purpose)
+        return train_set, val_set, test_set, eval_fn
 
     elif task_name == "gpqa":
         from .mygpqa import GPQA, gpqa_eval_fn
