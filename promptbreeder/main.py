@@ -266,6 +266,33 @@ def load_task(dataset_name:str, data_path: str):
         test_data = load_jsonl(data_dir / "gpqa_test.jsonl")
         eval_fn = gpqa_eval_fn
         return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "math_group":
+        from textgrad.tasks import load_task as lt
+        data_dir = Path(__file__).resolve().parent.parent / "data"
+        train_data, eval_data, test_data, _ = lt("math_group", evaluation_api=None, data_dir=data_dir)
+        train_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in train_data
+        ]
+        eval_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in eval_data
+        ]
+        test_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in test_data
+        ]
+        eval_fn = gpqa_eval_fn
+        return train_data, eval_data, test_data, eval_fn
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
         
@@ -353,6 +380,8 @@ elif args['data'] == "Geo_Group":
 elif args['data'] == "Logical_Group":
     args['problem'] = """Let's solve the problem."""
 elif args['data'] == "gpqa":
+    args['problem'] = """Let's solve the problem."""
+elif args['data'] == "math_group":
     args['problem'] = """Let's solve the problem."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")
