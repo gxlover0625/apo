@@ -102,6 +102,63 @@ _META_PROMPT_TYPE = flags.DEFINE_string(
     " previous instructions (often for pre-trained optimizers).",
 )
 
+import threading
+from openai.resources.chat.completions import Completions
+
+class TokenMeter:
+    def __init__(self):
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.total_tokens = 0
+        self.cnt = 0
+        self.lock = threading.Lock()
+    
+    def update(self, usage=None):
+        if usage is None:
+            return
+
+        with self.lock:
+            prompt_tokens = getattr(usage, "prompt_tokens", 0)
+            completion_tokens = getattr(usage, "completion_tokens", 0)
+            total_tokens = getattr(usage, "total_tokens", 0)
+            self.input_tokens += prompt_tokens
+            self.output_tokens += completion_tokens
+            self.total_tokens += total_tokens
+
+    def report(self, verbose=True):
+        with self.lock:
+            if verbose:
+                print(f"Total API calls: {self.cnt}")
+                print(f"Total tokens: {self.total_tokens}")
+                print(f"Input tokens: {self.input_tokens}")
+                print(f"Output tokens: {self.output_tokens}")
+
+token_meter = TokenMeter()
+_original_create = Completions.create
+
+def patched_create(self, *args, **kwargs):
+    with token_meter.lock:
+        token_meter.cnt += 1
+
+    is_stream = kwargs.get("stream", False)
+    if not is_stream:
+        response = _original_create(self, *args, **kwargs)
+        usage = getattr(response, "usage", None)
+        if usage:
+            token_meter.update(usage)
+        return response
+    else:
+        response_stream = _original_create(self, *args, **kwargs)
+        def stream_wrapper():
+            final_usage = None
+            for chunk in response_stream:
+                if chunk.usage:
+                    final_usage = chunk.usage
+                yield chunk
+            token_meter.update(final_usage)
+        return stream_wrapper()
+
+Completions.create = patched_create
 
 def main(_):
   openai_api_key = _OPENAI_API_KEY.value
