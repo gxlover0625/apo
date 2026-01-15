@@ -7,11 +7,68 @@ import textgrad as tg
 from textgrad.tasks import load_task
 import numpy as np
 import random
+import threading
 
 from openai import OpenAI
+from openai.resources.chat.completions import Completions
 from textgrad.engine.local_model_openai_api import ChatExternalClient
 from pathlib import Path
 load_dotenv(override=True)
+
+class TokenMeter:
+    def __init__(self):
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.total_tokens = 0
+        self.cnt = 0
+        self.lock = threading.Lock()
+    
+    def update(self, usage=None):
+        if usage is None:
+            return
+
+        with self.lock:
+            prompt_tokens = getattr(usage, "prompt_tokens", 0)
+            completion_tokens = getattr(usage, "completion_tokens", 0)
+            total_tokens = getattr(usage, "total_tokens", 0)
+            self.input_tokens += prompt_tokens
+            self.output_tokens += completion_tokens
+            self.total_tokens += total_tokens
+
+    def report(self, verbose=True):
+        with self.lock:
+            if verbose:
+                print(f"Total API calls: {self.cnt}")
+                print(f"Total tokens: {self.total_tokens}")
+                print(f"Input tokens: {self.input_tokens}")
+                print(f"Output tokens: {self.output_tokens}") 
+
+token_meter = TokenMeter()
+_original_create = Completions.create
+
+def patched_create(self, *args, **kwargs):
+    with token_meter.lock:
+        token_meter.cnt += 1
+
+    is_stream = kwargs.get("stream", False)
+    if not is_stream:
+        response = _original_create(self, *args, **kwargs)
+        usage = getattr(response, "usage", None)
+        if usage:
+            token_meter.update(usage)
+        return response
+    else:
+        response_stream = _original_create(self, *args, **kwargs)
+        def stream_wrapper():
+            final_usage = None
+            for chunk in response_stream:
+                if chunk.usage:
+                    final_usage = chunk.usage
+                yield chunk
+            token_meter.update(final_usage)
+        return stream_wrapper()
+
+Completions.create = patched_create
 
 def set_seed(seed):
     np.random.seed(seed)
@@ -171,6 +228,7 @@ optimizer = tg.TextualGradientDescent(engine=llm_api_eval, parameters=[system_pr
 
 results = {"test_acc": [], "prompt": [], "validation_acc": []}
 results["test_acc"].append(eval_dataset(test_set, eval_fn, model))
+token_meter.report() # for testing
 results["validation_acc"].append(eval_dataset(val_set, eval_fn, model))
 results["prompt"].append(system_prompt.get_value())
 
@@ -211,3 +269,5 @@ print("Best Prompt")
 print(best_prompt)
 print("Best Test Accuracy")
 print(best_test_acc)
+
+token_meter.report() # final report
