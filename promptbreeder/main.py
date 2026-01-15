@@ -56,15 +56,14 @@ token_meter = TokenMeter()
 _original_create = Completions.create
 
 def patched_create(self, *args, **kwargs):
-    with token_meter.lock:
-        token_meter.cnt += 1
-
     is_stream = kwargs.get("stream", False)
     if not is_stream:
         response = _original_create(self, *args, **kwargs)
         usage = getattr(response, "usage", None)
         if usage:
             token_meter.update(usage)
+        with token_meter.lock:
+            token_meter.cnt += 1
         return response
     else:
         response_stream = _original_create(self, *args, **kwargs)
@@ -75,6 +74,8 @@ def patched_create(self, *args, **kwargs):
                     final_usage = chunk.usage
                 yield chunk
             token_meter.update(final_usage)
+            with token_meter.lock:
+                token_meter.cnt += 1
         return stream_wrapper()
 
 Completions.create = patched_create
