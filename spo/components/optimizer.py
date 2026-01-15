@@ -55,6 +55,22 @@ class PromptOptimizer:
         logger.info(f"\n🎯 Final Optimized Prompt:\n{best_round['prompt']}")
         logger.info("\n" + "=" * 50 + "\n")
 
+        optimize_summary = self.llm.optimize_llm.get_usage_summary()
+        evaluate_summary = self.llm.evaluate_llm.get_usage_summary()
+        execute_summary = self.llm.execute_llm.get_usage_summary()
+        total_input_tokens = (optimize_summary['total_input_tokens'] + 
+                         evaluate_summary['total_input_tokens'] + 
+                         execute_summary['total_input_tokens'])
+        total_output_tokens = (optimize_summary['total_output_tokens'] + 
+                          evaluate_summary['total_output_tokens'] + 
+                          execute_summary['total_output_tokens'])
+        call_count = (optimize_summary['call_count'] + 
+                     evaluate_summary['call_count'] + 
+                     execute_summary['call_count'])
+        print(f"Total Input Tokens: {total_input_tokens}")
+        print(f"Total Output Tokens: {total_output_tokens}")
+        print(f"Total Call Count: {call_count}")
+
     async def _optimize_prompt(self):
         prompt_path = self.root_path / "prompts"
         load.set_file_name(self.template)
