@@ -1092,6 +1092,7 @@ def main(_):
   }
 
   opt_utils.run_evolution(**evolution_kwargs)
+  token_meter.report()
 
 
 if __name__ == "__main__":
