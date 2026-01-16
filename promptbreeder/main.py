@@ -473,9 +473,10 @@ p = create_population(tp_set=tp_set, mutator_set=mutator_set, problem_descriptio
 
 logger.info(f'Generating the initial prompts...')
 init_run(p, opt_model, task_model, int(args['num_evals']), train_set, eval_fn)
+token_meter.report()
 
 logger.info(f'Starting the genetic algorithm...')
-run_for_n(n=int(args['simulations']), population=p, opt_model=opt_model, task_model=task_model, num_evals=int(args['num_evals']), train_set=train_set, eval_fn=eval_fn)
+run_for_n(n=int(args['simulations']), population=p, opt_model=opt_model, task_model=task_model, num_evals=int(args['num_evals']), train_set=train_set, eval_fn=eval_fn, token_meter=token_meter)
 
 print("%"*80)
 print("done processing! final gen:")

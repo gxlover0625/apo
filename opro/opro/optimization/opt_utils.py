@@ -429,6 +429,7 @@ def run_evolution(**kwargs):
   eval_interval = kwargs["eval_interval"]
   save_folder = kwargs["save_folder"]
   verbose = kwargs["verbose"] if "verbose" in kwargs else False
+  token_meter = kwargs["token_meter"] if "token_meter" in kwargs else None
 
   # =================== assertions =====================
   assert dataset_name in {
@@ -618,6 +619,7 @@ def run_evolution(**kwargs):
   num_search_steps = 10
   for i_step in range(num_search_steps):
     print(f"\n================== Step {i_step} =====================")
+    token_meter.report()
     if not i_step % 10:
       print(f"old_instructions_and_scores: {old_instructions_and_scores}")
 

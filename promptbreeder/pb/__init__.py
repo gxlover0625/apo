@@ -81,12 +81,13 @@ def init_run(population: Population, opt_model: Any, task_model: Any, num_evals:
     
     return population
 
-def run_for_n(n: int, population: Population, opt_model: Any, task_model: Any, num_evals: int, train_set: Any, eval_fn: Any):
+def run_for_n(n: int, population: Population, opt_model: Any, task_model: Any, num_evals: int, train_set: Any, eval_fn: Any, token_meter: Any):
     """ Runs the genetic algorithm for n generations.
     """     
     p = population
     for i in range(n):  
         print(f"================== Population {i} ================== ")
+        token_meter.report()
         mutate(p, opt_model, train_set)
         print("done mutation")
         _evaluate_fitness(p, task_model, num_evals, train_set, eval_fn)

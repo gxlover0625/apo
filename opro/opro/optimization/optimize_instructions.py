@@ -1088,6 +1088,7 @@ def main(_):
       "evaluate_old_ins_on_few_shot": evaluate_old_ins_on_few_shot,
       "eval_interval": eval_interval,
       "save_folder": save_folder,
+      "token_meter": token_meter,
   }
 
   opt_utils.run_evolution(**evolution_kwargs)
