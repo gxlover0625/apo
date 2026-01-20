@@ -113,6 +113,6 @@ def get_eval_fn(dataset_name:str):
         return gpqa_eval_fn
     elif dataset_name in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group"]:
         return gpqa_eval_fn
-    elif dataset_name in ["agieval_gaokao_history", "agieval_gaokao_chinese"]:
+    elif dataset_name in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography"]:
         return gpqa_eval_fn
 
