@@ -186,6 +186,9 @@ elif args.dataset == "AGIEvalMath":
 elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group"]:
     default_desc = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+elif args.dataset in ["agieval_gaokao_history"]:
+    default_desc = """Let's solve the problem."""
+    output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
 elif args.dataset == "gpqa":
     default_desc = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
