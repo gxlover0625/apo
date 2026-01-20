@@ -96,7 +96,7 @@ def eval_dataset(test_set, eval_fn, model, max_samples: int=None):
     if max_samples is None:
         max_samples = len(test_set)
     accuracy_list = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
         for _, sample in enumerate(test_set):
             
