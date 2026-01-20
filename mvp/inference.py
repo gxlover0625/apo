@@ -69,7 +69,7 @@ elif args.dataset in ["gpqa"]:
 elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group"]:
     init_instruction = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
-elif args.dataset in ["agieval_gaokao_history"]:
+elif args.dataset in ["agieval_gaokao_history", "agieval_gaokao_chinese"]:
     init_instruction = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
 
