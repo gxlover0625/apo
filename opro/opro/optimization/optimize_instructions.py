@@ -179,7 +179,8 @@ def main(_):
       "geo_group",
       "logical_group",
       "gpqa",
-      "math_group"
+      "math_group",
+      "gaokao_group"
   }, "The lower-case dataset name must be one of mmlu, bbh, or gsm8k."
   if dataset_name == "mmlu":
     assert task_name in {
@@ -227,6 +228,8 @@ def main(_):
   elif dataset_name == "gpqa":
     pass
   elif dataset_name == "math_group":
+    pass
+  elif dataset_name == "gaokao_group":
     pass
   else:
     assert dataset_name == "gsm8k"
@@ -309,6 +312,10 @@ def main(_):
   elif dataset_name == "math_group":
     root_data_folder_path = os.path.join(
       ROOT_DATA_FOLDER_PATH, "Math_Group"
+    )
+  elif dataset_name == "gaokao_group":
+    root_data_folder_path = os.path.join(
+      ROOT_DATA_FOLDER_PATH, "GaoKao_Group"
     )
   else:
     assert dataset_name == "gsm8k"
@@ -697,6 +704,11 @@ def main(_):
     multiple_choice_tasks = set(tasks_all)
     boolean_tasks = set()
     numerical_output_tasks = set()
+  elif dataset_name == "gaokao_group":
+    tasks_all = [task_name]
+    multiple_choice_tasks = set(tasks_all)
+    boolean_tasks = set()
+    numerical_output_tasks = set()
   else:
     assert dataset_name in {"gsm8k"}
     tasks_all = [task_name]
@@ -737,6 +749,10 @@ def main(_):
     prediction_treat_as_number = False
     prediction_treat_as_bool = False
   elif dataset_name == "math_group":
+    raw_data = []
+    prediction_treat_as_number = False
+    prediction_treat_as_bool = False
+  elif dataset_name == "gaokao_group":
     raw_data = []
     prediction_treat_as_number = False
     prediction_treat_as_bool = False
@@ -830,6 +846,19 @@ def main(_):
       
       combined_df = pd.concat([processed_dfs["train"], processed_dfs["validation"], processed_dfs["test"]], ignore_index=True)
       raw_data = [{"question": row["question"], "answer": row["answer"]} for _, row in combined_df.iterrows()]
+    elif dataset_name == "gaokao_group":
+      task_name = t
+      splits = ["train", "validation", "test"]
+      processed_dfs = {}
+      for split in splits:
+        df_1 = pd.read_json(os.path.join(root_data_folder_path, "gaokao_math", f"gaokao_math_{split}.jsonl"), lines=True)
+        df_2 = pd.read_json(os.path.join(root_data_folder_path, "gaokao_history", f"gaokao_history_{split}.jsonl"), lines=True)
+        min_len = min(len(df_1), len(df_2))
+        combined = pd.concat([df_1[:min_len], df_2[:min_len]], ignore_index=True)
+        processed_dfs[split] = combined.sample(frac=1, random_state=42).reset_index(drop=True)
+      
+      combined_df = pd.concat([processed_dfs["train"], processed_dfs["validation"], processed_dfs["test"]], ignore_index=True)
+      raw_data = [{"question": row["question"], "answer": row["answer"]} for _, row in combined_df.iterrows()]
     else:
       assert dataset_name == "gsm8k"
       task_name = t
@@ -850,6 +879,8 @@ def main(_):
   elif dataset_name == "gpqa":
     num_examples = len(raw_data)
   elif dataset_name == "math_group":
+    num_examples = len(raw_data)
+  elif dataset_name == "gaokao_group":
     num_examples = len(raw_data)
   else:
     assert dataset_name in {"gsm8k"}
@@ -878,6 +909,9 @@ def main(_):
   elif dataset_name == "math_group":
     train_ratio = 100 / 508
     eval_ratio = 100 / 508
+  elif dataset_name == "gaokao_group":
+    train_ratio = 100 / 470
+    eval_ratio = 100 / 470
   else:
     # 按比例的分数，我会废除掉，按照textgrad的方式，切分50：100：100
     assert dataset_name == "bbh"
@@ -924,6 +958,11 @@ def main(_):
     eval_index = indices[50: 100]
     test_index = indices[100: ]
   elif dataset_name == "math_group":
+    indices = np.arange(num_examples)
+    train_index = indices[:100]
+    eval_index = indices[100: 200]
+    test_index = indices[200: ]
+  elif dataset_name == "gaokao_group":
     indices = np.arange(num_examples)
     train_index = indices[:100]
     eval_index = indices[100: 200]
@@ -995,6 +1034,8 @@ def main(_):
   elif task_name == "gpqa":
     init_prompt = """Let's solve the problem."""
   elif task_name == "math_group":
+    init_prompt = """Let's solve the problem."""
+  elif task_name == "gaokao_group":
     init_prompt = """Let's solve the problem."""
   else:
     raise ValueError(f"Unknown task: {task_name}")

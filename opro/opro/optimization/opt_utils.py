@@ -159,7 +159,8 @@ def gen_meta_prompt(
       "geo_group",
       "logical_group",
       "gpqa",
-      "math_group"
+      "math_group",
+      "gaokao_group"
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert num_score_buckets == np.inf or isinstance(num_score_buckets, int)
 
@@ -230,6 +231,9 @@ def gen_meta_prompt(
           question = data[idx]["question"]
           true_answer = data[idx]["answer"]
         elif dataset_name == "math_group":
+          question = data[idx]["question"]
+          true_answer = data[idx]["answer"]
+        elif dataset_name == "gaokao_group":
           question = data[idx]["question"]
           true_answer = data[idx]["answer"]
         else:
@@ -340,6 +344,8 @@ def gen_meta_prompt(
       instruction_task_description = "general knowledge question answering"
     elif dataset_name == "math_group":
       instruction_task_description = "math"
+    elif dataset_name == "gaokao_group":
+      instruction_task_description = "gaokao comprehensive questions"
     else:
       assert dataset_name == "bbh"
       instruction_task_description = " ".join(task_name.split("_"))
@@ -441,6 +447,7 @@ def run_evolution(**kwargs):
       "logical_group",
       "gpqa",
       "math_group",
+      "gaokao_group",
   }, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
   assert optimizer_llm_temperature_schedule in {
       "constant",
@@ -530,6 +537,9 @@ def run_evolution(**kwargs):
     is_multiple_choice = True
     is_multiple_choice_eval = True
   elif dataset_name == "math_group":
+    is_multiple_choice = True
+    is_multiple_choice_eval = True
+  elif dataset_name == "gaokao_group":
     is_multiple_choice = True
     is_multiple_choice_eval = True
   else:
