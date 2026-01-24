@@ -1,0 +1,27 @@
+prompt: |
+  Let's solve the problem.
+  Format your response as follows: \"The correct answer is (insert answer here)\"
+
+requirements: |
+  Format response as follows: \"The correct answer is (insert answer here)\"
+  The provided prompt needs to adapt to all current types of questions.
+
+count: None
+
+qa:
+  - question: |
+      已知抛物线 $C: y^{2}=8 x$ 的焦点为 $F$, 点 $M(-2,2)$, 过点 $F$ 且斜率 为 $k$ 的直线与 $C$ 交于 $A, B$ 两点, 若 $\overrightarrow{M A} \cdot \overrightarrow{M B}=0$, 则 $k=(\qquad)$\\
+      选项：(A)$\sqrt{2}$ (B)$\frac{\sqrt{2}}{2}$ (C)$\frac{1}{2}$ (D)2
+    answer: |
+      The correct answer is (D)
+
+  - question: |
+      已知向量 $\vec{a}=(2,1), \vec{a} \cdot \vec{b}=10,|\vec{a}+\vec{b}|=5 \sqrt{2}$, 则 $|\vec{b}|=$（$\qquad$）\\
+      选项：(A)$\sqrt{5}$ (B)$\sqrt{10}$ (C)5 (D)25
+    answer: |
+      The correct answer is (C)
+
+  - question: |
+      柳宗元在《封建论》中说：“秦有天下，裂都会而为之群邑，废侯卫而为守宰。?……此其所以为得也。”这句话指的是 选项：(A)推行分封制 (B)设立郡县制 (C)废除郡县制 (D)废除行省制
+    answer: |
+      The correct answer is (B)
