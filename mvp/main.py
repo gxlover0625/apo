@@ -121,7 +121,7 @@ elif args.dataset in ["Logical_Group", "BBH_logical_deduction_seven_objects", "b
 elif args.dataset in ["gpqa"]:
     init_instruction = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
-elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group"]:
+elif args.dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group", "gaokao_group"]:
     init_instruction = """Let's solve the problem."""
     output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
 elif args.dataset in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography"]:
