@@ -22,6 +22,9 @@ def predict_on_example(inputs):
     elif os.environ['TASK'] in ["math_group"]:
         output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
         user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+    elif os.environ['TASK'] in ["gaokao_group"]:
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+        user_message = f"{prompt}\n{ex['text']}\n{output_format}"
     pred = utils.chatgpt(
         user_message,
         temperature=0.0,
@@ -51,6 +54,8 @@ def predict_on_example(inputs):
     elif os.environ['TASK'] in ["gpqa"]:
         pred = gpqa_process_pred(pred)
     elif os.environ['TASK'] in ['math_group']:
+        pred = str(gpqa_process_pred(pred))
+    elif os.environ['TASK'] in ['gaokao_group']:
         pred = str(gpqa_process_pred(pred))
 
     # pred = predictor.inference(ex, prompt)
