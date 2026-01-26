@@ -46,18 +46,42 @@ def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=4096,
 
     messages = [{"role": "user", "content": prompt}]
     
+    is_qwen = 'qwen' in model.lower() 
     retries = 0
     while True:
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                n=n,
-                # max_tokens=max_tokens,
-                seed=42
-            )
-            break
+            if is_qwen:
+                stream = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    frequency_penalty=0.8,
+                    presence_penalty=0.3,
+                    stop=None,
+                    temperature=temperature,
+                    seed=42,
+                    stream=True,
+                    extra_body={"extendParams": {"enable_thinking": False}},
+                    max_tokens=5000,
+                )
+                
+                # 注意这里是偷懒的实现，因为我改过算法，protegi所有调用大模型的时候n=1，因为有些api不支持n>1的情况
+                response_list = []
+                for _ in range(n):
+                    response_content = ""
+                    for chunk in stream:
+                        if chunk.choices[0].delta.content is not None:
+                            response_content += chunk.choices[0].delta.content
+                    response_list.append(response_content)
+                return response_list
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    n=n,
+                    seed=42
+                )
+                break
         except Exception as e:
             print(f"调用openai接口出错: {e}，重试")
             retries += 1
