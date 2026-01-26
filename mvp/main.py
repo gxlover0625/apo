@@ -81,21 +81,46 @@ def seed_everything(seed=42):
     random.seed(seed)
     np.random.seed(seed)
 
-@retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=8))
+@retry(stop=stop_after_attempt(10), wait=wait_random_exponential(multiplier=1, max=10))
 def call_llm(user_prompt, sys_prompt="You are a helpful assistant.", model=None, temperature=0):
     client = OpenAI(
         base_url=os.environ["OPENAI_BASE_URL"],
         api_key=os.environ["OPENAI_API_KEY"],
     )
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": sys_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=temperature,
-    )
-    return response.choices[0].message.content
+    
+    is_qwen = 'qwen' in model.lower() if model else False
+    if is_qwen:
+        stream = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            frequency_penalty=0.8,
+            presence_penalty=0.3,
+            stop=None,
+            temperature=temperature,
+            seed=42,
+            stream=True,
+            extra_body={"extendParams": {"enable_thinking": False}},
+            max_tokens=5000,
+        )
+        
+        response = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                response += chunk.choices[0].delta.content
+        return response
+    else:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content
 
 # Environment setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
