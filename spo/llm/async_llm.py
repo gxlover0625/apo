@@ -193,16 +193,43 @@ class AsyncLLM:
 
     async def __call__(self, messages):
 
-        response = await self.aclient.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            temperature=self.config.temperature,
-            top_p=self.config.top_p,
-        )
-
-        # Extract token usage from response
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
+        is_qwen = 'qwen' in self.config.model.lower()
+        if is_qwen:
+            stream = await self.aclient.chat.completions.create(
+                model=self.config.model,
+                messages=messages,
+                frequency_penalty=0.8,
+                presence_penalty=0.3,
+                stop=None,
+                temperature=self.config.temperature,
+                seed=42,
+                stream=True,
+                extra_body={"extendParams": {"enable_thinking": False}},
+                max_tokens=5000,
+            )
+            
+            response_content = ""
+            input_tokens = 0
+            output_tokens = 0
+            
+            async for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    response_content += chunk.choices[0].delta.content
+                if chunk.usage:
+                    input_tokens = chunk.usage.prompt_tokens
+                    output_tokens = chunk.usage.completion_tokens
+        else:
+            response = await self.aclient.chat.completions.create(
+                model=self.config.model,
+                messages=messages,
+                temperature=self.config.temperature,
+                top_p=self.config.top_p,
+            )
+            response_content = response.choices[0].message.content
+            
+            # Extract token usage from response
+            input_tokens = response.usage.prompt_tokens
+            output_tokens = response.usage.completion_tokens
 
         # Track token usage and calculate cost
         usage_record = self.usage_tracker.add_usage(
@@ -220,7 +247,7 @@ class AsyncLLM:
                 print("The 'reasoning content' field is missing from the model. Please check the parameters.")
                 ret = response.choices[0].message.content
         elif self.mode == "base_model":
-            ret = response.choices[0].message.content
+            ret = response_content
 
         # You can optionally print token usage information
         print(f"Token usage: {input_tokens} input + {output_tokens} output = {input_tokens + output_tokens} total")
