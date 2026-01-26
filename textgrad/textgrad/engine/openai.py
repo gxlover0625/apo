@@ -43,7 +43,7 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
         self.model_string = model_string
         self.is_multimodal = is_multimodal
 
-    @retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(5))
+    @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(10))
     def generate(
         self,
         content: Union[str, List[Union[str, bytes]]],
@@ -83,22 +83,45 @@ class BaseOpenAIEngine(EngineLM, CachedEngine):
         if cache_or_none is not None:
             return cache_or_none
 
-        response = self.client.chat.completions.create(
-            model=self.model_string,
-            messages=[
-                {"role": "system", "content": sys_prompt_arg},
-                {"role": "user", "content": prompt},
-            ],
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=None,
-            temperature=temperature,
-            # max_tokens=max_tokens,
-            seed=42
-            # top_p=top_p,
-        )
+        is_qwen = 'qwen' in self.model_string.lower()        
+        if is_qwen:
+            stream = self.client.chat.completions.create(
+                model=self.model_string,
+                messages=[
+                    {"role": "system", "content": sys_prompt_arg},
+                    {"role": "user", "content": prompt},
+                ],
+                frequency_penalty=0.8,
+                presence_penalty=0.3,
+                stop=None,
+                temperature=temperature,
+                seed=42,
+                stream=True,
+                extra_body={"extendParams": {"enable_thinking": False}},
+                max_tokens=5000,
+            )
+            
+            response = ""
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    response += chunk.choices[0].delta.content
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model_string,
+                messages=[
+                    {"role": "system", "content": sys_prompt_arg},
+                    {"role": "user", "content": prompt},
+                ],
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None,
+                temperature=temperature,
+                # max_tokens=max_tokens,
+                seed=42
+                # top_p=top_p,
+            )
+            response = response.choices[0].message.content
 
-        response = response.choices[0].message.content
         self._save_cache(sys_prompt_arg + prompt, response)
         return response
 
