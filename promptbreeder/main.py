@@ -397,21 +397,42 @@ class OpenAIWrapper:
     def generate(self, prompt:str, temperature:float=None, **kwargs) -> List[Generation]:
         if temperature is None:
             temperature = 0.7
-        max_retries = 5
+        is_qwen = 'qwen' in self.model.lower()     
+        max_retries = 10
         for attempt in range(max_retries):
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    temperature=temperature,
-                    stream=True,
-                    seed=42
-                )
+                if is_qwen:
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        frequency_penalty=0.8,
+                        presence_penalty=0.3,
+                        stop=None,
+                        temperature=temperature,
+                        seed=42,
+                        stream=True,
+                        extra_body={"extendParams": {"enable_thinking": False}},
+                        max_tokens=5000,
+                    )
+                else:
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=temperature,
+                        stream=True,
+                        seed=42
+                    )
+                
                 full_content = ""
                 for chunk in response:
                     content = chunk.choices[0].delta.content
