@@ -1,0 +1,25 @@
+prompt: |
+  Let's solve the problem.
+  Format your response as follows: \"The correct answer is (insert answer here)\"
+
+requirements: |
+  Format response as follows: \"The correct answer is (insert answer here)\"
+  The provided prompt needs to adapt to all current types of questions.
+
+count: None
+
+qa:
+  - question: |
+      某统治者拥有征税权，可以组织军队，常常援引“凡使君主高兴的就具有法律效力”的古谚。这位统治者是 选项：(A)军事强人 (B)专制君主 (C)等级君主 (D)立宪君主
+    answer: |
+      The correct answer is (B)
+
+  - question: |
+      柳宗元在《封建论》中说：“秦有天下，裂都会而为之群邑，废侯卫而为守宰。?……此其所以为得也。”这句话指的是 选项：(A)推行分封制 (B)设立郡县制 (C)废除郡县制 (D)废除行省制
+    answer: |
+      The correct answer is (B)
+
+  - question: |
+      在某城市中心，一种创新型绿色建筑一垂直森林高层住宅落成面世。它是在建筑的垂直方向上，覆盖满本地乔木、灌木和草本等植物，为每层住户营造“空中花园”，形成具有森林效应的生态居住群落。相较于一般城市绿地，“垂直森林”（） 选项：(A)抗风能力更强 (B)生态系统更加稳定 (C)维护成本更低 (D)土地利用效率更高
+    answer: |
+      The correct answer is (D)
