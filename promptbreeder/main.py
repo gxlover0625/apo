@@ -379,6 +379,33 @@ def load_task(dataset_name:str, data_path: str):
         ]
         eval_fn = gpqa_eval_fn
         return train_data, eval_data, test_data, eval_fn
+    elif dataset_name == "human_group":
+        from textgrad.tasks import load_task as lt
+        data_dir = Path(__file__).resolve().parent.parent / "data"
+        train_data, eval_data, test_data, _ = lt("human_group", evaluation_api=None, data_dir=data_dir)
+        train_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in train_data
+        ]
+        eval_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in eval_data
+        ]
+        test_data = [
+            {
+                "question": example[0],
+                "answer": example[1] 
+            }
+            for example in test_data
+        ]
+        eval_fn = gpqa_eval_fn
+        return train_data, eval_data, test_data, eval_fn
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
         
@@ -491,6 +518,8 @@ elif args['data'] == "gpqa":
 elif args['data'] == "math_group":
     args['problem'] = """Let's solve the problem."""
 elif args['data'] == "gaokao_group":
+    args['problem'] = """Let's solve the problem."""
+elif args['data'] == "human_group":
     args['problem'] = """Let's solve the problem."""
 else:
     raise ValueError(f"Unsupported data type: {args['data']}")

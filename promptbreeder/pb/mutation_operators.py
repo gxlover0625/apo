@@ -134,6 +134,9 @@ def working_out_task_prompt(unit: EvolutionUnit, model: Any, **kwargs) -> Evolut
     elif os.environ['TASK'] == "gaokao_group":
         question = RANDOM_WORKING_OUT['question']
         answer = RANDOM_WORKING_OUT['answer']
+    elif os.environ['TASK'] == "human_group":
+        question = RANDOM_WORKING_OUT['question']
+        answer = RANDOM_WORKING_OUT['answer']
     else:
         raise ValueError(f"Unsupported data type: {os.environ['TASK']}")
   

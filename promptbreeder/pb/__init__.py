@@ -132,6 +132,9 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
         elif os.environ['TASK'] == "gaokao_group":
             output_suffix = f"Format your response as follows: \"The correct answer is (insert answer here)\""
             examples.append([f"{unit.P}\n{example['question']}\n{output_suffix}"  for example in batch])
+        elif os.environ['TASK'] == "human_group":
+            output_suffix = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+            examples.append([f"{unit.P}\n{example['question']}\n{output_suffix}"  for example in batch])
 
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
@@ -155,6 +158,8 @@ def _evaluate_fitness(population: Population, model: Any, num_evals: int, train_
             elif os.environ['TASK'] == "math_group":
                 valid = eval_fn(x[0].text, batch[i]['answer'])
             elif os.environ['TASK'] == "gaokao_group":
+                valid = eval_fn(x[0].text, batch[i]['answer'])
+            elif os.environ['TASK'] == "human_group":
                 valid = eval_fn(x[0].text, batch[i]['answer'])
             else:
                 pass
