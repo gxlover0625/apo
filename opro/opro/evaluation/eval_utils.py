@@ -199,7 +199,8 @@ def gen_prompt(
       "logical_group",
       "gpqa",
       "math_group",
-      "gaokao_group"
+      "gaokao_group",
+      "human_group"
   }, (
       "The lower-case dataset name must be one of mmlu, bbh, gsm8k, multiarith,"
       " or aqua."
@@ -229,6 +230,8 @@ def gen_prompt(
   elif dataset_name == "math_group":
     question = data[idx]["question"]
   elif dataset_name == "gaokao_group":
+    question = data[idx]["question"]
+  elif dataset_name == "human_group":
     question = data[idx]["question"]
   elif dataset_name == "gsm8k":
     question = data.iloc[idx, 0]
@@ -305,6 +308,8 @@ def fetch_true_answer(data, idx, dataset_name):
   elif dataset_name == "math_group":
     return data[idx]["answer"]
   elif dataset_name == "gaokao_group":
+    return data[idx]["answer"]
+  elif dataset_name == "human_group":
     return data[idx]["answer"]
   elif dataset_name == "gsm8k":
     return data.iloc[idx, 1]
@@ -758,6 +763,10 @@ def simple_evaluate_single_instruction(
       question = data[idx]['question']
       label = data[idx]['answer']
       format_require = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    elif os.environ['TASK'] in ['human_group']:
+      question = data[idx]['question']
+      label = data[idx]['answer']
+      format_require = f"Format your response as follows: \"The correct answer is (insert answer here)\""
     else:
       format_require = ""
     
@@ -784,6 +793,9 @@ def simple_evaluate_single_instruction(
       parsed_answer = gpqa_process_pred(raw_answer)
       accuracy = gpqa_eval_fn(raw_answer, true_answer)
     elif dataset_name in ["gaokao_group"] and is_multiple_choice:
+      parsed_answer = gpqa_process_pred(raw_answer)
+      accuracy = gpqa_eval_fn(raw_answer, true_answer)
+    elif dataset_name in ["human_group"] and is_multiple_choice:
       parsed_answer = gpqa_process_pred(raw_answer)
       accuracy = gpqa_eval_fn(raw_answer, true_answer)
     else:
