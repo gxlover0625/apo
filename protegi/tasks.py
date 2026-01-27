@@ -859,3 +859,65 @@ class GaoKaoGroup(DataProcessor):
 
     def stringify_prediction(self, pred, *args, **kwargs):
         return pred
+
+class HumanGroup(DataProcessor):
+    def __init__(self, data_dir, max_threads, *args, **kwargs):
+        super().__init__(data_dir, max_threads)
+        self.gaokao_geography_dir = Path(data_dir) / "AGIEval_Gaokao"
+        self.gaokao_history_dir = Path(data_dir) / "AGIEval_Gaokao"
+
+    def load_examples(self, gaokao_geography_dir, gaokao_history_dir, split="train"):
+        gaokao_geography_path = gaokao_geography_dir / f"gaokao_geography_{split}.jsonl"
+        gaokao_geography_data = load_jsonl(gaokao_geography_path)
+        gaokao_history_path = gaokao_history_dir / f"gaokao_history_{split}.jsonl"
+        gaokao_history_data = load_jsonl(gaokao_history_path)
+        min_length = min(len(gaokao_geography_data), len(gaokao_history_data))
+        exs = []
+        for sample in gaokao_geography_data[:min_length]:
+            exs.append({
+                "text": sample['question'], "label": sample['answer'], "source": "AGIEval_Gaokao_Geography"
+            })
+        for sample in gaokao_history_data[:min_length]:
+            exs.append({
+                "text": sample['question'], "label": sample['answer'], "source": "AGIEval_Gaokao_History"
+            })
+        random.shuffle(exs)
+        return exs
+    
+    def get_train_examples(self, *args, **kwargs):
+        return self.load_examples(self.gaokao_geography_dir, self.gaokao_history_dir, split="train")
+    
+    def get_eval_examples(self, *args, **kwargs):
+        return self.load_examples(self.gaokao_geography_dir, self.gaokao_history_dir, split="validation")
+    
+    def get_test_examples(self, *args, **kwargs):
+        return self.load_examples(self.gaokao_geography_dir, self.gaokao_history_dir, split="test")
+
+    def evaluate(self, model, prompt, test_exs, n=None, *args, **kwargs):
+        if n is None:
+            n = len(test_exs)
+        texts, preds, labels = [], [], []
+        acc_cnt = 0
+        pbar = tqdm(enumerate(test_exs[:n]), total=min(n, len(test_exs)), desc='Evaluating')
+        for i, ex in pbar:
+            output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+            user_message = f"{prompt}\n{ex['text']}\n{output_format}"
+            pred = utils.chatgpt(
+                user_message,
+                temperature=0.0,
+                n=1,
+                # max_tokens=4096,
+                task=True
+            )[0]
+            processed_pred = str(gpqa_process_pred(pred))
+            preds.append(processed_pred)    
+            labels.append(ex['label'])
+            texts.append(ex['text'])
+            accuracy = gpqa_eval_fn(pred, ex['label'])
+            acc_cnt += accuracy
+            pbar.set_description(f'acc_score: {acc_cnt / (i + 1)}')
+        acc_score = acc_cnt / min(n, len(test_exs))
+        return acc_score, texts, labels, preds
+
+    def stringify_prediction(self, pred, *args, **kwargs):
+        return pred

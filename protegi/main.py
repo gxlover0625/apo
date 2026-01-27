@@ -99,6 +99,8 @@ def get_task_class(task_name):
         return tasks.MathGroup
     elif task_name == "gaokao_group":
         return tasks.GaoKaoGroup
+    elif task_name == "human_group":
+        return tasks.HumanGroup
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -221,6 +223,8 @@ if __name__ == '__main__':
     elif args.task == "math_group":
         candidates = ["""Let's solve the problem."""]
     elif args.task == "gaokao_group":
+        candidates = ["""Let's solve the problem."""]
+    elif args.task == "human_group":
         candidates = ["""Let's solve the problem."""]
     else:
         raise NotImplementedError(f"Task {args.task} not supported")
