@@ -111,7 +111,7 @@ def process_single_sample(train_sample):
     retrieve_prototypes_data = query_topk_threshold(
         db, query=question, topk=args.topk, threshold=0.
     )
-    if len(retrieve_prototype) == 0:
+    if len(retrieve_prototypes_data) == 0:
         #### reflexion
         is_success, prediction = ans_agent.answer_without_reflection(
             instruction=init_instruction,
