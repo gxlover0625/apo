@@ -149,6 +149,33 @@ class AnswerAgent(Agent):
         else:
             return is_success, final_response
     
+    def answer_with_topk_prototypes(self, instruction, output_format, question, gt, eval_fn, prototypes, *args, **kwargs):
+        cases_str = ""
+        for idx, proto in enumerate(prototypes, 1):
+            demo = proto.demos[-1]
+            strategy = proto.strategy
+            cases_str += (
+                f"### Reference Case {idx}\n"
+                f"Problem: {demo.question}\n"
+                f"Analysis & Strategy:\n{strategy.solution_steps}\n"
+                f"Solution:\n{demo.trajectory}\n\n"
+            )
+
+        sys_prompt = (
+            f"## Task\n{instruction}\n\n"
+            f"## Reference Cases\n"
+            f"Below are similar problems with their analysis strategies and solutions. "
+            f"Read them to understand how to approach similar problems.\n\n"
+            f"{cases_str}"
+        )
+        user_prompt = f"## Target Question\n{question}\n\n{output_format}"
+        final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+        is_success = False
+        if eval_fn(final_response, gt):
+            is_success = True
+            
+        return is_success, final_response
+
 class SummaryAgent(Agent):
     def summary(self, question, trajectory, past_reflections, *args, **kwargs):
         summary_prompt = summarize_prompt.format(

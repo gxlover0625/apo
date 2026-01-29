@@ -75,6 +75,7 @@ parser.add_argument("--exp_name", type=str, required=True)
 parser.add_argument("--embed_model", type=str, required=True)
 parser.add_argument("--db_path", type=str, required=True)
 parser.add_argument("--dict_path", type=str, required=True)
+parser.add_argument("--topk", type=int, default=1)
 args = parser.parse_args()
 
 # Data & Prompt setup
@@ -107,8 +108,8 @@ sum_agent = SummaryAgent(model=args.model, temperature=0., call_fn=call_llm)
 
 def process_single_sample(train_sample):
     question, gt = train_sample
-    retrieve_prototype = query_topk_threshold(
-        db, query=question, topk=1, threshold=0.
+    retrieve_prototypes_data = query_topk_threshold(
+        db, query=question, topk=args.topk, threshold=0.
     )
     if len(retrieve_prototype) == 0:
         #### reflexion
@@ -120,16 +121,33 @@ def process_single_sample(train_sample):
             eval_fn=eval_fn
         )
     else:
-        chosen_id = retrieve_prototype[0]["metadata"]["prototype_id"]
-        chosen_prototype = prototype_dict[chosen_id]
-        is_success, final_response = ans_agent.answer_with_prototype_v2(
-            instruction=init_instruction,
-            output_format=output_format,
-            question=question,
-            gt=gt,
-            eval_fn=eval_fn,
-            prototype=chosen_prototype
-        )
+        chosen_prototypes = []
+        for item in retrieve_prototypes_data:
+            pid = item["metadata"]["prototype_id"]
+            chosen_prototypes.append(prototype_dict[pid])
+
+        if args.topk == 1:
+            # chosen_id = retrieve_prototype[0]["metadata"]["prototype_id"]
+            # chosen_prototype = prototype_dict[chosen_id]
+            chosen_prototype = chosen_prototypes[0]
+            is_success, final_response = ans_agent.answer_with_prototype_v2(
+                instruction=init_instruction,
+                output_format=output_format,
+                question=question,
+                gt=gt,
+                eval_fn=eval_fn,
+                prototype=chosen_prototype
+            )
+        else:
+            is_success, final_response = ans_agent.answer_with_topk_prototypes(
+                instruction=init_instruction,
+                output_format=output_format,
+                question=question,
+                gt=gt,
+                eval_fn=eval_fn,
+                prototypes=chosen_prototypes
+            )
+
     return 1 if is_success else 0
 
 ## Start Training
