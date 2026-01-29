@@ -150,8 +150,9 @@ class AnswerAgent(Agent):
             return is_success, final_response
     
     def answer_with_topk_prototypes(self, instruction, output_format, question, gt, eval_fn, prototypes, *args, **kwargs):
+        ordered_prototypes = list(reversed(prototypes))
         cases_str = ""
-        for idx, proto in enumerate(prototypes, 1):
+        for idx, proto in enumerate(ordered_prototypes, 1):
             demo = proto.demos[-1]
             strategy = proto.strategy
             cases_str += (
@@ -161,15 +162,19 @@ class AnswerAgent(Agent):
                 f"Solution:\n{demo.trajectory}\n\n"
             )
 
-        sys_prompt = (
-            f"## Task\n{instruction}\n\n"
-            f"## Reference Cases\n"
+        full_user_prompt = (
+            f"# Task Instruction\n"
+            f"{instruction}\n\n"
+            f"# Reference Cases\n"
             f"Below are similar problems with their analysis strategies and solutions. "
-            f"Read them to understand how to approach similar problems.\n\n"
-            f"{cases_str}"
+            f"Please read them carefully to understand the problem-solving logic.\n\n"
+            f"{cases_str}\n\n"
+            f"# Target Question\n"
+            f"{question}\n\n"
+            f"# Output Requirement\n"
+            f"{output_format}"
         )
-        user_prompt = f"## Target Question\n{question}\n\n{output_format}"
-        final_response = self.direct_answer(user_prompt=user_prompt, sys_prompt=sys_prompt)
+        final_response = self.direct_answer(user_prompt=full_user_prompt)
         is_success = False
         if eval_fn(final_response, gt):
             is_success = True
