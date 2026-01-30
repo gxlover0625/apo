@@ -171,6 +171,11 @@ class AnswerAgent(Agent):
             f"{cases_str}\n\n"
             f"# Target Question\n"
             f"{question}\n\n"
+            f"# Response Format\n"
+            f"Please solve the target question following the format below:\n"
+            f"1. Begin with 'Analysis & Strategy:' to analyze the problem.\n"
+            f"2. Follow with 'Solution:' to provide detailed steps.\n"
+            f"3. Ensure the final answer strictly follows the requirement below.\n\n"
             f"# Output Requirement\n"
             f"{output_format}"
         )
