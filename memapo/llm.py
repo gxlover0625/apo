@@ -3,11 +3,16 @@ import random
 
 from abc import ABC, abstractmethod
 from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 from typing import Dict, Any, Optional
 
 class LLMProvider(ABC):
-    @abstractmethod
+    @retry(stop=stop_after_attempt(3), wait=wait_random_exponential(min=1, max=10))
     def generate(self, *args, **kwargs):
+        return self._generate(*args, **kwargs)
+
+    @abstractmethod
+    def _generate(self, *args, **kwargs):
         pass
 
 class OpenAIProvider(LLMProvider):
@@ -20,7 +25,7 @@ class OpenAIProvider(LLMProvider):
         assert self.base_url is not None, "Please set OPENAI_BASE_URL environment variable"
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
-    def generate(self, user_prompt, sys_prompt=None, **kwargs):
+    def _generate(self, user_prompt, sys_prompt=None, **kwargs):
         if sys_prompt is None:
             messages = [{"role": "user", "content": user_prompt}]
         else:
@@ -47,7 +52,7 @@ class OpenAIStreamProvider(LLMProvider):
         assert self.base_url is not None, "Please set OPENAI_BASE_URL environment variable"
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
-    def generate(self, user_prompt, sys_prompt=None, **kwargs):
+    def _generate(self, user_prompt, sys_prompt=None, **kwargs):
         if sys_prompt is None:
             messages = [{"role": "user", "content": user_prompt}]
         else:
@@ -80,7 +85,7 @@ class WhaleProvider(LLMProvider):
         self.model = model
         self.extra_params = extra_params or {}
 
-    def generate(self, user_prompt, sys_prompt=None, **kwargs):
+    def _generate(self, user_prompt, sys_prompt=None, **kwargs):
         from whale import TextGeneration
         select_key = random.choice(self.keys)
         TextGeneration.set_api_key(select_key, base_url=self.base_url)
