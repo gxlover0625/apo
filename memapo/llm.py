@@ -109,8 +109,10 @@ class LLMFactory:
                 "presence_penalty": 0.3,
                 "temperature": temperature,
                 "max_tokens": 5000,
-                "extendParams": {
-                    "enable_thinking": False
+                "extra_body": {
+                    "extendParams": {
+                        "enable_thinking": False
+                    }
                 }
             }
             return OpenAIStreamProvider(model=model_name, extra_params=extra_params)
