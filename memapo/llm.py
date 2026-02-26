@@ -102,10 +102,25 @@ class WhaleProvider(LLMProvider):
 
 class LLMFactory:
     @staticmethod
-    def get_provider(model_name:str):
-        pass
+    def get_llm(model_name:str, temperature:int=0.):
+        if model_name.lower() in ["qwen3-8b"]:
+            extra_params = {
+                "frequency_penalty": 0.8,
+                "presence_penalty": 0.3,
+                "temperature": temperature,
+                "max_tokens": 5000,
+                "extendParams": {
+                    "enable_thinking": False
+                }
+            }
+            return OpenAIStreamProvider(model=model_name, extra_params=extra_params)
+        else:
+            extra_params = {
+                "temperature": temperature,
+            }
+            return OpenAIProvider(model=model_name, extra_params=extra_params)
 
 if __name__ == "__main__":
-    provider = OpenAIStreamProvider(model="Qwen3-Next-80B-A3B-Instruct")
-    response = provider.generate("Please tell me a story.")
-    print(response)
+    llm = LLMFactory.get_llm("qwen3-8b", temperature=0.7)
+    print(llm.extra_params)
+    print(llm.generate("请介绍一下自己。"))
