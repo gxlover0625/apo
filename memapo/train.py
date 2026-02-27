@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from transformers import HfArgumentParser
 
-from utils import get_logger
+from utils import get_logger, get_timestamp
 from storage import VectorStore
 from agent import Agent
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # 设置随机数种子, 获取时间
     seed_everything(args.seed)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = get_timestamp()
 
     # 配置logger
     os.environ["disable_logging"] = "1" if args.disable_logging else "0"

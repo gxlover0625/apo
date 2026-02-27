@@ -1,5 +1,7 @@
 import logging
 
+from uuid import uuid4
+from datetime import datetime
 from pathlib import Path
 
 def get_logger(log_file:str=None):
@@ -19,3 +21,12 @@ def get_logger(log_file:str=None):
     logger.addHandler(file_handler)
 
     return logger
+
+def get_timestamp():
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def get_id(prefix:str=None):
+    uid = str(uuid4())
+    if prefix:
+        return f"{prefix}_{uid}"
+    return uid
