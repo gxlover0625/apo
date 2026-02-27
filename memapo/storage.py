@@ -9,6 +9,8 @@ from uuid import uuid4
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from openai import OpenAI
 
+from utils import get_logger
+
 def normalize_vec(vecs):
     norm = np.linalg.norm(vecs, axis=1, keepdims=True)
     norm_vecs = vecs / np.where(norm == 0, 1.0, norm)
@@ -17,6 +19,9 @@ def normalize_vec(vecs):
 class EmbeddingProvider(ABC):
     @retry(stop=stop_after_attempt(3), wait=wait_random_exponential(min=1, max=10))
     def encode(self, input: Documents) -> Embeddings:
+        if not int(os.environ["disable_logging"]):
+            logger = get_logger()
+            logger.info(f"Embedding input:\n{input}")
         return self._encode(input)
 
     @abstractmethod
@@ -92,6 +97,9 @@ class VectorStore:
             embedding_function=self.ef,
             metadata={"hnsw:space": "cosine"}
         )
+        if not int(os.environ["disable_logging"]):
+            self.logger = get_logger()
+            self.logger.info(f"Loading Vectore Store\nDB Path: {restore_path}\nCollection: {collection_name}\nEmbedding Model: {emb_model}\nThreshold: {threshold}\nTopK: {topk}")
     
     def add(self, doc_id=None, doc_content=None, doc_metadata=None):
         if doc_id is None:
