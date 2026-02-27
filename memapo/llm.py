@@ -1,10 +1,13 @@
 import os
+import json
 import random
 
 from abc import ABC, abstractmethod
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from typing import Dict, Any, Optional
+
+from utils import get_logger
 
 class LLMProvider(ABC):
     @retry(stop=stop_after_attempt(3), wait=wait_random_exponential(min=1, max=10))
@@ -40,6 +43,17 @@ class OpenAIProvider(LLMProvider):
             **self.extra_params,
             **kwargs
         )
+        if not int(os.environ['disable_logging']):
+            logger = get_logger()
+            all_request_params = {
+                "model": self.model,
+                "messages": messages,
+                "stream": False,
+                **self.extra_params,
+                **kwargs
+            }
+            logger.info("LLM Request Params:\n%s", json.dumps(all_request_params, indent=2, ensure_ascii=False, sort_keys=True))
+            logger.info("LLM Response:\n%s", response.choices[0].message.content)
         return response.choices[0].message.content
     
 class OpenAIStreamProvider(LLMProvider):
@@ -71,6 +85,17 @@ class OpenAIStreamProvider(LLMProvider):
         for chunk in stream_response:
             if chunk.choices[0].delta.content is not None:
                 response += chunk.choices[0].delta.content
+        if not int(os.environ['disable_logging']):
+            logger = get_logger()
+            all_request_params = {
+                "model": self.model,
+                "messages": messages,
+                "stream": True,
+                **self.extra_params,
+                **kwargs
+            }
+            logger.info("LLM Request Params:\n%s", json.dumps(all_request_params, indent=2, ensure_ascii=False, sort_keys=True))
+            logger.info("LLM Response:\n%s", response)
         return response
 
 class WhaleProvider(LLMProvider):
@@ -103,11 +128,22 @@ class WhaleProvider(LLMProvider):
             **self.extra_params,
             **kwargs
         )
+        if not int(os.environ['disable_logging']):
+            logger = get_logger()
+            all_request_params = {
+                "model": self.model,
+                "messages": messages,
+                "stream": False,
+                **self.extra_params,
+                **kwargs
+            }
+            logger.info("LLM Request Params:\n%s", json.dumps(all_request_params, indent=2, ensure_ascii=False, sort_keys=True))
+            logger.info("LLM Response:\n%s", response.choices[0].message.content)
         return response.choices[0].message.content
 
 class LLMFactory:
     @staticmethod
-    def get_llm(model_name:str, temperature:int=0.):
+    def get_llm(model_name:str, temperature:float=0.):
         if model_name.lower() in ["qwen3-8b"]:
             extra_params = {
                 "frequency_penalty": 0.8,

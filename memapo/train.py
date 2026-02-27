@@ -9,6 +9,7 @@ from transformers import HfArgumentParser
 
 from utils import get_logger
 from storage import VectorStore
+from agent import Agent
 
 @dataclass
 class MemAPOArgs:
@@ -49,3 +50,7 @@ if __name__ == "__main__":
     # db = VectorStore(args.db_dir, collection_name, emb_model=args.embed_model, threshold=args.correct_threshold, topk=args.correct_topk)
     # db.add(doc_content="hello", doc_metadata={"meta": "test"})
     # print(db.query_topk("hello world"))
+
+    agent = Agent(args.llm_model, temperature=0., role_description="testing")
+    response = agent.chat("请介绍一下自己。")
+    print(response)

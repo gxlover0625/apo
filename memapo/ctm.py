@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import List
 from uuid import uuid4
 
+from storage import VectorStore
+
 @dataclass
 class GoodCase:
     question: str
@@ -19,4 +21,11 @@ class Template:
         pass
 
 class CorrectTemplateMemory:
-    pass
+    def __init__(self, restore_path:str="./db", collection_name:str=None, emb_model:str=None, threshold:float=0.7, topk:int=3):
+        self.all_templates = []
+        self.db = VectorStore(restore_path, collection_name, emb_model, threshold, topk)
+    
+    def add_template(self, template:Template):
+        self.all_templates.append(template)
+        # TODO
+        pass

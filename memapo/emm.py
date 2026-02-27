@@ -19,4 +19,9 @@ class ErrorMode:
         
 class ErrorModeMemory:
     def __init__(self):
+        self.all_bad_cases = []
+        self.error_mode_clusters = []
+        pass
+
+    def add_bad_case(self, bad_case:BadCase):
         pass
