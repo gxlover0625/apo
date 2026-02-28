@@ -9,3 +9,15 @@ class Agent:
 
     def chat(self, user_prompt, sys_prompt=None):
         return self.llm.generate(user_prompt, sys_prompt)
+    
+class ReflectAgent(Agent):
+    def __init__(
+        self, 
+        model_name:str, 
+        temperature:float=0., 
+        role_description:str=None,
+        **kwargs
+    ):
+        super().__init__(model_name, temperature, role_description)
+        # TODO
+        pass

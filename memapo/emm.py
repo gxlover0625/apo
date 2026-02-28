@@ -7,6 +7,7 @@ class BadCase:
     question: str
     ground_truth: str
     wrong_pred: str
+    reflection: str = None
 
 class ErrorMode:
     def __init__(self, description:str, bad_cases:List[BadCase], metadata:Dict[str, Any]=None):
@@ -29,4 +30,7 @@ class ErrorModeMemory:
         # TODO
 
     def add_error_mode(self):
+        pass
+
+    def retrieve(self, *args, **kwargs)->List[ErrorMode]:
         pass

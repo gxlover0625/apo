@@ -9,7 +9,7 @@ from uuid import uuid4
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from openai import OpenAI
 
-from utils import get_logger
+from utils import get_logger, get_timestamp
 
 def normalize_vec(vecs):
     norm = np.linalg.norm(vecs, axis=1, keepdims=True)
@@ -104,8 +104,9 @@ class VectorStore:
     def add(self, doc_id=None, doc_content=None, doc_metadata=None):
         if doc_id is None:
             doc_id = str(uuid4())
+        assert doc_content is not None, "Document cannot be None"
         if doc_metadata is None:
-            doc_metadata = {}
+            doc_metadata = {"id": doc_id, "timestamp": get_timestamp(), "content": doc_content}
         self.collection.add(
             ids=[doc_id],
             documents=[doc_content],
