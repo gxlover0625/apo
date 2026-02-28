@@ -12,9 +12,9 @@ class GoodCase:
     correct_pred: str
 
 class Template:
-    def __init__(self, description:str, strategy:str, good_cases:List[GoodCase]):
+    def __init__(self, when_to_use:str, strategy:str, good_cases:List[GoodCase]):
         self.idx = get_id(prefix="template")
-        self.description = description
+        self.when_to_use = when_to_use
         self.strategy = strategy
         self.good_cases = good_cases
     
@@ -28,16 +28,23 @@ class CorrectTemplateMemory:
     
     def add_template(self, template:Template):
         doc_id = template.idx
-        doc_content = template.description
+        doc_content = template.when_to_use
         doc_metadata = {
             "id": doc_id,
             "timestamp": get_timestamp(),
             "type": "template",
-            "description": template.description,
+            "when_to_use": template.when_to_use,
             "strategy": template.strategy,
         }
         self.db.add(doc_id, doc_content, doc_metadata)
         self.all_templates[doc_id] = template
 
     def retrieve(self, question:str, *args, **kwargs)->List[Template]:
-        pass
+        # threshold, topk的参数是在初始化向量数据库的时候传入的
+        retrieved_results = self.db.query_topk_threshold(query=question)
+        if len(retrieved_results) == 0:
+            # TODO
+            return []
+        template_ids = [res["metadata"]["id"] for res in retrieved_results]
+        templates = [self.all_templates[tid] for tid in template_ids if tid in self.all_templates]
+        return templates
