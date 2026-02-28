@@ -7,5 +7,6 @@ class Retriever:
         self.epm = error_pattern_memory
     
     def retrieve(self, question:str, *args, **kwargs):
-        # TODO
-        pass
+        # TODO 考虑二者为空的情况
+        retrieved_templates = self.ctm.retrieve(question, *args, **kwargs)
+        retrieved_error_patterns = self.epm.retrieve(question, *args, **kwargs)

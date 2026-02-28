@@ -49,3 +49,7 @@ class CorrectTemplateMemory:
         template_ids = [res["metadata"]["id"] for res in retrieved_results]
         templates = [self.all_templates[tid] for tid in template_ids if tid in self.all_templates]
         return templates
+    
+    def update(self, *args, **kwargs):
+        # TODO 还未实现模板的更新
+        pass

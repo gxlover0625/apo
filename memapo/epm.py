@@ -64,3 +64,7 @@ class ErrorPatternMemory:
     def retrieve(self, question:str, *args, **kwargs)->List[ErrorPattern]:
         # 当前只考虑最简单的实现，召回所有的error pattern
         return list(self.error_pattern_clusters.values())
+    
+    def update(self, *args, **kwargs):
+        # TODO 还未实现error pattern的更新
+        pass
