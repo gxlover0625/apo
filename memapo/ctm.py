@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from uuid import uuid4
 
@@ -10,6 +10,7 @@ class GoodCase:
     question: str
     ground_truth: str
     correct_pred: str
+    idx: str = field(default_factory=lambda: get_id(prefix="good_case"))
 
 class Template:
     def __init__(self, when_to_use:str, strategy:str, good_cases:List[GoodCase]):
