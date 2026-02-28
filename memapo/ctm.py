@@ -23,11 +23,10 @@ class Template:
 
 class CorrectTemplateMemory:
     def __init__(self, restore_path:str="./db", collection_name:str=None, emb_model:str=None, threshold:float=0.7, topk:int=3):
-        self.all_templates = []
+        self.all_templates = {}
         self.db = VectorStore(restore_path, collection_name, emb_model, threshold, topk)
     
     def add_template(self, template:Template):
-        self.all_templates.append(template)
         doc_id = template.idx
         doc_content = template.description
         doc_metadata = {
@@ -38,6 +37,7 @@ class CorrectTemplateMemory:
             "strategy": template.strategy,
         }
         self.db.add(doc_id, doc_content, doc_metadata)
+        self.all_templates[doc_id] = template
 
     def retrieve(self, question:str, *args, **kwargs)->List[Template]:
         pass

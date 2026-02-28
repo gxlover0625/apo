@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import List, Set, Dict, Any
 from uuid import uuid4
 
+from utils import get_id, get_timestamp
+
 @dataclass
 class BadCase:
     question: str
@@ -11,7 +13,7 @@ class BadCase:
 
 class ErrorMode:
     def __init__(self, description:str, bad_cases:List[BadCase], metadata:Dict[str, Any]=None):
-        self.idx = str(uuid4())
+        self.idx = get_id(prefix="error_mode")
         self.description = description
         self.bad_cases = bad_cases
         self.metadata = metadata or {}
