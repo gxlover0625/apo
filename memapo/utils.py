@@ -30,3 +30,6 @@ def get_id(prefix:str=None):
     if prefix:
         return f"{prefix}_{uid}"
     return uid
+
+def join_sections(*parts:str) -> str:
+    return "\n\n".join(p.strip() for p in parts if p and p.strip()).strip()

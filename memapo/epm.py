@@ -35,7 +35,7 @@ class ErrorPatternMemory:
         if len(retrieved_results) == 0:
             # TODO 直接拿反思作为簇的描述，先这样写吧，看后续会不会改
             new_pattern_description = bad_case.reflection
-            new_bad_cases = set(bad_case)
+            new_bad_cases = {bad_case}
             new_error_pattern = ErrorPattern(new_pattern_description, new_bad_cases)
             self.add_error_pattern(new_error_pattern)
         else:
