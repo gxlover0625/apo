@@ -44,7 +44,6 @@ class CorrectTemplateMemory:
         # threshold, topk的参数是在初始化向量数据库的时候传入的
         retrieved_results = self.db.query_topk_threshold(query=question)
         if len(retrieved_results) == 0:
-            # TODO
             return []
         template_ids = [res["metadata"]["id"] for res in retrieved_results]
         templates = [self.all_templates[tid] for tid in template_ids if tid in self.all_templates]
