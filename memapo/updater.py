@@ -1,5 +1,5 @@
 from ctm import CorrectTemplateMemory
-from epm import ErrorPatternMemory, BadCase
+from epm import ErrorPatternMemory
 
 class Updater:
     def __init__(self, correct_template_memory:CorrectTemplateMemory, error_pattern_memory:ErrorPatternMemory):
@@ -11,10 +11,4 @@ class Updater:
         pass
 
     def update_error_memory(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, *args, **kwargs):
-        bad_case = BadCase(
-            question=question,
-            ground_truth=ground_truth,
-            wrong_pred=wrong_pred,
-            reflection=reflection,
-        )
-        self.epm.add_bad_case(bad_case)
+        self.epm.update(question, ground_truth, wrong_pred, reflection, *args, **kwargs)

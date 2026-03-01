@@ -65,6 +65,11 @@ class ErrorPatternMemory:
         # 当前只考虑最简单的实现，召回所有的error pattern
         return list(self.error_pattern_clusters.values())
     
-    def update(self, *args, **kwargs):
-        # TODO 还未实现error pattern的更新
-        pass
+    def update(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, *args, **kwargs):
+        bad_case = BadCase(
+            question=question,
+            ground_truth=ground_truth,
+            wrong_pred=wrong_pred,
+            reflection=reflection
+        )
+        self.add_bad_case(bad_case)
