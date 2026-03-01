@@ -1,4 +1,5 @@
 import json
+import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import List
 from uuid import uuid4
 
 from storage import VectorStore
-from utils import get_id, get_timestamp, extract_json
+from utils import get_id, get_timestamp, extract_json, get_logger
 from prompts import (
     build_create_template_sys_prompt,
     build_create_template_user_prompt,
@@ -87,11 +88,18 @@ class CorrectTemplateMemory:
         }
         self.db.add(doc_id, doc_content, doc_metadata)
         self.all_templates[doc_id] = template
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[CTM] add_template | id=%s | when_to_use=%s | total_templates=%d", doc_id, template.when_to_use[:100], len(self.all_templates))
 
     def delete_template(self, template_id:str):
         if template_id in self.all_templates:
+            template = self.all_templates[template_id]
             del self.all_templates[template_id]
             self.db.delete(template_id)
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[CTM] delete_template | id=%s | when_to_use=%s | total_templates=%d", template_id, template.when_to_use[:100], len(self.all_templates))
 
     def update_template(self, template_id:str, when_to_use:str=None, strategy:str=None, good_case:GoodCase=None):
         if template_id not in self.all_templates:
@@ -119,14 +127,23 @@ class CorrectTemplateMemory:
                 "strategy": template.strategy,
             }
             self.db.update(template_id, template.when_to_use, doc_metadata)
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[CTM] update_template | id=%s | when_to_use=%s | strategy=%s", template_id, template.when_to_use[:100], template.strategy[:100])
 
     def retrieve(self, question:str, *args, **kwargs)->List[Template]:
         # threshold, topk的参数是在初始化向量数据库的时候传入的
         retrieved_results = self.db.query_topk_threshold(query=question)
         if len(retrieved_results) == 0:
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[CTM] retrieve | question=%s | recalled=0", question[:100])
             return []
         template_ids = [res["metadata"]["id"] for res in retrieved_results]
         templates = [self.all_templates[tid] for tid in template_ids if tid in self.all_templates]
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[CTM] retrieve | question=%s | recalled=%d | ids=%s", question[:100], len(templates), [t.idx for t in templates])
         return templates
     
     def save_to_json(self, path: str):

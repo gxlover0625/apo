@@ -1,4 +1,5 @@
 import json
+import os
 import random
 
 from dataclasses import dataclass, field
@@ -6,7 +7,7 @@ from pathlib import Path
 from typing import List, Set, Dict, Any
 from uuid import uuid4
 
-from utils import get_id, get_timestamp, extract_json
+from utils import get_id, get_timestamp, extract_json, get_logger
 from storage import VectorStore
 from prompts import (
     build_update_error_pattern_sys_prompt,
@@ -77,6 +78,9 @@ class ErrorPatternMemory:
     def add_bad_case(self, bad_case:BadCase, client=None):
         bad_case_id = bad_case.idx
         self.all_bad_cases[bad_case_id] = bad_case
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[EPM] add_bad_case | id=%s | question=%s", bad_case_id, bad_case.question[:100])
         retrieved_results = self.db.query_topk_threshold(query=bad_case.reflection)
         if len(retrieved_results) == 0:
             # TODO 直接拿反思作为簇的描述，先这样写吧，看后续会不会改
@@ -87,6 +91,9 @@ class ErrorPatternMemory:
         else:
             matched_pattern_id = retrieved_results[0]["metadata"]["id"]
             matched_pattern = self.error_pattern_clusters[matched_pattern_id]
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[EPM] bad_case matched existing pattern | pattern_id=%s | similarity=%.4f", matched_pattern_id, retrieved_results[0]["similarity"])
             self.update_error_pattern(matched_pattern, bad_case, client)
 
     def add_error_pattern(self, error_pattern:ErrorPattern):
@@ -103,7 +110,10 @@ class ErrorPatternMemory:
         error_pattern.created_timestamp = now_timestamp
         error_pattern.updated_timestamp = now_timestamp
         self.db.add(doc_id, doc_content, doc_metadata)
-        self.error_pattern_clusters[doc_id] = error_pattern 
+        self.error_pattern_clusters[doc_id] = error_pattern
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[EPM] add_error_pattern | id=%s | pattern=%s | total_clusters=%d", doc_id, error_pattern.pattern[:100], len(self.error_pattern_clusters))
 
     def update_error_pattern(self, error_pattern:ErrorPattern, bad_case:BadCase, client=None):
         historical = list(error_pattern.bad_cases)
@@ -135,6 +145,13 @@ class ErrorPatternMemory:
                 "pattern": new_pattern,
             }
             self.db.update(error_pattern.idx, new_pattern, doc_metadata)
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[EPM] update_error_pattern | id=%s | new_pattern=%s | bad_cases_count=%d", error_pattern.idx, new_pattern[:100], len(error_pattern.bad_cases))
+        else:
+            if not int(os.environ.get('disable_logging', '0')):
+                logger = get_logger()
+                logger.info("[EPM] update_error_pattern | id=%s | pattern_unchanged | bad_cases_count=%d", error_pattern.idx, len(error_pattern.bad_cases))
 
     def retrieve(self, question:str, *args, **kwargs)->List[ErrorPattern]:
         # 当前只考虑最简单的实现，召回所有的error pattern
