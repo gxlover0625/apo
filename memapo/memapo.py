@@ -85,4 +85,5 @@ class MemAPO:
                 ground_truth=ground_truth,
                 wrong_pred=pred,
                 reflection=final_reflection,
+                client=self.client
             )

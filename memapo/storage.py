@@ -116,6 +116,16 @@ class VectorStore:
 
     def delete(self, doc_id):
         self.collection.delete(ids=[doc_id])
+
+    def update(self, doc_id, doc_content, doc_metadata=None):
+        if doc_metadata is None:
+            doc_metadata = {"id": doc_id, "content": doc_content, "updated_timestamp": get_timestamp()}
+        self.collection.update(
+            ids=[doc_id],
+            documents=[doc_content],
+            metadatas=[doc_metadata],
+        )
+        return doc_id
     
     # 纯top-k检索, 返回相似度最高的k条结果
     def query_topk(self, query:str, **kwargs):

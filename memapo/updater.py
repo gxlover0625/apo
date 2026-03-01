@@ -10,5 +10,5 @@ class Updater:
         # TODO
         pass
 
-    def update_error_memory(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, *args, **kwargs):
-        self.epm.update(question, ground_truth, wrong_pred, reflection, *args, **kwargs)
+    def update_error_memory(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, client=None, *args, **kwargs):
+        self.epm.update(question, ground_truth, wrong_pred, reflection, client, *args, **kwargs)

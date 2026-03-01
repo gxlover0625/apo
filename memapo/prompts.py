@@ -184,3 +184,72 @@ def build_summarize_reflection_user_prompt(question: str, ground_truth: str, ref
         ground_truth=ground_truth,
         failed_attempts=_render_failed_attempts(reflections),
     ).strip()
+
+UPDATE_ERROR_PATTERN_SYS_PROMPT = """You are an expert error-pattern analyst.
+Your job: refine an existing error-pattern description by incorporating new evidence from bad cases.
+The updated pattern must be concise, generalizable, and actionable — it will be used as a RULE to prevent similar mistakes in the future.
+"""
+
+UPDATE_ERROR_PATTERN_USER_PROMPT = """An existing error pattern needs to be updated because a new bad case has been added to its cluster.
+
+<CURRENT_PATTERN>
+{current_pattern}
+</CURRENT_PATTERN>
+
+<HISTORICAL_BAD_CASES>
+The following are existing bad cases already in this error pattern cluster.
+{historical_bad_cases}
+</HISTORICAL_BAD_CASES>
+
+<NEW_BAD_CASE>
+This is the new bad case that triggered the update.
+question: {new_question}
+correct_answer: {new_ground_truth}
+wrong_answer: {new_wrong_pred}
+reflection: {new_reflection}
+</NEW_BAD_CASE>
+
+Instructions:
+1. Read the current pattern and historical bad cases to understand the existing error pattern.
+2. Analyze the NEW bad case — determine whether it introduces a genuinely new dimension to the pattern.
+3. If the new bad case is very similar to the historical ones and the current pattern already covers it well, you may keep the current pattern UNCHANGED.
+4. Otherwise, produce a refined, generalizable one-sentence pattern description that:
+   - Covers BOTH the new bad case and the historical ones
+   - Is more precise or more general than the current pattern if the new evidence warrants it
+   - Is actionable — it should clearly state what to do or avoid
+
+You MUST respond with a JSON object in exactly this format and nothing else:
+{{
+    "analysis": "brief reasoning about whether the new bad case changes or confirms the pattern",
+    "updated": true or false (whether the pattern needs to be updated),
+    "pattern": "one-sentence error-pattern description (refined if updated=true, or the original current pattern if updated=false)"
+}}
+"""
+
+def _render_bad_cases(bad_cases) -> str:
+    if not bad_cases:
+        return "(none)"
+    blocks = [
+        "\n".join([
+            f"[BadCase {i}]",
+            f"question: {bc.question}",
+            f"correct_answer: {bc.ground_truth}",
+            f"wrong_answer: {bc.wrong_pred}",
+            f"reflection: {bc.reflection}",
+        ])
+        for i, bc in enumerate(bad_cases, 1)
+    ]
+    return "\n\n".join(blocks)
+
+def build_update_error_pattern_sys_prompt() -> str:
+    return UPDATE_ERROR_PATTERN_SYS_PROMPT
+
+def build_update_error_pattern_user_prompt(current_pattern: str, new_bad_case, historical_bad_cases) -> str:
+    return UPDATE_ERROR_PATTERN_USER_PROMPT.format(
+        current_pattern=current_pattern,
+        new_question=new_bad_case.question,
+        new_ground_truth=new_bad_case.ground_truth,
+        new_wrong_pred=new_bad_case.wrong_pred,
+        new_reflection=new_bad_case.reflection,
+        historical_bad_cases=_render_bad_cases(historical_bad_cases),
+    ).strip()
