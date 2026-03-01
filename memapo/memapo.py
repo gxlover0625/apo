@@ -8,6 +8,8 @@ from prompts import (
     build_generation_user_prompt,
     build_reflection_sys_prompt,
     build_reflection_user_prompt,
+    build_summarize_reflection_sys_prompt,
+    build_summarize_reflection_user_prompt,
 )
 
 class MemAPO:
@@ -42,6 +44,7 @@ class MemAPO:
         gen_sys_prompt = build_generation_sys_prompt(self.init_instruction, error_patterns)
         reflect_sys_prompt = build_reflection_sys_prompt()
         reflections = []
+        correct_update = False
         for attempt in range(1, self.max_attempts + 1):
             gen_user_prompt = build_generation_user_prompt(
                 question, self.output_format, templates, reflections
@@ -49,6 +52,7 @@ class MemAPO:
             pred = self.client.generate(gen_user_prompt, gen_sys_prompt)
             is_correct = self.eval_fn(pred, ground_truth)
             if is_correct:
+                correct_update = True
                 break
 
             reflection_user_prompt = build_reflection_user_prompt(question, pred, reflections)
@@ -60,3 +64,25 @@ class MemAPO:
                 "wrong_pred": pred,
                 "reflection": reflection_text,
             })
+
+        # Stage-3: Update Memory
+        if correct_update:
+            # TODO 更新CTM
+            pass
+        else:
+            sum_reflect_sys_prompt = build_summarize_reflection_sys_prompt()
+            sum_reflect_user_prompt = build_summarize_reflection_user_prompt(
+                question=question,
+                ground_truth=ground_truth,
+                reflections=reflections,
+            )
+            summary_raw = self.client.generate(sum_reflect_user_prompt, sum_reflect_sys_prompt)
+            summary_json = extract_json(summary_raw)
+            final_reflection = summary_json["reflection"] if summary_json else summary_raw
+
+            self.updater.update_error_memory(
+                question=question,
+                ground_truth=ground_truth,
+                wrong_pred=pred,
+                reflection=final_reflection,
+            )

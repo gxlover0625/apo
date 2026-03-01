@@ -133,3 +133,54 @@ def build_reflection_user_prompt(question: str, wrong_pred: str, reflections: li
         wrong_pred=wrong_pred,
         prior_reflections=_render_prior_reflections(reflections or []),
     ).strip()
+
+SUMMARIZE_REFLECTION_SYS_PROMPT = """You are an expert error-pattern analyst.
+Your job: given a question, its correct answer, and multiple failed attempts with reflections, synthesize ONE concise, generalizable error-pattern description that can prevent similar mistakes in the future.
+"""
+
+SUMMARIZE_REFLECTION_USER_PROMPT = """A model attempted the following question multiple times and FAILED every time. Analyze all attempts holistically and extract the root-cause error pattern.
+
+<QUESTION>
+{question}
+</QUESTION>
+
+<CORRECT_ANSWER>
+{ground_truth}
+</CORRECT_ANSWER>
+
+<FAILED_ATTEMPTS>
+{failed_attempts}
+</FAILED_ATTEMPTS>
+
+Instructions:
+1. Compare all failed attempts — identify the COMMON root cause, not just surface-level symptoms.
+2. Consider whether the errors stem from misunderstanding the question, flawed reasoning, calculation mistakes, or missing domain knowledge and so on.
+3. Abstract the lesson into a generalizable rule that applies beyond this specific question.
+
+You MUST respond with a JSON object in exactly this format and nothing else:
+{{
+    "root_cause": "brief description of the common root cause across all attempts",
+    "reflection": "one-sentence generalizable rule to prevent this category of error in the future"
+}}
+"""
+
+def _render_failed_attempts(reflections: list) -> str:
+    blocks = [
+        "\n".join([
+            f"[Attempt {r['attempt']}]",
+            f"wrong_answer: {r['wrong_pred']}",
+            f"reflection: {r['reflection']}",
+        ])
+        for r in reflections
+    ]
+    return "\n\n".join(blocks)
+
+def build_summarize_reflection_sys_prompt() -> str:
+    return SUMMARIZE_REFLECTION_SYS_PROMPT
+
+def build_summarize_reflection_user_prompt(question: str, ground_truth: str, reflections: list) -> str:
+    return SUMMARIZE_REFLECTION_USER_PROMPT.format(
+        question=question,
+        ground_truth=ground_truth,
+        failed_attempts=_render_failed_attempts(reflections),
+    ).strip()
