@@ -1,3 +1,5 @@
+import json
+import re
 import logging
 
 from uuid import uuid4
@@ -31,5 +33,37 @@ def get_id(prefix:str=None):
         return f"{prefix}_{uid}"
     return uid
 
-def join_sections(*parts:str) -> str:
-    return "\n\n".join(p.strip() for p in parts if p and p.strip()).strip()
+def extract_json(text: str) -> dict:
+    code_block = re.search(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL)
+    if code_block:
+        text = code_block.group(1)
+    
+    start = text.find("{")
+    if start == -1:
+        return None
+    
+    depth = 0
+    in_string = False
+    escape = False
+    for i, ch in enumerate(text[start:], start):
+        if escape:
+            escape = False
+            continue
+        if ch == '\\' and in_string:
+            escape = True
+            continue
+        if ch == '"' and not escape:
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(text[start:i + 1])
+                except json.JSONDecodeError:
+                    return None
+    return None
