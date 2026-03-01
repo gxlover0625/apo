@@ -67,8 +67,14 @@ class MemAPO:
 
         # Stage-3: Update Memory
         if correct_update:
-            # TODO 更新CTM
-            pass
+            self.updater.update_correct_memory(
+                used_templates=templates,
+                question=question,
+                ground_truth=ground_truth,
+                correct_pred=pred,
+                reflections=reflections,
+                client=self.client,
+            )
         else:
             sum_reflect_sys_prompt = build_summarize_reflection_sys_prompt()
             sum_reflect_user_prompt = build_summarize_reflection_user_prompt(

@@ -253,3 +253,132 @@ def build_update_error_pattern_user_prompt(current_pattern: str, new_bad_case, h
         new_reflection=new_bad_case.reflection,
         historical_bad_cases=_render_bad_cases(historical_bad_cases),
     ).strip()
+
+CREATE_TEMPLATE_SYS_PROMPT = """You are an expert at abstracting reusable problem-solving templates.
+Your job: given a question and its correct answer, extract a generalizable template that can guide solving similar problems in the future.
+"""
+
+CREATE_TEMPLATE_USER_PROMPT = """A model answered the following question correctly. Abstract this success into a reusable template.
+
+<QUESTION>
+{question}
+</QUESTION>
+
+<CORRECT_ANSWER>
+{correct_pred}
+</CORRECT_ANSWER>
+{reflections_block}
+Instructions:
+1. Analyze the question type, scenario characteristics, and what makes this kind of problem recognizable.
+2. Abstract the general solution procedure based on the successful reasoning trajectory. Describe the key reasoning or analysis steps needed to solve this type of problem. Each step should represent a high-level reasoning operation and can be directly reusable for a new problem that matches the same scenario. Keep the steps minimal, non-redundant, and sufficient for a single-pass solution attempt.
+3. If prior failed attempts and reflections are provided, incorporate the lessons learned as pitfalls to avoid in the strategy.
+4. Produce:
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it)
+   - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available
+
+You MUST respond with a JSON object in exactly this format and nothing else:
+{{
+    "when_to_use": "one-sentence description of the applicable scenario",
+    "strategy": "concise general reasoning strategy for this type of problem"
+}}
+"""
+
+def build_create_template_sys_prompt() -> str:
+    return CREATE_TEMPLATE_SYS_PROMPT
+
+CREATE_TEMPLATE_REFLECTIONS_BLOCK = """
+<PRIOR_FAILED_ATTEMPTS>
+The model failed on earlier attempts before getting it right. Use these reflections to identify pitfalls.
+{reflections}
+</PRIOR_FAILED_ATTEMPTS>
+"""
+
+def _render_create_template_reflections(reflections: list) -> str:
+    if not reflections:
+        return ""
+    blocks = [
+        f"[Attempt {r['attempt']}] wrong_answer: {r['wrong_pred']} | reflection: {r['reflection']}"
+        for r in reflections
+    ]
+    return CREATE_TEMPLATE_REFLECTIONS_BLOCK.format(reflections="\n".join(blocks))
+
+def build_create_template_user_prompt(question: str, correct_pred: str, reflections: list = None) -> str:
+    return CREATE_TEMPLATE_USER_PROMPT.format(
+        question=question,
+        correct_pred=correct_pred,
+        reflections_block=_render_create_template_reflections(reflections or []),
+    ).strip()
+
+UPDATE_TEMPLATES_SYS_PROMPT = """You are an expert template manager for a retrieval-augmented problem-solving system.
+Your job: given a new successfully solved case and the recalled templates, decide the best action to keep the template library accurate, non-redundant, and maximally useful.
+"""
+
+UPDATE_TEMPLATES_USER_PROMPT = """A model just answered a question correctly. Review the recalled templates and decide what actions to take.
+
+<RECALLED_TEMPLATES>
+{recalled_templates}
+</RECALLED_TEMPLATES>
+
+<NEW_GOOD_CASE>
+question: {question}
+correct_answer: {correct_pred}
+</NEW_GOOD_CASE>
+{reflections_block}
+You must decide an action for EACH recalled template, and optionally add new templates. Rules:
+- Each recalled template must appear EXACTLY ONCE in the actions list.
+- Each action targets ONE template.
+
+Available actions:
+
+1. **none**: The recalled template already covers this case well (semantically equivalent). Keep it unchanged. Specify the template_id.
+2. **update**: The recalled template is relevant but its when_to_use or strategy can be enriched / made more comprehensive with information from the new case. Specify the template_id and provide updated fields.
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it). Set to null to keep unchanged.
+   - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available. Set to null to keep unchanged.
+3. **delete**: The recalled template conflicts with the new case (e.g. wrong strategy, contradictory advice) or is fully superseded. Specify the template_id.
+4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template. Create a new template. (Use sparingly — only when none of the recalled templates can be updated to cover this case.)
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it).
+   - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available.
+
+IMPORTANT:
+- Only use template_id values that appear in RECALLED_TEMPLATES above. Do NOT invent template_ids.
+- Every recalled template_id must appear exactly once across all actions.
+
+You MUST respond with a JSON object containing an "actions" list:
+
+{{
+    "actions": [
+        {{"action": "none", "template_id": "..."}},
+        {{"action": "update", "template_id": "...", "when_to_use": "... or null", "strategy": "... or null"}},
+        {{"action": "delete", "template_id": "..."}},
+        {{"action": "add", "when_to_use": "...", "strategy": "..."}}
+    ]
+}}
+"""
+
+def _render_existing_templates(templates):
+    if not templates:
+        return "(none)", {}
+    id_mapping = {}
+    blocks = []
+    for i, t in enumerate(templates, 1):
+        id_mapping[str(i)] = t.idx
+        blocks.append("\n".join([
+            f"[Template {i}]",
+            f"template_id: {i}",
+            f"when_to_use: {t.when_to_use}",
+            f"strategy: {t.strategy}",
+        ]))
+    return "\n\n".join(blocks), id_mapping
+
+def build_update_templates_sys_prompt() -> str:
+    return UPDATE_TEMPLATES_SYS_PROMPT
+
+def build_update_templates_user_prompt(recalled_templates, question: str, correct_pred: str, reflections: list = None):
+    rendered, id_mapping = _render_existing_templates(recalled_templates)
+    prompt = UPDATE_TEMPLATES_USER_PROMPT.format(
+        recalled_templates=rendered,
+        question=question,
+        correct_pred=correct_pred,
+        reflections_block=_render_create_template_reflections(reflections or []),
+    ).strip()
+    return prompt, id_mapping
