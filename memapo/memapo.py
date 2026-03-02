@@ -74,6 +74,9 @@ class MemAPO:
                 correct_pred=pred,
                 reflections=reflections,
                 client=self.client,
+                eval_fn=self.eval_fn,
+                init_instruction=self.init_instruction,
+                output_format=self.output_format,
             )
         else:
             sum_reflect_sys_prompt = build_summarize_reflection_sys_prompt()

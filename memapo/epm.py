@@ -4,7 +4,7 @@ import random
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Set, Dict, Any
+from typing import List, Dict, Any
 from uuid import uuid4
 
 from utils import get_id, get_timestamp, extract_json, get_logger
@@ -43,7 +43,7 @@ class BadCase:
         return obj
 
 class ErrorPattern:
-    def __init__(self, pattern:str, bad_cases:Set[BadCase]):
+    def __init__(self, pattern:str, bad_cases:List[BadCase]):
         self.idx = get_id(prefix="error_pattern")
         self.pattern = pattern
         self.bad_cases = bad_cases
@@ -61,7 +61,7 @@ class ErrorPattern:
 
     @classmethod
     def from_dict(cls, d: dict) -> "ErrorPattern":
-        bad_cases = {BadCase.from_dict(bc) for bc in d["bad_cases"]}
+        bad_cases = [BadCase.from_dict(bc) for bc in d["bad_cases"]]
         obj = cls(pattern=d["pattern"], bad_cases=bad_cases)
         obj.idx = d["idx"]
         obj.created_timestamp = d.get("created_timestamp")
@@ -85,7 +85,7 @@ class ErrorPatternMemory:
         if len(retrieved_results) == 0:
             # TODO 直接拿反思作为簇的描述，先这样写吧，看后续会不会改
             new_pattern_description = bad_case.reflection
-            new_bad_cases = {bad_case}
+            new_bad_cases = [bad_case]
             new_error_pattern = ErrorPattern(new_pattern_description, new_bad_cases)
             self.add_error_pattern(new_error_pattern)
         else:
@@ -127,7 +127,8 @@ class ErrorPatternMemory:
         )
         raw = client.generate(user_prompt, sys_prompt)
         result = extract_json(raw)
-        error_pattern.bad_cases.add(bad_case)
+        if all(existing.idx != bad_case.idx for existing in error_pattern.bad_cases):
+            error_pattern.bad_cases.append(bad_case)
 
         need_update = False
         if result:

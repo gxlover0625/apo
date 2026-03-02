@@ -1,5 +1,6 @@
 import json
 import os
+import random
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,6 +14,8 @@ from prompts import (
     build_create_template_user_prompt,
     build_update_templates_sys_prompt,
     build_update_templates_user_prompt,
+    build_generation_sys_prompt,
+    build_generation_user_prompt,
 )
 
 @dataclass
@@ -101,7 +104,7 @@ class CorrectTemplateMemory:
                 logger = get_logger()
                 logger.info("[CTM] delete_template | id=%s | when_to_use=%s | total_templates=%d", template_id, template.when_to_use[:100], len(self.all_templates))
 
-    def update_template(self, template_id:str, when_to_use:str=None, strategy:str=None, good_case:GoodCase=None):
+    def update_template(self, template_id:str, when_to_use:str=None, strategy:str=None):
         if template_id not in self.all_templates:
             return
         template = self.all_templates[template_id]
@@ -113,8 +116,6 @@ class CorrectTemplateMemory:
         if strategy is not None and strategy != "":
             template.strategy = strategy
             need_db_update = True
-        if good_case is not None:
-            template.good_cases.append(good_case)
 
         if need_db_update:
             template.updated_timestamp = get_timestamp()
@@ -130,6 +131,24 @@ class CorrectTemplateMemory:
             if not int(os.environ.get('disable_logging', '0')):
                 logger = get_logger()
                 logger.info("[CTM] update_template | id=%s | when_to_use=%s | strategy=%s", template_id, template.when_to_use[:100], template.strategy[:100])
+
+    def _validate_template(self, template:Template, client, eval_fn, init_instruction:str, output_format:str, sample_k:int=3) -> bool:
+        if not template.good_cases or eval_fn is None:
+            return True
+        samples = random.sample(template.good_cases, min(sample_k, len(template.good_cases)))
+        gen_sys_prompt = build_generation_sys_prompt(init_instruction, [])
+        for gc in samples:
+            gen_user_prompt = build_generation_user_prompt(gc.question, output_format, [template], [])
+            pred = client.generate(gen_user_prompt, gen_sys_prompt)
+            if not eval_fn(pred, gc.ground_truth):
+                if not int(os.environ.get('disable_logging', '0')):
+                    logger = get_logger()
+                    logger.info("[CTM] _validate_template FAILED | template_id=%s | question=%s", template.idx, gc.question[:100])
+                return False
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[CTM] _validate_template PASSED | template_id=%s | validated=%d samples", template.idx, len(samples))
+        return True
 
     def retrieve(self, question:str, *args, **kwargs)->List[Template]:
         # threshold, topk的参数是在初始化向量数据库的时候传入的
@@ -161,7 +180,7 @@ class CorrectTemplateMemory:
             k: Template.from_dict(v) for k, v in data["all_templates"].items()
         }
 
-    def update(self, used_templates, question:str=None, ground_truth:str=None, correct_pred:str=None, reflections:list=None, client=None, *args, **kwargs):
+    def update(self, used_templates, question:str=None, ground_truth:str=None, correct_pred:str=None, reflections:list=None, client=None, eval_fn=None, init_instruction:str=None, output_format:str=None, *args, **kwargs):
         if len(used_templates) == 0:
             sys_prompt = build_create_template_sys_prompt()
             user_prompt = build_create_template_user_prompt(question, correct_pred, reflections)
@@ -236,12 +255,32 @@ class CorrectTemplateMemory:
                     if template_id in processed_ids:
                         continue
                     processed_ids.add(template_id)
-                    self.update_template(
-                        template_id=template_id,
-                        when_to_use=item.get("when_to_use",""),
-                        strategy=item.get("strategy",""),
-                        good_case=good_case,
-                    )
+
+                    # 先构造修改后的临时 template 做验证
+                    original = self.all_templates[template_id]
+                    new_wtu = item.get("when_to_use", "") or original.when_to_use
+                    new_stg = item.get("strategy", "") or original.strategy
+                    temp_template = Template(when_to_use=new_wtu, strategy=new_stg, good_cases=list(original.good_cases))
+                    temp_template.idx = original.idx
+
+                    if self._validate_template(temp_template, client, eval_fn, init_instruction, output_format):
+                        # 验证通过，执行更新
+                        self.update_template(
+                            template_id=template_id,
+                            when_to_use=item.get("when_to_use", ""),
+                            strategy=item.get("strategy", ""),
+                        )
+                    else:
+                        # 验证失败，不动原 template，创建新 template
+                        if not int(os.environ.get('disable_logging', '0')):
+                            logger = get_logger()
+                            logger.info("[CTM] update rejected, creating new template instead | original_id=%s", template_id)
+                        fallback = Template(
+                            when_to_use=new_wtu,
+                            strategy=new_stg,
+                            good_cases=[good_case],
+                        )
+                        self.add_template(fallback)
 
                 elif action == "delete":
                     seq_id = str(item.get("template_id", ""))
@@ -258,3 +297,7 @@ class CorrectTemplateMemory:
                     template_id = id_mapping.get(seq_id, "")
                     if template_id:
                         processed_ids.add(template_id)
+
+            for t in used_templates:
+                if t.idx in self.all_templates:
+                    self.all_templates[t.idx].good_cases.append(good_case)
