@@ -35,7 +35,7 @@ class MemAPO:
         self.eval_fn = eval_fn
         self.max_attempts = max_attempts
 
-    def process_sample(self, sample, *args, **kwargs):
+    def process_train_sample(self, sample, *args, **kwargs):
         import os
         _log = not int(os.environ.get('disable_logging', '0'))
         if _log:
@@ -121,3 +121,81 @@ class MemAPO:
                 reflection=final_reflection,
                 client=self.client
             )
+    
+    def train(self, train_set:list, *args, **kwargs):
+        for sample in train_set:
+            self.process_train_sample(sample, *args, **kwargs)
+
+    def process_test_sample(self, sample, *args, **kwargs):
+        import os
+        _log = not int(os.environ.get('disable_logging', '0'))
+        if _log:
+            logger = get_logger()
+
+        question, ground_truth = sample
+        templates, error_patterns = self.retriever.retrieve(question, *args, **kwargs)
+
+        gen_sys_prompt = build_generation_sys_prompt(self.init_instruction, error_patterns)
+        gen_user_prompt = build_generation_user_prompt(question, self.output_format, templates, [])
+        pred = self.client.generate(gen_user_prompt, gen_sys_prompt)
+        is_correct = self.eval_fn(pred, ground_truth)
+
+        if _log:
+            logger.info("[MemAPO-Test] question=%s | ground_truth=%s | pred=%s | is_correct=%s | templates=%d | error_patterns=%d",
+                        question[:100], ground_truth[:100], pred[:100], is_correct,
+                        len(templates), len(error_patterns))
+
+        return {
+            "question": question,
+            "ground_truth": ground_truth,
+            "pred": pred,
+            "is_correct": is_correct,
+            "sys_prompt": gen_sys_prompt,
+            "user_prompt": gen_user_prompt,
+            "retrieved_templates": len(templates),
+            "retrieved_error_patterns": len(error_patterns),
+        }
+
+    def test(self, test_set:list, save_path:str=None, *args, **kwargs):
+        import json
+        import os
+        from pathlib import Path
+        _log = not int(os.environ.get('disable_logging', '0'))
+        if _log:
+            logger = get_logger()
+
+        results = []
+        correct_count = 0
+        total_count = 0
+
+        for sample in test_set:
+            record = self.process_test_sample(sample, *args, **kwargs)
+            results.append(record)
+            total_count += 1
+            if record["is_correct"]:
+                correct_count += 1
+
+            if _log:
+                logger.info("[MemAPO-Test] progress=%d/%d | running_accuracy=%.4f",
+                            total_count, len(test_set), correct_count / total_count)
+
+        accuracy = correct_count / total_count if total_count > 0 else 0.0
+        summary = {
+            "total": total_count,
+            "correct": correct_count,
+            "wrong": total_count - correct_count,
+            "accuracy": accuracy,
+        }
+
+        if _log:
+            logger.info("[MemAPO-Test] DONE | total=%d | correct=%d | wrong=%d | accuracy=%.4f",
+                        total_count, correct_count, total_count - correct_count, accuracy)
+
+        if save_path:
+            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(save_path, "w", encoding="utf-8") as f:
+                json.dump({"summary": summary, "details": results}, f, ensure_ascii=False, indent=2)
+            if _log:
+                logger.info("[MemAPO-Test] results saved to %s", save_path)
+
+        return summary, results
