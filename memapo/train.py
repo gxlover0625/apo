@@ -55,8 +55,9 @@ if __name__ == "__main__":
 
     # 配置logger
     os.environ["disable_logging"] = "1" if args.disable_logging else "0"
+    log_dir_abs = str(Path(args.log_dir).resolve())
     if not args.disable_logging:
-        log_file = f"{args.log_dir}/{args.exp_name}_{timestamp}_train.log"
+        log_file = f"{log_dir_abs}/{args.exp_name}_{timestamp}_train.log"
         logger = get_logger(log_file)
         logger.info("Args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False, sort_keys=True))
     
@@ -65,17 +66,32 @@ if __name__ == "__main__":
     # db.add(doc_content="hello", doc_metadata={"meta": "test"})
     # print(db.query_topk("hello world"))
     exp_timestamp = get_timestamp()
+
+    # 路径全部转绝对路径
+    log_dir = str(Path(args.log_dir).resolve())
+    db_dir = str(Path(args.db_dir).resolve())
+    data_dir = Path(__file__).resolve().parent.parent / "data"
+
+    ctm_collection = f"{args.exp_name}_{exp_timestamp}_correct_template_memory"
+    epm_collection = f"{args.exp_name}_{exp_timestamp}_error_pattern_memory"
+
+    print(f"log_dir:          {log_dir}")
+    print(f"db_dir:           {db_dir}")
+    print(f"data_dir:         {data_dir}")
+    print(f"ctm_collection:   {ctm_collection}")
+    print(f"epm_collection:   {epm_collection}")
+
     correct_template_memory = CorrectTemplateMemory(
-        args.db_dir, 
-        f"{args.exp_name}_{exp_timestamp}_correct_template_memory",
+        db_dir, 
+        ctm_collection,
         args.embed_model,
         args.correct_threshold,
         args.correct_topk,
         args.max_templates,
     )
     error_pattern_memory = ErrorPatternMemory(
-        args.db_dir,
-        f"{args.exp_name}_{exp_timestamp}_error_pattern_memory",
+        db_dir,
+        epm_collection,
         args.embed_model,
         args.error_threshold,
         args.error_topk,
@@ -91,7 +107,6 @@ if __name__ == "__main__":
     )
 
     # 准备数据
-    data_dir = Path(__file__).resolve().parent.parent / "data"
     train_set, val_set, test_set, _ = load_task(args.dataset, evaluation_api=None, data_dir=data_dir)
     eval_fn = get_eval_fn(args.dataset)
     print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
@@ -123,6 +138,15 @@ if __name__ == "__main__":
         args.max_retries,
     )
     memapo.train(train_set)
-    save_path = f"{args.log_dir}/{args.exp_name}_{exp_timestamp}_memapo.json"
-    memapo.test(test_set, save_path)
+
+    # 保存两个memory的dict
+    ctm_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_ctm.json"
+    epm_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_epm.json"
+    correct_template_memory.save_to_json(ctm_save_path)
+    error_pattern_memory.save_to_json(epm_save_path)
+    print(f"CTM saved to:     {ctm_save_path}")
+    print(f"EPM saved to:     {epm_save_path}")
+
+    test_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_test_results.json"
+    memapo.test(test_set, test_save_path)
     print("Done!")
