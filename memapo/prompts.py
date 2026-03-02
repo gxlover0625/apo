@@ -382,3 +382,66 @@ def build_update_templates_user_prompt(recalled_templates, question: str, correc
         reflections_block=_render_create_template_reflections(reflections or []),
     ).strip()
     return prompt, id_mapping
+
+MERGE_TEMPLATES_SYS_PROMPT = """You are an expert template librarian for a retrieval-augmented problem-solving system.
+Your job: given a full list of templates, identify groups of templates that are semantically similar or overlapping and can be merged into a single, more general template without losing coverage.
+"""
+
+MERGE_TEMPLATES_USER_PROMPT = """The template library has grown too large ({total} templates, limit is {limit}). Identify groups of templates that can be merged to reduce the total count.
+
+<ALL_TEMPLATES>
+{all_templates}
+</ALL_TEMPLATES>
+
+Instructions:
+1. Read ALL templates carefully. Identify groups where the when_to_use scenarios overlap significantly or the strategies are highly similar / complementary.
+2. Only merge templates that are truly related — do NOT force-merge unrelated templates just to reduce count.
+3. For each merge group, produce a single merged template that covers all the scenarios and combines the best parts of each strategy.
+4. Templates NOT included in any merge group will be kept as-is.
+5. Try to reduce the total template count to at most {target} through merging.
+
+You MUST respond with a JSON object in exactly this format and nothing else:
+{{
+    "merge_groups": [
+        {{
+            "template_ids": ["1", "3"],
+            "reason": "brief explanation of why these templates should be merged",
+            "merged_when_to_use": "combined scenario description covering all merged templates",
+            "merged_strategy": "combined strategy incorporating the best of each template"
+        }}
+    ]
+}}
+
+If no templates can be reasonably merged, return: {{"merge_groups": []}}
+"""
+
+def _render_all_templates_for_merge(templates_dict):
+    """Render all templates with sequential IDs for the merge prompt."""
+    id_mapping = {}
+    blocks = []
+    for i, (real_id, t) in enumerate(templates_dict.items(), 1):
+        id_mapping[str(i)] = real_id
+        gc_count = len(t.good_cases) if t.good_cases else 0
+        blocks.append("\n".join([
+            f"[Template {i}]",
+            f"template_id: {i}",
+            f"when_to_use: {t.when_to_use}",
+            f"strategy: {t.strategy}",
+            f"good_cases_count: {gc_count}",
+        ]))
+    return "\n\n".join(blocks), id_mapping
+
+def build_merge_templates_sys_prompt() -> str:
+    return MERGE_TEMPLATES_SYS_PROMPT
+
+def build_merge_templates_user_prompt(templates_dict, max_templates: int):
+    rendered, id_mapping = _render_all_templates_for_merge(templates_dict)
+    total = len(templates_dict)
+    target = max(max_templates - 5, int(max_templates * 0.8))
+    prompt = MERGE_TEMPLATES_USER_PROMPT.format(
+        total=total,
+        limit=max_templates,
+        target=target,
+        all_templates=rendered,
+    ).strip()
+    return prompt, id_mapping

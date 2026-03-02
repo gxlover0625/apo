@@ -78,22 +78,27 @@ class ErrorPatternMemory:
     def add_bad_case(self, bad_case:BadCase, client=None):
         bad_case_id = bad_case.idx
         self.all_bad_cases[bad_case_id] = bad_case
-        if not int(os.environ.get('disable_logging', '0')):
+        _log = not int(os.environ.get('disable_logging', '0'))
+        if _log:
             logger = get_logger()
-            logger.info("[EPM] add_bad_case | id=%s | question=%s", bad_case_id, bad_case.question[:100])
+            logger.info("[EPM] add_bad_case | id=%s | question=%s | reflection=%s",
+                        bad_case_id, bad_case.question[:100], (bad_case.reflection or '')[:100])
         retrieved_results = self.db.query_topk_threshold(query=bad_case.reflection)
         if len(retrieved_results) == 0:
             # TODO 直接拿反思作为簇的描述，先这样写吧，看后续会不会改
             new_pattern_description = bad_case.reflection
             new_bad_cases = [bad_case]
             new_error_pattern = ErrorPattern(new_pattern_description, new_bad_cases)
+            if _log:
+                logger.info("[EPM] add_bad_case | no matching pattern found -> creating new error_pattern | pattern=%s",
+                            new_pattern_description[:100] if new_pattern_description else 'None')
             self.add_error_pattern(new_error_pattern)
         else:
             matched_pattern_id = retrieved_results[0]["metadata"]["id"]
             matched_pattern = self.error_pattern_clusters[matched_pattern_id]
-            if not int(os.environ.get('disable_logging', '0')):
-                logger = get_logger()
-                logger.info("[EPM] bad_case matched existing pattern | pattern_id=%s | similarity=%.4f", matched_pattern_id, retrieved_results[0]["similarity"])
+            if _log:
+                logger.info("[EPM] add_bad_case | matched existing pattern | pattern_id=%s | similarity=%.4f | pattern=%s -> updating",
+                            matched_pattern_id, retrieved_results[0]["similarity"], matched_pattern.pattern[:100])
             self.update_error_pattern(matched_pattern, bad_case, client)
 
     def add_error_pattern(self, error_pattern:ErrorPattern):
@@ -113,11 +118,18 @@ class ErrorPatternMemory:
         self.error_pattern_clusters[doc_id] = error_pattern
         if not int(os.environ.get('disable_logging', '0')):
             logger = get_logger()
-            logger.info("[EPM] add_error_pattern | id=%s | pattern=%s | total_clusters=%d", doc_id, error_pattern.pattern[:100], len(self.error_pattern_clusters))
+            logger.info("[EPM] add_error_pattern | id=%s | pattern=%s | bad_cases=%d | total_clusters=%d",
+                        doc_id, error_pattern.pattern[:100] if error_pattern.pattern else 'None',
+                        len(error_pattern.bad_cases), len(self.error_pattern_clusters))
 
     def update_error_pattern(self, error_pattern:ErrorPattern, bad_case:BadCase, client=None):
+        _log = not int(os.environ.get('disable_logging', '0'))
         historical = list(error_pattern.bad_cases)
         sampled = random.sample(historical, min(self.sample_k, len(historical)))
+        if _log:
+            logger = get_logger()
+            logger.info("[EPM] update_error_pattern START | pattern_id=%s | old_pattern=%s | historical_bad_cases=%d | sampled=%d | new_bad_case_id=%s",
+                        error_pattern.idx, error_pattern.pattern[:100], len(historical), len(sampled), bad_case.idx)
 
         sys_prompt = build_update_error_pattern_sys_prompt()
         user_prompt = build_update_error_pattern_user_prompt(
@@ -136,6 +148,7 @@ class ErrorPatternMemory:
         
         if need_update:
             new_pattern = result.get("pattern", raw)
+            old_pattern = error_pattern.pattern
             error_pattern.pattern = new_pattern
             error_pattern.updated_timestamp = get_timestamp()
             doc_metadata = {
@@ -146,17 +159,22 @@ class ErrorPatternMemory:
                 "pattern": new_pattern,
             }
             self.db.update(error_pattern.idx, new_pattern, doc_metadata)
-            if not int(os.environ.get('disable_logging', '0')):
-                logger = get_logger()
-                logger.info("[EPM] update_error_pattern | id=%s | new_pattern=%s | bad_cases_count=%d", error_pattern.idx, new_pattern[:100], len(error_pattern.bad_cases))
+            if _log:
+                logger.info("[EPM] update_error_pattern | pattern_id=%s | pattern UPDATED | old='%s' | new='%s' | bad_cases_count=%d",
+                            error_pattern.idx, old_pattern[:80], new_pattern[:80], len(error_pattern.bad_cases))
         else:
-            if not int(os.environ.get('disable_logging', '0')):
-                logger = get_logger()
-                logger.info("[EPM] update_error_pattern | id=%s | pattern_unchanged | bad_cases_count=%d", error_pattern.idx, len(error_pattern.bad_cases))
+            if _log:
+                logger.info("[EPM] update_error_pattern | pattern_id=%s | LLM decided NO UPDATE needed (updated=False) | bad_cases_count=%d",
+                            error_pattern.idx, len(error_pattern.bad_cases))
 
     def retrieve(self, question:str, *args, **kwargs)->List[ErrorPattern]:
         # 当前只考虑最简单的实现，召回所有的error pattern
-        return list(self.error_pattern_clusters.values())
+        patterns = list(self.error_pattern_clusters.values())
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[EPM] retrieve | question=%s | returned_all_patterns=%d | pattern_ids=%s",
+                        question[:100], len(patterns), [p.idx for p in patterns])
+        return patterns
     
     def save_to_json(self, path: str):
         data = {
@@ -178,6 +196,10 @@ class ErrorPatternMemory:
         }
 
     def update(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, client=None, *args, **kwargs):
+        if not int(os.environ.get('disable_logging', '0')):
+            logger = get_logger()
+            logger.info("[EPM] update START | question=%s | reflection=%s",
+                        question[:100], (reflection or '')[:100])
         bad_case = BadCase(
             question=question,
             ground_truth=ground_truth,
