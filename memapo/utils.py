@@ -6,16 +6,21 @@ from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 
-def get_logger(log_file:str=None):
+class _MultiLineFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        header = f"{self.formatTime(record, self.datefmt)} | {record.levelname} | {record.filename}:{record.lineno}"
+        msg = record.getMessage()
+        parts = msg.split(" | ")
+        body = "\n  ".join(parts)
+        return f"{header}\n{body}"
+
+def get_logger(log_file: str = None):
     logger = logging.getLogger("memapo")
     if logger.handlers:
         return logger
     
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(filename)s:%(lineno)d | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    formatter = _MultiLineFormatter(datefmt="%Y-%m-%d %H:%M:%S")
 
     Path(log_file).parent.mkdir(parents=True, exist_ok=True)
     file_handler = logging.FileHandler(log_file, encoding="utf-8")
