@@ -81,12 +81,12 @@ if __name__ == "__main__":
     timestamp = get_timestamp()
 
     os.environ["disable_logging"] = "1" if args.disable_logging else "0"
-    log_dir = str(Path(args.log_dir).resolve())
+    log_dir = str(Path(args.log_dir).resolve()) + f"/{args.exp_name}_{timestamp}"
     db_dir = str(Path(args.db_dir).resolve())
     data_dir = Path(__file__).resolve().parent.parent / "data"
 
     if not args.disable_logging:
-        log_file = f"{log_dir}/{args.exp_name}_{timestamp}_infer.log"
+        log_file = f"{log_dir}/infer.log"
         logger = get_logger(log_file)
         logger.info("Args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False, sort_keys=True))
 
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     _, _, test_set, _ = load_task(dataset, evaluation_api=None, data_dir=data_dir)
     print(f"Test set size: {len(test_set)}")
 
-    test_save_path = f"{log_dir}/{args.exp_name}_{timestamp}_infer_results.json"
+    test_save_path = f"{log_dir}/infer_results.json"
     summary, results = memapo.test(test_set, test_save_path)
     print(f"Accuracy: {summary['correct']}/{summary['total']} = {summary['accuracy']:.4f}")
     print(f"Results saved to: {test_save_path}")

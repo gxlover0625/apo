@@ -55,25 +55,19 @@ if __name__ == "__main__":
 
     # 配置logger
     os.environ["disable_logging"] = "1" if args.disable_logging else "0"
-    log_dir_abs = str(Path(args.log_dir).resolve())
-    if not args.disable_logging:
-        log_file = f"{log_dir_abs}/{args.exp_name}_{timestamp}_train.log"
-        logger = get_logger(log_file)
-        logger.info("Args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False, sort_keys=True))
-    
-    # collection_name = f"{args.exp_name}_{timestamp}"
-    # db = VectorStore(args.db_dir, collection_name, emb_model=args.embed_model, threshold=args.correct_threshold, topk=args.correct_topk)
-    # db.add(doc_content="hello", doc_metadata={"meta": "test"})
-    # print(db.query_topk("hello world"))
-    exp_timestamp = get_timestamp()
 
     # 路径全部转绝对路径
-    log_dir = str(Path(args.log_dir).resolve())
+    log_dir = str(Path(args.log_dir).resolve()) + f"/{args.exp_name}_{timestamp}"
     db_dir = str(Path(args.db_dir).resolve())
     data_dir = Path(__file__).resolve().parent.parent / "data"
 
-    ctm_collection = f"{args.exp_name}_{exp_timestamp}_correct_template_memory"
-    epm_collection = f"{args.exp_name}_{exp_timestamp}_error_pattern_memory"
+    if not args.disable_logging:
+        log_file = f"{log_dir}/train.log"
+        logger = get_logger(log_file)
+        logger.info("Args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False, sort_keys=True))
+
+    ctm_collection = f"{args.exp_name}_{timestamp}_correct_template_memory"
+    epm_collection = f"{args.exp_name}_{timestamp}_error_pattern_memory"
 
     print(f"log_dir:          {log_dir}")
     print(f"db_dir:           {db_dir}")
@@ -140,8 +134,8 @@ if __name__ == "__main__":
     memapo.train(train_set)
 
     # 保存两个memory的dict
-    ctm_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_ctm.json"
-    epm_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_epm.json"
+    ctm_save_path = f"{log_dir}/ctm.json"
+    epm_save_path = f"{log_dir}/epm.json"
     correct_template_memory.save_to_json(ctm_save_path)
     error_pattern_memory.save_to_json(epm_save_path)
     print(f"CTM saved to:     {ctm_save_path}")
@@ -167,11 +161,11 @@ if __name__ == "__main__":
         "dataset": args.dataset,
         "max_retries": args.max_retries,
     }
-    ckpt_config_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_checkpoint.json"
+    ckpt_config_path = f"{log_dir}/checkpoint.json"
     with open(ckpt_config_path, "w", encoding="utf-8") as f:
         json.dump(checkpoint_config, f, ensure_ascii=False, indent=2)
     print(f"Checkpoint config: {ckpt_config_path}")
 
-    test_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_test_results.json"
+    test_save_path = f"{log_dir}/test_results.json"
     memapo.test(test_set, test_save_path)
     print("Done!")
