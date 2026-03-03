@@ -1,6 +1,8 @@
 from retriever import Retriever
 from evaluator import Evaluator
 from updater import Updater
+from ctm import CorrectTemplateMemory
+from epm import ErrorPatternMemory
 from llm import LLMFactory
 from utils import extract_json, get_logger
 from prompts import (
@@ -34,6 +36,47 @@ class MemAPO:
         self.output_format = output_format
         self.eval_fn = eval_fn
         self.max_attempts = max_attempts
+
+    @classmethod
+    def from_checkpoint(
+        cls,
+        ctm_json_path: str,
+        epm_json_path: str,
+        db_dir: str = "./db",
+        ctm_collection: str = None,
+        epm_collection: str = None,
+        emb_model: str = None,
+        correct_threshold: float = 0.7,
+        correct_topk: int = 3,
+        max_templates: int = 30,
+        error_threshold: float = 0.7,
+        error_topk: int = 1,
+        model_name: str = None,
+        temperature: float = 0.,
+        init_instruction: str = None,
+        output_format: str = None,
+        eval_fn=None,
+        max_attempts: int = 3,
+        **kwargs,
+    ) -> "MemAPO":
+        """从之前训练保存的 checkpoint 恢复完整的 MemAPO 实例（含 memory + DB）。"""
+        ctm = CorrectTemplateMemory.from_checkpoint(
+            ctm_json_path, db_dir, ctm_collection, emb_model,
+            correct_threshold, correct_topk, max_templates,
+        )
+        epm = ErrorPatternMemory.from_checkpoint(
+            epm_json_path, db_dir, epm_collection, emb_model,
+            error_threshold, error_topk,
+        )
+        retriever = Retriever(ctm, epm)
+        evaluator = Evaluator()
+        updater = Updater(ctm, epm)
+        return cls(
+            retriever, evaluator, updater,
+            model_name, temperature,
+            init_instruction, output_format,
+            eval_fn, max_attempts, **kwargs,
+        )
 
     def process_train_sample(self, sample, *args, **kwargs):
         import os

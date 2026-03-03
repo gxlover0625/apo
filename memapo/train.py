@@ -147,6 +147,31 @@ if __name__ == "__main__":
     print(f"CTM saved to:     {ctm_save_path}")
     print(f"EPM saved to:     {epm_save_path}")
 
+    # 保存 checkpoint 配置，方便推理时 reuse
+    checkpoint_config = {
+        "ctm_json_path": ctm_save_path,
+        "epm_json_path": epm_save_path,
+        "db_dir": db_dir,
+        "ctm_collection": ctm_collection,
+        "epm_collection": epm_collection,
+        "embed_model": args.embed_model,
+        "correct_threshold": args.correct_threshold,
+        "correct_topk": args.correct_topk,
+        "max_templates": args.max_templates,
+        "error_threshold": args.error_threshold,
+        "error_topk": args.error_topk,
+        "llm_model": args.llm_model,
+        "llm_temperature": args.llm_temperature,
+        "init_instruction": init_instruction,
+        "output_format": output_format,
+        "dataset": args.dataset,
+        "max_retries": args.max_retries,
+    }
+    ckpt_config_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_checkpoint.json"
+    with open(ckpt_config_path, "w", encoding="utf-8") as f:
+        json.dump(checkpoint_config, f, ensure_ascii=False, indent=2)
+    print(f"Checkpoint config: {ckpt_config_path}")
+
     test_save_path = f"{log_dir}/{args.exp_name}_{exp_timestamp}_test_results.json"
     memapo.test(test_set, test_save_path)
     print("Done!")

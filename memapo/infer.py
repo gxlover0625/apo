@@ -1,0 +1,177 @@
+import json
+import numpy as np
+import random
+import os
+
+from dataclasses import dataclass, asdict
+from transformers import HfArgumentParser
+from pathlib import Path
+
+from utils import get_logger, get_timestamp
+from memapo_v2 import MemAPO
+from retriever import Retriever
+from evaluator import Evaluator
+from updater import Updater
+from ctm import CorrectTemplateMemory
+from epm import ErrorPatternMemory
+from task import get_eval_fn
+
+from textgrad.tasks import load_task
+
+@dataclass
+class InferArgs:
+    dataset:str = ""
+
+    correct_threshold:float = 0.7
+    correct_topk:int = 3
+    max_templates:int = 30
+
+    error_threshold:float = 0.7
+    error_topk:int = 1
+
+    max_retries:int = 3
+    embed_model:str = ""
+    llm_model:str = ""
+    llm_temperature:float = 0.7
+
+    disable_logging:bool = False
+    log_dir: str = "./logs"
+    db_dir: str = "./db"
+
+    exp_name:str = ""
+    seed:int = 42
+
+    # ---- reuse 相关 ----
+    checkpoint:str = ""            # checkpoint.json 路径，传了就走 reuse
+    ctm_json_path:str = ""         # 也可以手动指定各个路径
+    epm_json_path:str = ""
+    ctm_collection:str = ""
+    epm_collection:str = ""
+
+def seed_everything(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+
+def get_instruction_and_format(dataset:str):
+    if dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
+        init_instruction = """Identify geometric shapes from their SVG paths."""
+        output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+    elif dataset in ["Logical_Group", "BBH_logical_deduction_seven_objects", "bbeh_boardgame_qa"]:
+        init_instruction = """Let's solve the problem."""
+        output_format = "When you provide the final answer, please use the prefix \"The answer is:\" without any modification, and provide the answer directly, with no formatting, no bolding, and no markup. For instance: \"The answer is: 42\" or \"The answer is: yes\". If the question is multiple choice with a single correct answer, the final answer must only be the letter corresponding to the correct answer. For example, \"The answer is: (a)\""
+    elif dataset in ["gpqa"]:
+        init_instruction = """Let's solve the problem."""
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    elif dataset in ["agieval_aqua", "agieval_gaokao_math", "agieval_sat", "math_group", "gaokao_group"]:
+        init_instruction = """Let's solve the problem."""
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    elif dataset in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography", "human_group"]:
+        init_instruction = """Let's solve the problem."""
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    else:
+        init_instruction = """Let's solve the problem."""
+        output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    return init_instruction, output_format
+
+if __name__ == "__main__":
+    parser = HfArgumentParser(InferArgs)
+    args = parser.parse_args_into_dataclasses()[0]
+
+    seed_everything(args.seed)
+    timestamp = get_timestamp()
+
+    os.environ["disable_logging"] = "1" if args.disable_logging else "0"
+    log_dir = str(Path(args.log_dir).resolve())
+    db_dir = str(Path(args.db_dir).resolve())
+    data_dir = Path(__file__).resolve().parent.parent / "data"
+
+    if not args.disable_logging:
+        log_file = f"{log_dir}/{args.exp_name}_{timestamp}_infer.log"
+        logger = get_logger(log_file)
+        logger.info("Args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False, sort_keys=True))
+
+    # 如果传了 checkpoint，从中加载所有 reuse 配置
+    if args.checkpoint:
+        with open(args.checkpoint, "r", encoding="utf-8") as f:
+            ckpt = json.load(f)
+        # checkpoint 中的值作为默认值，命令行显式传的参数可覆盖
+        ctm_json_path = args.ctm_json_path or ckpt["ctm_json_path"]
+        epm_json_path = args.epm_json_path or ckpt["epm_json_path"]
+        ctm_collection = args.ctm_collection or ckpt["ctm_collection"]
+        epm_collection = args.epm_collection or ckpt["epm_collection"]
+        db_dir = db_dir if args.db_dir != "./db" else ckpt.get("db_dir", db_dir)
+        embed_model = args.embed_model or ckpt.get("embed_model", "")
+        dataset = args.dataset or ckpt["dataset"]
+        llm_model = args.llm_model or ckpt.get("llm_model", "")
+        llm_temperature = args.llm_temperature if args.llm_temperature != 0.7 else ckpt.get("llm_temperature", 0.7)
+        correct_threshold = args.correct_threshold if args.correct_threshold != 0.7 else ckpt.get("correct_threshold", 0.7)
+        correct_topk = args.correct_topk if args.correct_topk != 3 else ckpt.get("correct_topk", 3)
+        max_templates = args.max_templates if args.max_templates != 30 else ckpt.get("max_templates", 30)
+        error_threshold = args.error_threshold if args.error_threshold != 0.7 else ckpt.get("error_threshold", 0.7)
+        error_topk = args.error_topk if args.error_topk != 1 else ckpt.get("error_topk", 1)
+        max_retries = args.max_retries if args.max_retries != 3 else ckpt.get("max_retries", 3)
+        # 如果显式指定了新 dataset，instruction/format 跟着新 dataset 走
+        if args.dataset and args.dataset != ckpt.get("dataset"):
+            init_instruction, output_format = get_instruction_and_format(dataset)
+        else:
+            init_instruction = ckpt.get("init_instruction") or get_instruction_and_format(dataset)[0]
+            output_format = ckpt.get("output_format") or get_instruction_and_format(dataset)[1]
+        print(f"Loaded checkpoint: {args.checkpoint}")
+    else:
+        # 没有 checkpoint，需要手动指定 ctm/epm 路径和 collection
+        assert args.ctm_json_path and args.epm_json_path, \
+            "必须传 --checkpoint 或同时传 --ctm_json_path 和 --epm_json_path"
+        assert args.ctm_collection and args.epm_collection, \
+            "必须传 --checkpoint 或同时传 --ctm_collection 和 --epm_collection"
+        ctm_json_path = args.ctm_json_path
+        epm_json_path = args.epm_json_path
+        ctm_collection = args.ctm_collection
+        epm_collection = args.epm_collection
+        embed_model = args.embed_model
+        dataset = args.dataset
+        llm_model = args.llm_model
+        llm_temperature = args.llm_temperature
+        correct_threshold = args.correct_threshold
+        correct_topk = args.correct_topk
+        max_templates = args.max_templates
+        error_threshold = args.error_threshold
+        error_topk = args.error_topk
+        max_retries = args.max_retries
+        init_instruction, output_format = get_instruction_and_format(dataset)
+
+    print(f"db_dir:           {db_dir}")
+    print(f"ctm_collection:   {ctm_collection}")
+    print(f"epm_collection:   {epm_collection}")
+    print(f"ctm_json_path:    {ctm_json_path}")
+    print(f"epm_json_path:    {epm_json_path}")
+
+    # 从 checkpoint 恢复 memory
+    memapo = MemAPO.from_checkpoint(
+        ctm_json_path=ctm_json_path,
+        epm_json_path=epm_json_path,
+        db_dir=db_dir,
+        ctm_collection=ctm_collection,
+        epm_collection=epm_collection,
+        emb_model=embed_model,
+        correct_threshold=correct_threshold,
+        correct_topk=correct_topk,
+        max_templates=max_templates,
+        error_threshold=error_threshold,
+        error_topk=error_topk,
+        model_name=llm_model,
+        temperature=llm_temperature,
+        init_instruction=init_instruction,
+        output_format=output_format,
+        eval_fn=get_eval_fn(dataset),
+        max_attempts=max_retries,
+    )
+
+    # 准备数据 & 测试
+    _, _, test_set, _ = load_task(dataset, evaluation_api=None, data_dir=data_dir)
+    print(f"Test set size: {len(test_set)}")
+
+    test_save_path = f"{log_dir}/{args.exp_name}_{timestamp}_infer_results.json"
+    summary, results = memapo.test(test_set, test_save_path)
+    print(f"Accuracy: {summary['correct']}/{summary['total']} = {summary['accuracy']:.4f}")
+    print(f"Results saved to: {test_save_path}")
+    print("Done!")

@@ -33,6 +33,13 @@ def get_id(prefix:str=None):
         return f"{prefix}_{uid}"
     return uid
 
+def _fix_latex_escapes(json_str: str) -> str:
+    return re.sub(
+        r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})',
+        r'\\\\',
+        json_str,
+    )
+
 def extract_json(text: str) -> dict:
     code_block = re.search(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL)
     if code_block:
@@ -62,8 +69,15 @@ def extract_json(text: str) -> dict:
         elif ch == '}':
             depth -= 1
             if depth == 0:
+                raw = text[start:i + 1]
                 try:
-                    return json.loads(text[start:i + 1])
+                    return json.loads(raw)
                 except json.JSONDecodeError:
+                    pass
+                # 尝试修复 LaTeX 转义后重新解析
+                try:
+                    return json.loads(_fix_latex_escapes(raw))
+                except json.JSONDecodeError as e:
+                    print(e)
                     return None
     return None

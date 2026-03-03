@@ -195,6 +195,14 @@ class ErrorPatternMemory:
             k: ErrorPattern.from_dict(v) for k, v in data["error_pattern_clusters"].items()
         }
 
+    @classmethod
+    def from_checkpoint(cls, json_path: str, restore_path: str = "./db", collection_name: str = None,
+                        emb_model: str = None, threshold: float = None, topk: int = None):
+        """从之前保存的 JSON + 持久化 DB 恢复 ErrorPatternMemory。"""
+        obj = cls(restore_path, collection_name, emb_model, threshold, topk)
+        obj.load_from_json(json_path)
+        return obj
+
     def update(self, question:str, ground_truth:str, wrong_pred:str, reflection:str=None, client=None, *args, **kwargs):
         if not int(os.environ.get('disable_logging', '0')):
             logger = get_logger()

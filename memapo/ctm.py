@@ -193,6 +193,14 @@ class CorrectTemplateMemory:
             k: Template.from_dict(v) for k, v in data["all_templates"].items()
         }
 
+    @classmethod
+    def from_checkpoint(cls, json_path: str, restore_path: str = "./db", collection_name: str = None,
+                        emb_model: str = None, threshold: float = 0.7, topk: int = 3, max_templates: int = 30):
+        """从之前保存的 JSON + 持久化 DB 恢复 CorrectTemplateMemory。"""
+        obj = cls(restore_path, collection_name, emb_model, threshold, topk, max_templates)
+        obj.load_from_json(json_path)
+        return obj
+
     def update(self, used_templates, question:str=None, ground_truth:str=None, correct_pred:str=None, reflections:list=None, client=None, eval_fn=None, init_instruction:str=None, output_format:str=None, *args, **kwargs):
         _log = not int(os.environ.get('disable_logging', '0'))
         if _log:
