@@ -83,7 +83,7 @@ Completions.create = patched_create
 class MemAPOArgs:
     dataset:str = ""
 
-    correct_threshold:float = 0.7
+    correct_threshold:float = 0.3 # 第一次尝试的时候效果好，不一定是最好的
     correct_topk:int = 3
     max_templates:int = 30
 
