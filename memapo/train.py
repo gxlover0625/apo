@@ -44,13 +44,17 @@ class TokenMeter:
         with self.lock:
             self._stats[model]["cnt"] += 1
 
-    def report(self, verbose=True):
+    def report(self, verbose=True, logger=None):
         with self.lock:
             if verbose:
-                print("=" * 50)
+                lines = ["=" * 50]
                 for model, s in sorted(self._stats.items()):
-                    print(f"[TokenMeter] [{model}] calls={s['cnt']} | input={s['input_tokens']} | output={s['output_tokens']} | total={s['total_tokens']}")
-                print("=" * 50)
+                    lines.append(f"[TokenMeter] [{model}] calls={s['cnt']} | input={s['input_tokens']} | output={s['output_tokens']} | total={s['total_tokens']}")
+                lines.append("=" * 50)
+                for line in lines:
+                    print(line, flush=True)
+                if logger:
+                    logger.info("\n".join(lines))
 
 token_meter = TokenMeter()
 _original_create = Completions.create
@@ -195,7 +199,8 @@ if __name__ == "__main__":
     memapo.train(train_set)
 
     # 报告训练阶段 token 消耗
-    token_meter.report()
+    _logger = get_logger() if not args.disable_logging else None
+    token_meter.report(logger=_logger)
 
     # 保存两个memory的dict
     ctm_save_path = f"{log_dir}/ctm.json"
