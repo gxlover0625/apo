@@ -12,7 +12,7 @@ class _MultiLineFormatter(logging.Formatter):
         msg = record.getMessage()
         parts = msg.split(" | ")
         body = "\n  ".join(parts)
-        return f"{header}\n{body}"
+        return f"{header}\n{body}\n"
 
 def get_logger(log_file: str = None):
     logger = logging.getLogger("memapo")
