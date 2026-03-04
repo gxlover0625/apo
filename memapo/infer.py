@@ -2,10 +2,13 @@ import json
 import numpy as np
 import random
 import os
+import threading
 
 from dataclasses import dataclass, asdict
 from transformers import HfArgumentParser
 from pathlib import Path
+from openai.resources.chat.completions import Completions
+from collections import defaultdict
 
 from utils import get_logger, get_timestamp
 from memapo_v2 import MemAPO
@@ -17,6 +20,65 @@ from epm import ErrorPatternMemory
 from task import get_eval_fn
 
 from textgrad.tasks import load_task
+
+class TokenMeter:
+    def __init__(self):
+        self.lock = threading.Lock()
+        self._stats = defaultdict(lambda: {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cnt": 0,
+        })
+
+    def update(self, model: str, usage=None):
+        if usage is None:
+            return
+        with self.lock:
+            s = self._stats[model]
+            s["input_tokens"] += getattr(usage, "prompt_tokens", 0)
+            s["output_tokens"] += getattr(usage, "completion_tokens", 0)
+            s["total_tokens"] += getattr(usage, "total_tokens", 0)
+
+    def inc_cnt(self, model: str):
+        with self.lock:
+            self._stats[model]["cnt"] += 1
+
+    def report(self, verbose=True):
+        with self.lock:
+            if verbose:
+                print("=" * 50)
+                for model, s in sorted(self._stats.items()):
+                    print(f"[TokenMeter] [{model}] calls={s['cnt']} | input={s['input_tokens']} | output={s['output_tokens']} | total={s['total_tokens']}")
+                print("=" * 50)
+
+token_meter = TokenMeter()
+_original_create = Completions.create
+
+def patched_create(self, *args, **kwargs):
+    model = kwargs.get("model", "unknown")
+    is_stream = kwargs.get("stream", False)
+    if not is_stream:
+        response = _original_create(self, *args, **kwargs)
+        usage = getattr(response, "usage", None)
+        if usage:
+            token_meter.update(model, usage)
+        token_meter.inc_cnt(model)
+        return response
+    else:
+        response_stream = _original_create(self, *args, **kwargs)
+        def stream_wrapper():
+            final_usage = None
+            for chunk in response_stream:
+                if chunk.usage:
+                    final_usage = chunk.usage
+                yield chunk
+            token_meter.update(model, final_usage)
+            token_meter.inc_cnt(model)
+        return stream_wrapper()
+
+
+Completions.create = patched_create
 
 @dataclass
 class InferArgs:
@@ -174,4 +236,6 @@ if __name__ == "__main__":
     summary, results = memapo.test(test_set, test_save_path)
     print(f"Accuracy: {summary['correct']}/{summary['total']} = {summary['accuracy']:.4f}")
     print(f"Results saved to: {test_save_path}")
+
+    token_meter.report()
     print("Done!")
