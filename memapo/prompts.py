@@ -325,9 +325,10 @@ question: {question}
 correct_answer: {correct_pred}
 </NEW_GOOD_CASE>
 {reflections_block}
-You must decide an action for EACH recalled template, and optionally add new templates. Rules:
-- Each recalled template must appear EXACTLY ONCE in the actions list.
+Review each recalled template and decide whether any action is needed. Rules:
+- Each recalled template may appear AT MOST ONCE in the actions list. If a template needs no change and is not particularly relevant to the new case, you may simply omit it (no need to emit a "none" action for every template).
 - Each action targets ONE template.
+- Do NOT perform multiple actions on the same template_id.
 
 Available actions:
 
@@ -335,23 +336,26 @@ Available actions:
 2. **update**: The recalled template is relevant but its when_to_use or strategy can be enriched / made more comprehensive with information from the new case. Specify the template_id and provide updated fields.
    - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence. Set to null to keep unchanged.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available. Set to null to keep unchanged.
-3. **delete**: The recalled template conflicts with the new case (e.g. wrong strategy, contradictory advice) or is fully superseded. Specify the template_id.
-4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template. Create a new template. (Use sparingly — only when none of the recalled templates can be updated to cover this case.)
+3. **delete**: The recalled template is clearly WRONG or HARMFUL — its strategy would lead to incorrect answers. Specify the template_id.
+   DELETE IS IRREVERSIBLE. Only use this when the template's strategy is demonstrably incorrect or contradicts well-established reasoning. Do NOT delete a template merely because it is partially redundant or slightly outdated — use "update" instead. When in doubt, prefer "none" or "update" over "delete".
+4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template, AND none of the recalled templates can be reasonably updated to cover it. Create a new template.
+   ADD IS A LAST RESORT. Before choosing "add", verify that no recalled template can be updated (via "update") to cover the new case. Only use "add" when the new case is fundamentally different from all recalled templates.
    - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available.
 
 IMPORTANT:
 - Only use template_id values that appear in RECALLED_TEMPLATES above. Do NOT invent template_ids.
-- Every recalled template_id must appear exactly once across all actions.
+- Each template_id may appear AT MOST ONCE across all actions.
+- Every action MUST include an "analysis" field explaining your reasoning for choosing that action.
 
 You MUST respond with a JSON object containing an "actions" list:
 
 {{
     "actions": [
-        {{"action": "none", "template_id": "..."}},
-        {{"action": "update", "template_id": "...", "when_to_use": "... or null", "strategy": "... or null"}},
-        {{"action": "delete", "template_id": "..."}},
-        {{"action": "add", "when_to_use": "...", "strategy": "..."}}
+        {{"action": "none", "template_id": "...", "analysis": "why this template needs no change"}},
+        {{"action": "update", "template_id": "...", "analysis": "what the new case adds to this template", "when_to_use": "... or null", "strategy": "... or null"}},
+        {{"action": "delete", "template_id": "...", "analysis": "why this template is wrong or harmful and must be removed"}},
+        {{"action": "add", "analysis": "why no existing template can cover this case", "when_to_use": "...", "strategy": "..."}}
     ]
 }}
 """
