@@ -95,6 +95,7 @@ class InferArgs:
     embed_model:str = ""
     llm_model:str = ""
     llm_temperature:float = 0.7
+    num_workers:int = 1  # 推理并发线程数，>1 时启用多线程
 
     disable_logging:bool = False
     log_dir: str = "./logs"
@@ -233,7 +234,8 @@ if __name__ == "__main__":
     print(f"Test set size: {len(test_set)}")
 
     test_save_path = f"{log_dir}/infer_results.json"
-    summary, results = memapo.test(test_set, test_save_path)
+    print(f"num_workers: {args.num_workers}")
+    summary, results = memapo.test(test_set, test_save_path, num_workers=args.num_workers)
     print(f"Accuracy: {summary['correct']}/{summary['total']} = {summary['accuracy']:.4f}")
     print(f"Results saved to: {test_save_path}")
 

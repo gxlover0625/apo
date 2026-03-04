@@ -1,3 +1,9 @@
+import json
+import os
+import threading
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from retriever import Retriever
 from evaluator import Evaluator
 from updater import Updater
@@ -79,7 +85,6 @@ class MemAPO:
         )
 
     def process_train_sample(self, sample, *args, **kwargs):
-        import os
         _log = not int(os.environ.get('disable_logging', '0'))
         if _log:
             logger = get_logger()
@@ -172,7 +177,6 @@ class MemAPO:
             self.process_train_sample(sample, *args, **kwargs)
 
     def process_test_sample(self, sample, *args, **kwargs):
-        import os
         _log = not int(os.environ.get('disable_logging', '0'))
         if _log:
             logger = get_logger()
@@ -201,28 +205,52 @@ class MemAPO:
             "retrieved_error_patterns": len(error_patterns),
         }
 
-    def test(self, test_set:list, save_path:str=None, *args, **kwargs):
-        import json
-        import os
-        from pathlib import Path
+    def test(self, test_set:list, save_path:str=None, num_workers:int=1, *args, **kwargs):
         _log = not int(os.environ.get('disable_logging', '0'))
         if _log:
             logger = get_logger()
 
-        results = []
-        correct_count = 0
-        total_count = 0
+        num_workers = max(1, num_workers)
 
-        for sample in test_set:
-            record = self.process_test_sample(sample, *args, **kwargs)
-            results.append(record)
-            total_count += 1
-            if record["is_correct"]:
-                correct_count += 1
+        if num_workers == 1:
+            # 单线程：保持原有顺序执行逻辑
+            results = []
+            correct_count = 0
+            total_count = 0
+            for sample in test_set:
+                record = self.process_test_sample(sample, *args, **kwargs)
+                results.append(record)
+                total_count += 1
+                if record["is_correct"]:
+                    correct_count += 1
+                if _log:
+                    logger.info("[MemAPO-Test] progress=%d/%d | running_accuracy=%.4f",
+                                total_count, len(test_set), correct_count / total_count)
+        else:
+            # 多线程并发推理
+            results = [None] * len(test_set)
+            correct_count = 0
+            total_count = 0
+            _lock = threading.Lock()
 
-            if _log:
-                logger.info("[MemAPO-Test] progress=%d/%d | running_accuracy=%.4f",
-                            total_count, len(test_set), correct_count / total_count)
+            def _worker(idx, sample):
+                return idx, self.process_test_sample(sample, *args, **kwargs)
+
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                futures = {
+                    executor.submit(_worker, i, sample): i
+                    for i, sample in enumerate(test_set)
+                }
+                for future in as_completed(futures):
+                    idx, record = future.result()
+                    results[idx] = record
+                    with _lock:
+                        total_count += 1
+                        if record["is_correct"]:
+                            correct_count += 1
+                        if _log:
+                            logger.info("[MemAPO-Test] progress=%d/%d | running_accuracy=%.4f",
+                                        total_count, len(test_set), correct_count / total_count)
 
         accuracy = correct_count / total_count if total_count > 0 else 0.0
         summary = {
