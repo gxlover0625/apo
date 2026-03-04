@@ -274,12 +274,12 @@ Instructions:
 2. Abstract the general solution procedure based on the successful reasoning trajectory. Describe the key reasoning or analysis steps needed to solve this type of problem. Each step should represent a high-level reasoning operation and can be directly reusable for a new problem that matches the same scenario. Keep the steps minimal, non-redundant, and sufficient for a single-pass solution attempt.
 3. If prior failed attempts and reflections are provided, incorporate the lessons learned as pitfalls to avoid in the strategy.
 4. Produce:
-   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it)
+   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to. Write it as if describing the question itself, so it can match similar questions during retrieval. Cover: (a) scenario — what the question is concretely about (e.g., 'calculate profit given cost and selling price', 'choose K items from N with constraints'); (b) surface clues — keywords, phrases, or condition patterns that typically appear in such questions (e.g., 'at least / at most', 'given that ... find the probability', 'which of the following must be true'); (c) core challenge — what makes this question tricky (e.g., 'requires distinguishing between permutation and combination', 'easy to confuse sufficient vs. necessary conditions'). Combine into one concise sentence.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available
 
 You MUST respond with a JSON object in exactly this format and nothing else:
 {{
-    "when_to_use": "one-sentence description of the applicable scenario",
+    "when_to_use": "one-sentence description covering scenario, surface clues, and core challenge",
     "strategy": "concise general reasoning strategy for this type of problem"
 }}
 """
@@ -333,11 +333,11 @@ Available actions:
 
 1. **none**: The recalled template already covers this case well (semantically equivalent). Keep it unchanged. Specify the template_id.
 2. **update**: The recalled template is relevant but its when_to_use or strategy can be enriched / made more comprehensive with information from the new case. Specify the template_id and provide updated fields.
-   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it). Set to null to keep unchanged.
+   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence. Set to null to keep unchanged.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available. Set to null to keep unchanged.
 3. **delete**: The recalled template conflicts with the new case (e.g. wrong strategy, contradictory advice) or is fully superseded. Specify the template_id.
 4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template. Create a new template. (Use sparingly — only when none of the recalled templates can be updated to cover this case.)
-   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it).
+   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available.
 
 IMPORTANT:
@@ -407,7 +407,7 @@ You MUST respond with a JSON object in exactly this format and nothing else:
         {{
             "template_ids": ["1", "3"],
             "reason": "brief explanation of why these templates should be merged",
-            "merged_when_to_use": "combined scenario description covering all merged templates",
+            "merged_when_to_use": "combined description covering all merged templates — include scenario, surface clues, and core challenge",
             "merged_strategy": "combined strategy incorporating the best of each template"
         }}
     ]
