@@ -233,7 +233,13 @@ if __name__ == "__main__":
     ckpt_config_path = f"{log_dir}/checkpoint.json"
     with open(ckpt_config_path, "w", encoding="utf-8") as f:
         json.dump(checkpoint_config, f, ensure_ascii=False, indent=2)
-    print(f"Checkpoint config: {ckpt_config_path}")
+    print(f"Checkpoint config: {ckpt_config_path}", flush=True)
+
+    # 写一个 latest_checkpoint.txt 方便脚本串联
+    latest_ckpt_path = str(Path(args.log_dir).resolve() / f"latest_checkpoint_{args.exp_name}.txt")
+    with open(latest_ckpt_path, "w") as f:
+        f.write(str(Path(ckpt_config_path).resolve()))
+    print(f"Latest checkpoint pointer: {latest_ckpt_path}", flush=True)
 
     test_save_path = f"{log_dir}/test_results.json"
     memapo.test(test_set, test_save_path)
