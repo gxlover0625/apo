@@ -30,7 +30,8 @@ Below are retrieved templates. Use their strategies as guidance. Each template i
 """
 
 REFLECTIONS_BLOCK = """<REFLECTIONS>
-You have attempted this question before and failed. Learn from your mistakes and do NOT repeat them.
+You have attempted this question before and FAILED. The following are mandatory checks distilled from your previous mistakes.
+Treat each item as a MUST-FOLLOW checklist — verify every point before producing your final answer.
 {reflections}
 </REFLECTIONS>
 """
@@ -60,16 +61,16 @@ def render_templates_block(templates) -> str:
     return TEMPLATES_BLOCK.format(templates="\n\n".join(blocks))
 
 def render_reflections_block(reflections: list) -> str:
-    """reflections: list of dict, each with keys 'attempt', 'wrong_pred', 'reflection'"""
+    """reflections: list of dict, each with keys 'attempt', 'analysis', 'reflection'"""
     if not reflections:
         return ""
     blocks = [
         "\n".join([
-            f"[Attempt {r['attempt']}]",
-            f"wrong_answer: {r['wrong_pred']}",
-            f"reflection: {r['reflection']}",
+            f"[Check {i}]",
+            f"error_summary: {r.get('analysis', '')}",
+            f"action: {r['reflection']}",
         ])
-        for r in reflections
+        for i, r in enumerate(reflections, 1)
     ]
     return REFLECTIONS_BLOCK.format(reflections="\n\n".join(blocks))
 
@@ -82,7 +83,7 @@ def build_generation_user_prompt(question: str, output_format: str, templates, r
     )
 
 REFLECTION_SYS_PROMPT = """You are a precise self-reflection assistant.
-Your job: analyze why the previous answer was wrong and extract a concise, actionable lesson.
+Your job: diagnose the root cause of a wrong answer and produce a concrete, executable check that would have caught the mistake.
 """
 
 REFLECTION_USER_PROMPT = """Your previous answer to the following question is likely WRONG. Re-examine your reasoning and find the mistake.
@@ -97,14 +98,14 @@ REFLECTION_USER_PROMPT = """Your previous answer to the following question is li
 {prior_reflections}
 Instructions:
 1. Re-read the question carefully and check whether your answer actually addresses all constraints and conditions.
-2. Trace through your reasoning step by step — identify any logical gaps, unjustified assumptions, or calculation errors.
+2. Trace through your reasoning step by step — pinpoint the EXACT step where the error occurs (e.g., misread a condition, wrong formula, arithmetic slip, overlooked edge case).
 3. Consider alternative interpretations or approaches you may have overlooked.
-4. If prior reflections exist, do NOT repeat the same analysis — dig deeper or try a completely different angle.
+4. If prior reflections exist, do NOT repeat the same diagnosis — dig deeper or try a completely different angle.
 
 You MUST respond with a JSON object in exactly this format and nothing else:
 {{
-    "analysis": "your detailed step-by-step analysis of what went wrong", 
-    "reflection": "one-sentence actionable lesson to avoid this mistake next time"
+    "analysis": "The wrong answer is <your_wrong_answer>, then diagnose the root cause — identify WHICH step went wrong and WHY",
+    "reflection": "a concrete, executable check-action that can be directly applied before answering (e.g., 'Verify that the denominator is non-zero before dividing', 'Re-read the question to confirm whether it asks for the minimum or maximum')"
 }}
 """
 
