@@ -333,15 +333,9 @@ class CorrectTemplateMemory:
                             strategy=_ensure_str_strategy(item.get("strategy", "")),
                         )
                     else:
-                        # 验证失败，不动原 template，创建新 template
+                        # 验证失败，跳过更新，保持原 template 不变
                         if _log:
-                            logger.info("[CTM] update | action=update | template_id=%s | validation FAILED -> creating fallback new template", template_id)
-                        fallback = Template(
-                            when_to_use=new_wtu,
-                            strategy=new_stg,
-                            good_cases=[good_case],
-                        )
-                        self.add_template(fallback)
+                            logger.info("[CTM] update | action=update | template_id=%s | validation FAILED -> skipping, keeping original template unchanged", template_id)
 
                 elif action == "delete":
                     seq_id = str(item.get("template_id", ""))
