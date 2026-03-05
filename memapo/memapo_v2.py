@@ -120,14 +120,12 @@ class MemAPO:
             reflection_raw = self.client.generate(reflection_user_prompt, reflect_sys_prompt)
             reflection_json = extract_json(reflection_raw)
             reflection_text = reflection_json["reflection"] if reflection_json else reflection_raw
-            analysis_text = reflection_json.get("analysis", "") if reflection_json else ""
             if _log:
                 logger.info("[MemAPO] Stage-2 | attempt %d WRONG -> reflection extracted (json=%s): %s",
                             attempt, reflection_json is not None, reflection_text[:100])
             reflections.append({
                 "attempt": attempt,
                 "wrong_pred": pred,
-                "analysis": analysis_text,
                 "reflection": reflection_text,
             })
 

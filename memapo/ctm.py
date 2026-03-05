@@ -276,7 +276,6 @@ class CorrectTemplateMemory:
                 if not isinstance(item, dict):
                     continue
                 action = item.get("action", "")
-                analysis = item.get("analysis", "")
 
                 if action == "add":
                     wtu = item.get("when_to_use", "")
@@ -291,8 +290,7 @@ class CorrectTemplateMemory:
                         good_cases=[good_case],
                     )
                     if _log:
-                        logger.info("[CTM] update | action=add | analysis=%s | new_template_id=%s | when_to_use=%s",
-                                    analysis[:200], new_template.idx, wtu[:100])
+                        logger.info("[CTM] update | action=add | new_template_id=%s | when_to_use=%s", new_template.idx, wtu[:100])
                     self.add_template(new_template)
 
                 elif action == "update":
@@ -351,8 +349,8 @@ class CorrectTemplateMemory:
                         continue
                     processed_ids.add(template_id)
                     if _log:
-                        logger.info("[CTM] update | action=delete | template_id=%s | analysis=%s | when_to_use=%s",
-                                    template_id, analysis[:200], self.all_templates[template_id].when_to_use[:100])
+                        logger.info("[CTM] update | action=delete | template_id=%s | when_to_use=%s",
+                                    template_id, self.all_templates[template_id].when_to_use[:100])
                     self.delete_template(template_id)
 
                 elif action == "none":

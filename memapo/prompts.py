@@ -30,8 +30,7 @@ Below are retrieved templates. Use their strategies as guidance. Each template i
 """
 
 REFLECTIONS_BLOCK = """<REFLECTIONS>
-You have attempted this question before and FAILED. The following are mandatory checks distilled from your previous mistakes.
-Treat each item as a MUST-FOLLOW checklist — verify every point before producing your final answer.
+You have attempted this question before and failed. Learn from your mistakes and do NOT repeat them.
 {reflections}
 </REFLECTIONS>
 """
@@ -61,16 +60,16 @@ def render_templates_block(templates) -> str:
     return TEMPLATES_BLOCK.format(templates="\n\n".join(blocks))
 
 def render_reflections_block(reflections: list) -> str:
-    """reflections: list of dict, each with keys 'attempt', 'analysis', 'reflection'"""
+    """reflections: list of dict, each with keys 'attempt', 'wrong_pred', 'reflection'"""
     if not reflections:
         return ""
     blocks = [
         "\n".join([
-            f"[Check {i}]",
-            f"error_summary: {r.get('analysis', '')}",
-            f"action: {r['reflection']}",
+            f"[Attempt {r['attempt']}]",
+            f"wrong_answer: {r['wrong_pred']}",
+            f"reflection: {r['reflection']}",
         ])
-        for i, r in enumerate(reflections, 1)
+        for r in reflections
     ]
     return REFLECTIONS_BLOCK.format(reflections="\n\n".join(blocks))
 
@@ -83,7 +82,7 @@ def build_generation_user_prompt(question: str, output_format: str, templates, r
     )
 
 REFLECTION_SYS_PROMPT = """You are a precise self-reflection assistant.
-Your job: diagnose the root cause of a wrong answer and produce a concrete, executable check that would have caught the mistake.
+Your job: analyze why the previous answer was wrong and extract a concise, actionable lesson.
 """
 
 REFLECTION_USER_PROMPT = """Your previous answer to the following question is likely WRONG. Re-examine your reasoning and find the mistake.
@@ -98,14 +97,14 @@ REFLECTION_USER_PROMPT = """Your previous answer to the following question is li
 {prior_reflections}
 Instructions:
 1. Re-read the question carefully and check whether your answer actually addresses all constraints and conditions.
-2. Trace through your reasoning step by step — pinpoint the EXACT step where the error occurs (e.g., misread a condition, wrong formula, arithmetic slip, overlooked edge case).
+2. Trace through your reasoning step by step — identify any logical gaps, unjustified assumptions, or calculation errors.
 3. Consider alternative interpretations or approaches you may have overlooked.
-4. If prior reflections exist, do NOT repeat the same diagnosis — dig deeper or try a completely different angle.
+4. If prior reflections exist, do NOT repeat the same analysis — dig deeper or try a completely different angle.
 
 You MUST respond with a JSON object in exactly this format and nothing else:
 {{
-    "analysis": "The wrong answer is <your_wrong_answer>, then diagnose the root cause — identify WHICH step went wrong and WHY",
-    "reflection": "a concrete, executable check-action that can be directly applied before answering (e.g., 'Verify that the denominator is non-zero before dividing', 'Re-read the question to confirm whether it asks for the minimum or maximum')"
+    "analysis": "your detailed step-by-step analysis of what went wrong", 
+    "reflection": "one-sentence actionable lesson to avoid this mistake next time"
 }}
 """
 
@@ -274,12 +273,12 @@ Instructions:
 2. Abstract the general solution procedure based on the successful reasoning trajectory. Describe the key reasoning or analysis steps needed to solve this type of problem. Each step should represent a high-level reasoning operation and can be directly reusable for a new problem that matches the same scenario. Keep the steps minimal, non-redundant, and sufficient for a single-pass solution attempt.
 3. If prior failed attempts and reflections are provided, incorporate the lessons learned as pitfalls to avoid in the strategy.
 4. Produce:
-   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to. Write it as if describing the question itself, so it can match similar questions during retrieval. Cover: (a) scenario — what the question is concretely about (e.g., 'calculate profit given cost and selling price', 'choose K items from N with constraints'); (b) surface clues — keywords, phrases, or condition patterns that typically appear in such questions (e.g., 'at least / at most', 'given that ... find the probability', 'which of the following must be true'); (c) core challenge — what makes this question tricky (e.g., 'requires distinguishing between permutation and combination', 'easy to confuse sufficient vs. necessary conditions'). Combine into one concise sentence.
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it)
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available
 
 You MUST respond with a JSON object in exactly this format and nothing else:
 {{
-    "when_to_use": "one-sentence description covering scenario, surface clues, and core challenge",
+    "when_to_use": "one-sentence description of the applicable scenario",
     "strategy": "concise general reasoning strategy for this type of problem"
 }}
 """
@@ -325,37 +324,33 @@ question: {question}
 correct_answer: {correct_pred}
 </NEW_GOOD_CASE>
 {reflections_block}
-Review each recalled template and decide whether any action is needed. Rules:
-- Each recalled template may appear AT MOST ONCE in the actions list. If a template needs no change and is not particularly relevant to the new case, you may simply omit it (no need to emit a "none" action for every template).
+You must decide an action for EACH recalled template, and optionally add new templates. Rules:
+- Each recalled template must appear EXACTLY ONCE in the actions list.
 - Each action targets ONE template.
-- Do NOT perform multiple actions on the same template_id.
 
 Available actions:
 
 1. **none**: The recalled template already covers this case well (semantically equivalent). Keep it unchanged. Specify the template_id.
 2. **update**: The recalled template is relevant but its when_to_use or strategy can be enriched / made more comprehensive with information from the new case. Specify the template_id and provide updated fields.
-   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence. Set to null to keep unchanged.
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it). Set to null to keep unchanged.
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available. Set to null to keep unchanged.
-3. **delete**: The recalled template is clearly WRONG or HARMFUL — its strategy would lead to incorrect answers. Specify the template_id.
-   DELETE IS IRREVERSIBLE. Only use this when the template's strategy is demonstrably incorrect or contradicts well-established reasoning. Do NOT delete a template merely because it is partially redundant or slightly outdated — use "update" instead. When in doubt, prefer "none" or "update" over "delete".
-4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template, AND none of the recalled templates can be reasonably updated to cover it. Create a new template.
-   ADD IS A LAST RESORT. Before choosing "add", verify that no recalled template can be updated (via "update") to cover the new case. Only use "add" when the new case is fundamentally different from all recalled templates.
-   - "when_to_use": describe WHAT KIND OF QUESTION this template applies to, covering: (a) scenario — what the question is concretely about, (b) surface clues — keywords or condition patterns in the question, (c) core challenge — what makes it tricky. Combine into one concise sentence.
+3. **delete**: The recalled template conflicts with the new case (e.g. wrong strategy, contradictory advice) or is fully superseded. Specify the template_id.
+4. **add**: The new case represents a genuinely new problem type not covered by ANY recalled template. Create a new template. (Use sparingly — only when none of the recalled templates can be updated to cover this case.)
+   - "when_to_use": a concise description of WHEN this template should be applied (what kind of question/scenario triggers it).
    - "strategy": the abstracted step-by-step reasoning procedure for this type of problem, including pitfalls to avoid if reflections are available.
 
 IMPORTANT:
 - Only use template_id values that appear in RECALLED_TEMPLATES above. Do NOT invent template_ids.
-- Each template_id may appear AT MOST ONCE across all actions.
-- Every action MUST include an "analysis" field explaining your reasoning for choosing that action.
+- Every recalled template_id must appear exactly once across all actions.
 
 You MUST respond with a JSON object containing an "actions" list:
 
 {{
     "actions": [
-        {{"action": "none", "template_id": "...", "analysis": "why this template needs no change"}},
-        {{"action": "update", "template_id": "...", "analysis": "what the new case adds to this template", "when_to_use": "... or null", "strategy": "... or null"}},
-        {{"action": "delete", "template_id": "...", "analysis": "why this template is wrong or harmful and must be removed"}},
-        {{"action": "add", "analysis": "why no existing template can cover this case", "when_to_use": "...", "strategy": "..."}}
+        {{"action": "none", "template_id": "..."}},
+        {{"action": "update", "template_id": "...", "when_to_use": "... or null", "strategy": "... or null"}},
+        {{"action": "delete", "template_id": "..."}},
+        {{"action": "add", "when_to_use": "...", "strategy": "..."}}
     ]
 }}
 """
@@ -411,7 +406,7 @@ You MUST respond with a JSON object in exactly this format and nothing else:
         {{
             "template_ids": ["1", "3"],
             "reason": "brief explanation of why these templates should be merged",
-            "merged_when_to_use": "combined description covering all merged templates — include scenario, surface clues, and core challenge",
+            "merged_when_to_use": "combined scenario description covering all merged templates",
             "merged_strategy": "combined strategy incorporating the best of each template"
         }}
     ]
