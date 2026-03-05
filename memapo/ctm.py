@@ -9,6 +9,13 @@ from uuid import uuid4
 
 from storage import VectorStore
 from utils import get_id, get_timestamp, extract_json, get_logger
+
+
+def _ensure_str_strategy(value) -> str:
+    """LLM 有时会把 strategy 输出为 list，统一转成编号字符串。"""
+    if isinstance(value, list):
+        return " ".join(f"{i}. {s}" for i, s in enumerate(value, 1) if isinstance(s, str) and s.strip())
+    return value if isinstance(value, str) else str(value)
 from prompts import (
     build_create_template_sys_prompt,
     build_create_template_user_prompt,
@@ -217,7 +224,7 @@ class CorrectTemplateMemory:
 
             if result:
                 when_to_use = result.get("when_to_use", "")
-                strategy = result.get("strategy", "")
+                strategy = _ensure_str_strategy(result.get("strategy", ""))
                 if _log:
                     logger.info("[CTM] update | LLM returned valid JSON | when_to_use=%s | strategy=%s", when_to_use[:100], strategy[:100])
             else:
@@ -279,7 +286,7 @@ class CorrectTemplateMemory:
 
                 if action == "add":
                     wtu = item.get("when_to_use", "")
-                    stg = item.get("strategy", "")
+                    stg = _ensure_str_strategy(item.get("strategy", ""))
                     if not wtu or not stg:
                         if _log:
                             logger.info("[CTM] update | action=add skipped: missing when_to_use or strategy")
@@ -309,7 +316,7 @@ class CorrectTemplateMemory:
                     # 先构造修改后的临时 template 做验证
                     original = self.all_templates[template_id]
                     new_wtu = item.get("when_to_use", "") or original.when_to_use
-                    new_stg = item.get("strategy", "") or original.strategy
+                    new_stg = _ensure_str_strategy(item.get("strategy", "")) or original.strategy
                     temp_template = Template(when_to_use=new_wtu, strategy=new_stg, good_cases=list(original.good_cases))
                     temp_template.idx = original.idx
                     if _log:
@@ -323,7 +330,7 @@ class CorrectTemplateMemory:
                         self.update_template(
                             template_id=template_id,
                             when_to_use=item.get("when_to_use", ""),
-                            strategy=item.get("strategy", ""),
+                            strategy=_ensure_str_strategy(item.get("strategy", "")),
                         )
                     else:
                         # 验证失败，不动原 template，创建新 template
@@ -428,7 +435,7 @@ class CorrectTemplateMemory:
                 continue
 
             merged_wtu = group.get("merged_when_to_use", "")
-            merged_stg = group.get("merged_strategy", "")
+            merged_stg = _ensure_str_strategy(group.get("merged_strategy", ""))
             if not merged_wtu or not merged_stg:
                 if _log:
                     logger.info("[CTM] merge_templates | group skipped: missing merged_when_to_use or merged_strategy | real_ids=%s", real_ids)
