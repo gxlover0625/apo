@@ -241,6 +241,6 @@ if __name__ == "__main__":
         f.write(str(Path(ckpt_config_path).resolve()))
     print(f"Latest checkpoint pointer: {latest_ckpt_path}", flush=True)
 
-    test_save_path = f"{log_dir}/test_results.json"
-    memapo.test(test_set, test_save_path)
+    # test_save_path = f"{log_dir}/test_results.json"
+    # memapo.test(test_set, test_save_path)
     print("Done!")

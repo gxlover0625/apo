@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 from utils import get_logger
 
 class LLMProvider(ABC):
-    @retry(stop=stop_after_attempt(3), wait=wait_random_exponential(min=1, max=10))
+    @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(min=1, max=20))
     def generate(self, *args, **kwargs):
         return self._generate(*args, **kwargs)
 
@@ -157,6 +157,17 @@ class LLMFactory:
                 }
             }
             return OpenAIStreamProvider(model=model_name, extra_params=extra_params)
+        elif model_name.lower() in ["qwen3-32b", "qwen3-14b"]:
+            extra_params = {
+                "frequency_penalty": 0.8,
+                "presence_penalty": 0.3,
+                "temperature": temperature,
+                "max_tokens": 5000,
+                "extend_fields": {
+                    "chat_template_kwargs": {"enable_thinking": False}
+                },
+            }
+            return WhaleProvider(model=model_name, extra_params=extra_params)
         else:
             extra_params = {
                 "temperature": temperature,
