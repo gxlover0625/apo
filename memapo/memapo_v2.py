@@ -90,7 +90,16 @@ class MemAPO:
             logger = get_logger()
 
         # Stage-1: Memory Retrieve
-        question, ground_truth = sample
+        if len(sample) == 2:
+            question, ground_truth = sample
+        else:
+            question = sample[0]
+            ground_truth = None
+
+        # 如果 eval_fn 是 LLMJudge，设置当前 question 上下文
+        if hasattr(self.eval_fn, 'set_question'):
+            self.eval_fn.set_question(question)
+
         templates, error_patterns = self.retriever.retrieve(question, *args, **kwargs)
         if _log:
             logger.info("[MemAPO] Stage-1 Retrieve | question=%s | retrieved_templates=%d | retrieved_error_patterns=%d",
@@ -179,7 +188,16 @@ class MemAPO:
         if _log:
             logger = get_logger()
 
-        question, ground_truth = sample
+        if len(sample) == 2:
+            question, ground_truth = sample
+        else:
+            question = sample[0]
+            ground_truth = None
+
+        # 如果 eval_fn 是 LLMJudge，设置当前 question 上下文
+        if hasattr(self.eval_fn, 'set_question'):
+            self.eval_fn.set_question(question)
+
         templates, error_patterns = self.retriever.retrieve(question, *args, **kwargs)
 
         gen_sys_prompt = build_generation_sys_prompt(self.init_instruction, error_patterns)
@@ -189,7 +207,7 @@ class MemAPO:
 
         if _log:
             logger.info("[MemAPO-Test] question=%s | ground_truth=%s | pred=%s | is_correct=%s | templates=%d | error_patterns=%d",
-                        question[:100], ground_truth[:100], pred[:100], is_correct,
+                        question[:100], (ground_truth or '')[:100], pred[:100], is_correct,
                         len(templates), len(error_patterns))
 
         return {

@@ -106,7 +106,7 @@ def gpqa_eval_fn(prediction: str, ground_truth_answer: str):
     ref = ground_truth_answer
     return pred == ref
 
-def get_eval_fn(dataset_name:str):
+def get_eval_fn(dataset_name:str, judge_model:str=None, judge_threshold:float=7.0):
     if dataset_name in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes", "Logical_Group", "BBH_logical_deduction_seven_objects", "bbeh_boardgame_qa"]:
         return bbeh_mcq_eval_fn
     elif dataset_name in ["gpqa"]:
@@ -115,4 +115,9 @@ def get_eval_fn(dataset_name:str):
         return gpqa_eval_fn
     elif dataset_name in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography", "human_group"]:
         return gpqa_eval_fn
+    elif dataset_name in ["mt_bench"]:
+        from judge import LLMJudge
+        return LLMJudge(judge_model=judge_model, threshold=judge_threshold)
+    else:
+        return None
 

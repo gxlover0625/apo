@@ -26,7 +26,7 @@ class BadCase:
         return {
             "idx": self.idx,
             "question": self.question,
-            "ground_truth": self.ground_truth,
+            "ground_truth": self.ground_truth or "",
             "wrong_pred": self.wrong_pred,
             "reflection": self.reflection,
         }
@@ -35,7 +35,7 @@ class BadCase:
     def from_dict(cls, d: dict) -> "BadCase":
         obj = cls(
             question=d["question"],
-            ground_truth=d["ground_truth"],
+            ground_truth=d.get("ground_truth") or None,
             wrong_pred=d["wrong_pred"],
             reflection=d.get("reflection"),
             idx=d["idx"],

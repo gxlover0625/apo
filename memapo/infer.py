@@ -87,6 +87,7 @@ Completions.create = patched_create
 @dataclass
 class InferArgs:
     dataset:str = ""
+    category:str = ""
 
     correct_threshold:float = 0.1 # 第一次尝试的时候效果好，不一定是最好的
     correct_topk:int = 3
@@ -100,6 +101,9 @@ class InferArgs:
     llm_model:str = ""
     llm_temperature:float = 0.7
     num_workers:int = 1  # 推理并发线程数，>1 时启用多线程
+
+    judge_model:str = ""
+    judge_threshold:float = 7.0
 
     disable_logging:bool = False
     log_dir: str = "./logs"
@@ -135,6 +139,9 @@ def get_instruction_and_format(dataset:str):
     elif dataset in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography", "human_group"]:
         init_instruction = """Let's solve the problem."""
         output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    elif dataset in ["mt_bench"]:
+        init_instruction = ""
+        output_format = ""
     else:
         init_instruction = """Let's solve the problem."""
         output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
@@ -161,7 +168,6 @@ if __name__ == "__main__":
     if args.checkpoint:
         with open(args.checkpoint, "r", encoding="utf-8") as f:
             ckpt = json.load(f)
-        # checkpoint 中的值作为默认值，命令行显式传的参数可覆盖
         ctm_json_path = args.ctm_json_path or ckpt["ctm_json_path"]
         epm_json_path = args.epm_json_path or ckpt["epm_json_path"]
         ctm_collection = args.ctm_collection or ckpt["ctm_collection"]
@@ -177,7 +183,6 @@ if __name__ == "__main__":
         error_threshold = args.error_threshold if args.error_threshold != 0.7 else ckpt.get("error_threshold", 0.7)
         error_topk = args.error_topk if args.error_topk != 1 else ckpt.get("error_topk", 1)
         max_retries = args.max_retries if args.max_retries != 3 else ckpt.get("max_retries", 3)
-        # 如果显式指定了新 dataset，instruction/format 跟着新 dataset 走
         if args.dataset and args.dataset != ckpt.get("dataset"):
             init_instruction, output_format = get_instruction_and_format(dataset)
         else:
@@ -185,7 +190,6 @@ if __name__ == "__main__":
             output_format = ckpt.get("output_format") or get_instruction_and_format(dataset)[1]
         print(f"Loaded checkpoint: {args.checkpoint}")
     else:
-        # 没有 checkpoint，需要手动指定 ctm/epm 路径和 collection
         assert args.ctm_json_path and args.epm_json_path, \
             "必须传 --checkpoint 或同时传 --ctm_json_path 和 --epm_json_path"
         assert args.ctm_collection and args.epm_collection, \
@@ -212,7 +216,6 @@ if __name__ == "__main__":
     print(f"ctm_json_path:    {ctm_json_path}")
     print(f"epm_json_path:    {epm_json_path}")
 
-    # 从 checkpoint 恢复 memory
     memapo = MemAPO.from_checkpoint(
         ctm_json_path=ctm_json_path,
         epm_json_path=epm_json_path,
@@ -229,12 +232,11 @@ if __name__ == "__main__":
         temperature=llm_temperature,
         init_instruction=init_instruction,
         output_format=output_format,
-        eval_fn=get_eval_fn(dataset),
+        eval_fn=get_eval_fn(dataset, judge_model=args.judge_model, judge_threshold=args.judge_threshold),
         max_attempts=max_retries,
     )
 
-    # 准备数据 & 测试
-    _, _, test_set, _ = load_task(dataset, evaluation_api=None, data_dir=data_dir)
+    _, _, test_set, _ = load_task(dataset, evaluation_api=None, data_dir=data_dir, category=args.category)
     print(f"Test set size: {len(test_set)}")
 
     test_save_path = f"{log_dir}/infer_results.json"

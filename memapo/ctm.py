@@ -38,7 +38,7 @@ class GoodCase:
         return {
             "idx": self.idx,
             "question": self.question,
-            "ground_truth": self.ground_truth,
+            "ground_truth": self.ground_truth or "",
             "correct_pred": self.correct_pred,
         }
 
@@ -46,7 +46,7 @@ class GoodCase:
     def from_dict(cls, d: dict) -> "GoodCase":
         return cls(
             question=d["question"],
-            ground_truth=d["ground_truth"],
+            ground_truth=d.get("ground_truth") or None,
             correct_pred=d["correct_pred"],
             idx=d["idx"],
         )
@@ -155,11 +155,17 @@ class CorrectTemplateMemory:
     def _validate_template(self, template:Template, client, eval_fn, init_instruction:str, output_format:str, sample_k:int=3) -> bool:
         if not template.good_cases or eval_fn is None:
             return True
-        samples = random.sample(template.good_cases, min(sample_k, len(template.good_cases)))
+        # 只选有 ground_truth 的 good_cases 做验证；如果 eval_fn 支持 set_question 则也可验证无 gt 的
+        validatable = [gc for gc in template.good_cases if gc.ground_truth or hasattr(eval_fn, 'set_question')]
+        if not validatable:
+            return True
+        samples = random.sample(validatable, min(sample_k, len(validatable)))
         gen_sys_prompt = build_generation_sys_prompt(init_instruction, [])
         for gc in samples:
             gen_user_prompt = build_generation_user_prompt(gc.question, output_format, [template], [])
             pred = client.generate(gen_user_prompt, gen_sys_prompt)
+            if hasattr(eval_fn, 'set_question'):
+                eval_fn.set_question(gc.question)
             if not eval_fn(pred, gc.ground_truth):
                 if not int(os.environ.get('disable_logging', '0')):
                     logger = get_logger()

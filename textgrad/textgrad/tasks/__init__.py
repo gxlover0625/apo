@@ -477,7 +477,15 @@ def load_task(task_name: str, evaluation_api: EngineLM, *args, **kwargs) -> Tupl
         fn_purpose = "The runtime of string-based function that checks if the prediction is correct."
         eval_fn = StringBasedFunction(string_based_equality_fn, function_purpose=fn_purpose)
         return train_set, val_set, test_set, eval_fn
-    
+
+    elif task_name == "mt_bench":
+        from .mt_bench import MTBench
+        category = kwargs.get("category", "writing")
+        train_set = MTBench(category, root=kwargs.get("data_dir"), split="train")
+        test_set = MTBench(category, root=kwargs.get("data_dir"), split="test")
+        val_set = test_set
+        return train_set, val_set, test_set, None
+
     else:
         raise ValueError(f"Task {task_name} not found.")
 

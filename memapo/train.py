@@ -86,6 +86,7 @@ Completions.create = patched_create
 @dataclass
 class MemAPOArgs:
     dataset:str = ""
+    category:str = ""
 
     correct_threshold:float = 0.3 # 第一次尝试的时候效果好，不一定是最好的
     correct_topk:int = 3
@@ -98,7 +99,10 @@ class MemAPOArgs:
     embed_model:str = ""
     llm_model:str = ""
     llm_temperature:float = 0.7
-    
+
+    judge_model:str = ""
+    judge_threshold:float = 7.0
+
     disable_logging:bool = False
     log_dir: str = "./logs"
     db_dir: str = "./db"
@@ -166,8 +170,8 @@ if __name__ == "__main__":
     )
 
     # 准备数据
-    train_set, val_set, test_set, _ = load_task(args.dataset, evaluation_api=None, data_dir=data_dir)
-    eval_fn = get_eval_fn(args.dataset)
+    train_set, val_set, test_set, _ = load_task(args.dataset, evaluation_api=None, data_dir=data_dir, category=args.category)
+    eval_fn = get_eval_fn(args.dataset, judge_model=args.judge_model, judge_threshold=args.judge_threshold)
     print("Train/Val/Test Set Lengths: ", len(train_set), len(val_set), len(test_set))
     if args.dataset in ["Geo_Group", "BBH_geometric_shapes", "bbeh_geometric_shapes"]:
         init_instruction = """Identify geometric shapes from their SVG paths."""
@@ -184,6 +188,9 @@ if __name__ == "__main__":
     elif args.dataset in ["agieval_gaokao_history", "agieval_gaokao_chinese", "agieval_gaokao_geography", "human_group"]:
         init_instruction = """Let's solve the problem."""
         output_format = f"Format your response as follows: \"The correct answer is (insert answer here)\""
+    elif args.dataset in ["mt_bench"]:
+        init_instruction = ""
+        output_format = ""
 
     memapo = MemAPO(
         retriever,

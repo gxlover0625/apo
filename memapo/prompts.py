@@ -135,7 +135,7 @@ def build_reflection_user_prompt(question: str, wrong_pred: str, reflections: li
     ).strip()
 
 SUMMARIZE_REFLECTION_SYS_PROMPT = """You are an expert error-pattern analyst.
-Your job: given a question, its correct answer, and multiple failed attempts with reflections, synthesize ONE concise, generalizable error-pattern description that can prevent similar mistakes in the future.
+Your job: given a question, its correct answer (if available), and multiple failed attempts with reflections, synthesize ONE concise, generalizable error-pattern description that can prevent similar mistakes in the future.
 """
 
 SUMMARIZE_REFLECTION_USER_PROMPT = """A model attempted the following question multiple times and FAILED every time. Analyze all attempts holistically and extract the root-cause error pattern.
@@ -164,6 +164,28 @@ You MUST respond with a JSON object in exactly this format and nothing else:
 }}
 """
 
+SUMMARIZE_REFLECTION_USER_PROMPT_NO_GT = """A model attempted the following question multiple times and was judged as LOW QUALITY every time by an evaluator. Analyze all attempts holistically and extract the root-cause error pattern.
+
+<QUESTION>
+{question}
+</QUESTION>
+
+<FAILED_ATTEMPTS>
+{failed_attempts}
+</FAILED_ATTEMPTS>
+
+Instructions:
+1. Compare all failed attempts — identify the COMMON root cause, not just surface-level symptoms.
+2. Consider whether the errors stem from misunderstanding the question, flawed reasoning, lack of depth, poor structure, or missing domain knowledge.
+3. Abstract the lesson into a generalizable rule that applies beyond this specific question.
+
+You MUST respond with a JSON object in exactly this format and nothing else:
+{{
+    "root_cause": "brief description of the common root cause across all attempts",
+    "reflection": "one-sentence generalizable rule to prevent this category of error in the future"
+}}
+"""
+
 def _render_failed_attempts(reflections: list) -> str:
     blocks = [
         "\n".join([
@@ -179,11 +201,17 @@ def build_summarize_reflection_sys_prompt() -> str:
     return SUMMARIZE_REFLECTION_SYS_PROMPT
 
 def build_summarize_reflection_user_prompt(question: str, ground_truth: str, reflections: list) -> str:
-    return SUMMARIZE_REFLECTION_USER_PROMPT.format(
-        question=question,
-        ground_truth=ground_truth,
-        failed_attempts=_render_failed_attempts(reflections),
-    ).strip()
+    if ground_truth:
+        return SUMMARIZE_REFLECTION_USER_PROMPT.format(
+            question=question,
+            ground_truth=ground_truth,
+            failed_attempts=_render_failed_attempts(reflections),
+        ).strip()
+    else:
+        return SUMMARIZE_REFLECTION_USER_PROMPT_NO_GT.format(
+            question=question,
+            failed_attempts=_render_failed_attempts(reflections),
+        ).strip()
 
 UPDATE_ERROR_PATTERN_SYS_PROMPT = """You are an expert error-pattern analyst.
 Your job: refine an existing error-pattern description by incorporating new evidence from bad cases.
@@ -204,8 +232,7 @@ The following are existing bad cases already in this error pattern cluster.
 <NEW_BAD_CASE>
 This is the new bad case that triggered the update.
 question: {new_question}
-correct_answer: {new_ground_truth}
-wrong_answer: {new_wrong_pred}
+{new_ground_truth_line}wrong_answer: {new_wrong_pred}
 reflection: {new_reflection}
 </NEW_BAD_CASE>
 
@@ -229,26 +256,28 @@ You MUST respond with a JSON object in exactly this format and nothing else:
 def _render_bad_cases(bad_cases) -> str:
     if not bad_cases:
         return "(none)"
-    blocks = [
-        "\n".join([
+    blocks = []
+    for i, bc in enumerate(bad_cases, 1):
+        lines = [
             f"[BadCase {i}]",
             f"question: {bc.question}",
-            f"correct_answer: {bc.ground_truth}",
-            f"wrong_answer: {bc.wrong_pred}",
-            f"reflection: {bc.reflection}",
-        ])
-        for i, bc in enumerate(bad_cases, 1)
-    ]
+        ]
+        if bc.ground_truth:
+            lines.append(f"correct_answer: {bc.ground_truth}")
+        lines.append(f"wrong_answer: {bc.wrong_pred}")
+        lines.append(f"reflection: {bc.reflection}")
+        blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 
 def build_update_error_pattern_sys_prompt() -> str:
     return UPDATE_ERROR_PATTERN_SYS_PROMPT
 
 def build_update_error_pattern_user_prompt(current_pattern: str, new_bad_case, historical_bad_cases) -> str:
+    gt_line = f"correct_answer: {new_bad_case.ground_truth}\n" if new_bad_case.ground_truth else ""
     return UPDATE_ERROR_PATTERN_USER_PROMPT.format(
         current_pattern=current_pattern,
         new_question=new_bad_case.question,
-        new_ground_truth=new_bad_case.ground_truth,
+        new_ground_truth_line=gt_line,
         new_wrong_pred=new_bad_case.wrong_pred,
         new_reflection=new_bad_case.reflection,
         historical_bad_cases=_render_bad_cases(historical_bad_cases),
