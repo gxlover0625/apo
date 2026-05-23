@@ -131,27 +131,44 @@ def cmd_infer(args):
 
     model_id = args.model_id or args.model
     question_file = args.question_file or os.path.join(DATA_DIR, args.bench_name, "question.jsonl")
-    answer_file = args.answer_file or os.path.join(DATA_DIR, args.bench_name, "model_answer", f"{model_id}.jsonl")
+    output_dir = args.output_dir or os.path.join(DATA_DIR, args.bench_name, "model_answer")
 
     questions = load_questions(question_file, args.question_begin, args.question_end)
-    print(f"Loaded {len(questions)} questions from {question_file}")
-    print(f"Output to {answer_file}")
 
-    if os.path.exists(answer_file):
-        os.remove(answer_file)
+    categories = [c.strip() for c in args.categories.split(",")] if args.categories else None
+    if categories:
+        questions = [q for q in questions if q["category"] in categories]
+
+    print(f"Loaded {len(questions)} questions from {question_file}")
+    if categories:
+        print(f"Categories: {categories}")
 
     llm = LLMFactory.get_llm(args.model, temperature=0.7)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.parallel) as executor:
-        futures = [
-            executor.submit(get_answer, q, llm, model_id, args.max_tokens, answer_file, args.force_temperature)
-            for q in questions
-        ]
-        for future in tqdm.tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
-            future.result()
+    # 按 category 分组推理，分开保存
+    from collections import defaultdict
+    by_category = defaultdict(list)
+    for q in questions:
+        by_category[q["category"]].append(q)
 
-    reorg_answer_file(answer_file)
-    print(f"Done! Answers saved to {answer_file}")
+    for category, cat_questions in by_category.items():
+        answer_file = os.path.join(output_dir, f"{model_id}_{category}.jsonl")
+        if os.path.exists(answer_file):
+            os.remove(answer_file)
+
+        print(f"\n[{category}] {len(cat_questions)} questions → {answer_file}")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.parallel) as executor:
+            futures = [
+                executor.submit(get_answer, q, llm, model_id, args.max_tokens, answer_file, args.force_temperature)
+                for q in cat_questions
+            ]
+            for future in tqdm.tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+                future.result()
+
+        reorg_answer_file(answer_file)
+
+    print(f"\nDone! Answers saved to {output_dir}/")
 
 
 # ======================== pairwise ========================
@@ -256,7 +273,9 @@ if __name__ == "__main__":
     p_infer.add_argument("--question-file", type=str, default=None)
     p_infer.add_argument("--question-begin", type=int, default=None)
     p_infer.add_argument("--question-end", type=int, default=None)
-    p_infer.add_argument("--answer-file", type=str, default=None)
+    p_infer.add_argument("--output-dir", type=str, default=None, help="Output directory for answer files")
+    p_infer.add_argument("--categories", type=str, default="humanities,roleplay,writing",
+                         help="Comma-separated categories to infer (default: humanities,roleplay,writing)")
     p_infer.add_argument("--max-tokens", type=int, default=1024)
     p_infer.add_argument("--parallel", type=int, default=1)
     p_infer.add_argument("--force-temperature", type=float, default=None)
