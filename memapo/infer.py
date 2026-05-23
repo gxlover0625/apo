@@ -245,6 +245,33 @@ if __name__ == "__main__":
     print(f"Accuracy: {summary['correct']}/{summary['total']} = {summary['accuracy']:.4f}")
     print(f"Results saved to: {test_save_path}")
 
+    # 当 dataset 为 mt_bench 时，额外保存 MT-Bench 标准 jsonl 格式
+    if dataset == "mt_bench":
+        import time
+        import uuid
+        mt_data_path = data_dir / "mt_bench" / f"{args.category}_test.jsonl"
+        raw_items = []
+        with open(mt_data_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    raw_items.append(json.loads(line))
+
+        model_id = f"memapo-{llm_model}"
+        if args.exp_name:
+            model_id = f"memapo-{args.exp_name}"
+        mtbench_jsonl_path = f"{log_dir}/{model_id}.jsonl"
+        with open(mtbench_jsonl_path, "w", encoding="utf-8") as f:
+            for item, record in zip(raw_items, results):
+                ans = {
+                    "question_id": item["question_id"],
+                    "answer_id": uuid.uuid4().hex[:22],
+                    "model_id": model_id,
+                    "choices": [{"index": 0, "turns": [record["pred"]]}],
+                    "tstamp": time.time(),
+                }
+                f.write(json.dumps(ans, ensure_ascii=False) + "\n")
+        print(f"MT-Bench answer file saved to: {mtbench_jsonl_path}")
+
     _logger = get_logger() if not args.disable_logging else None
     token_meter.report(logger=_logger)
     print("Done!", flush=True)
