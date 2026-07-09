@@ -68,12 +68,18 @@ def timed_llm_call(client, api_provider, model, prompt, role, call_id, max_token
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.0,
-                max_tokens_key: max_tokens
+                max_tokens_key: max_tokens,
+                "timeout": 120
             }
-            
+
             # Add JSON mode if requested
             if use_json_mode:
                 api_params["response_format"] = {"type": "json_object"}
+
+            # DashScope (Qwen3) requires enable_thinking=False for non-streaming calls
+            if "qwen3" in model.lower():
+                api_params["extra_body"] = {"enable_thinking": False}
+
             call_start = time.time()
             response = active_client.chat.completions.create(**api_params)
             call_end = time.time()

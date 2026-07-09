@@ -26,11 +26,12 @@ def initialize_clients(api_provider):
         if not api_key:
             raise ValueError("Together api key not found in environment variables")
     elif api_provider == "openai":
-        # Use OpenAI API
-        base_url = "https://api.openai.com/v1"
+        # Use OpenAI API (or any OpenAI-compatible endpoint via OPENAI_BASE_URL)
+        base_url = os.getenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
         api_key = os.getenv('OPENAI_API_KEY', '')
         if not api_key:
             raise ValueError("OpenAI api key not found in environment variables")
+        print(f"OpenAI base_url: {base_url}")
     elif api_provider == "commonstack":
         # Use Commonstack API
         base_url = "https://api.commonstack.ai/v1"
@@ -286,8 +287,8 @@ def evaluate_test_set(data_processor, generator, playbook, test_samples,
         
         print(f"\n📊 Final Accuracy: {accuracy:.3f} ({results['correct']}/{results['total']})")
     else:
-        results = {"accuracy": 0.0, "correct": 0, "total": 0}
+        final_results = {"accuracy": 0.0, "correct": 0, "total": 0}
         error_logs = {}
         print(f"\n📊 No valid results!")
-        
+
     return final_results, error_logs
