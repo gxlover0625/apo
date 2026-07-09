@@ -9,5 +9,5 @@ logs/
 data/
 agent_dev/
 db/
-run*
+run*.sh
 *.pkl
