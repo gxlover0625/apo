@@ -47,6 +47,28 @@ class OpenAIEmbedProvider(EmbeddingProvider):
         norm_embeddings = normalize_vec(raw_embeddings)
         return norm_embeddings
 
+class DashScopeEmbedProvider(EmbeddingProvider):
+    def __init__(self, base_url=None, api_key=None, model=None):
+        import dashscope
+        self.api_key = api_key or os.getenv("DASHSCOPE_API_KEY")
+        assert self.api_key is not None, "Please set DASHSCOPE_API_KEY environment variable"
+        self.model = model
+
+    def _encode(self, input: Documents) -> Embeddings:
+        import dashscope
+        from http import HTTPStatus
+        # chromadb 每次只传单条（add/update/query 均为单元素），api_key 走参数传入，线程安全
+        response = dashscope.TextEmbedding.call(
+            model=self.model,
+            input=input,
+            api_key=self.api_key,
+        )
+        assert response.status_code == HTTPStatus.OK, \
+            f"DashScope embedding failed: {response.code} - {response.message}"
+        raw_embeddings = np.array([item["embedding"] for item in response.output["embeddings"]], dtype=np.float32)
+        norm_embeddings = normalize_vec(raw_embeddings)
+        return norm_embeddings
+
 class WhaleEmbedProvider(EmbeddingProvider):
     def __init__(self, base_url=None, api_key=None, model=None):
         self.base_url = base_url or os.getenv("WHALE_BASE_URL")
@@ -75,6 +97,8 @@ class EmbedFunctionFactory:
     def get_embed_function(model_name:str):
         if "qwen3-embedding" in model_name.lower():
             return WhaleEmbedProvider(model=model_name)
+        elif "text-embedding-v" in model_name.lower():
+            return DashScopeEmbedProvider(model=model_name)
         else:
             return OpenAIEmbedProvider(model=model_name)
 

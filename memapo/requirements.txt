@@ -1,0 +1,24 @@
+# memapo 运行依赖（不锁定版本）
+#
+# ⚠️ textgrad 必须用仓库内的定制版（含 math_group / agieval_* 等自定义任务），
+#    不能用 PyPI 版本。请用 editable 方式安装：
+#        pip install -e ../textgrad
+#    该命令会自动拉取 textgrad 自身的依赖（openai / tenacity / pandas /
+#    datasets / litellm / diskcache 等），因此下面不再重复列出。
+
+# ---- memapo 自身额外需要的包（textgrad 依赖之外）----
+chromadb
+dashscope
+transformers
+numpy
+
+# ---- 以下由 textgrad 依赖间接带入，保留仅为显式说明，可留可删 ----
+openai
+tenacity
+
+# whale 是阿里内部 SDK，公共 PyPI 无法安装。
+# 仅在使用 Whale 中转时才需要：
+#   - LLM 模型 qwen3-32b / qwen3-14b（llm.py: WhaleProvider）
+#   - embedding 模型 Qwen3-Embedding-8B（storage.py: WhaleEmbedProvider）
+# 若只用 OpenAI 兼容 LLM + DashScope embedding，则无需安装。
+# whale

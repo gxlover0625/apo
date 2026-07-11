@@ -10,10 +10,11 @@ export OPENAI_API_KEY=
 export OPENAI_BASE_URL=
 export WHALE_API_KEY=
 export WHALE_BASE_URL=
+export DASHSCOPE_API_KEY=
 
 # ============ 公共参数 ============
 correct_threshold=0.3
-embed_model=Qwen3-Embedding-8B
+embed_model=text-embedding-v4
 llm_model=gpt-4o-mini-0718
 
 # ============ 训练参数 ============
