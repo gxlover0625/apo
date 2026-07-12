@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - /agents/practice/math_agent@agent
+  - _self_
+
+exp_id: "math_AIME24_one"
+
+data:
+  dataset: "AIME24_one"
+
+concurrency: 1
+pass_k: 1
+
+verify_filename: "math.py"
+verify_func_name: "verify_func"
